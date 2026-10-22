@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chanthiran Mini HiFi System</title>
+    
+    <!-- PWA & Mobile Web App Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffaa00">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- HLS Engine for Live Dynamic Streaming -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Orbitron:wght@600;800;900&display=swap');
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0c;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .music-player-container {
+            width: 100%;
+            min-height: 100vh;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+            background: linear-gradient(145deg, #22252a 0%, #111215 100%);
+            border: 3px solid #3a3f47;
+            border-radius: 12px;
+            box-shadow: 0 0 35px rgba(0,0,0,0.9), inset 0 1px 2px rgba(255,255,255,0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            justify-content: flex-start;
+            align-items: center;
+            position: relative;
+        }
+
+        .hifi-body-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .top-deck-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+            border-bottom: 2px solid #2e333d;
+            padding-bottom: 6px;
+        }
+
+        .brand-label {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.7rem;
+            color: #ffaa00;
+            text-shadow: 0px 2px 10px rgba(255, 170, 0, 0.5);
+            letter-spacing: 0.5px;
+            user-select: none;
+        }
+
+        .top-right-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .compo-model-no {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            color: #6c757d;
+            letter-spacing: 1.5px;
+        }
+
+        .exit-btn {
+            background: linear-gradient(145deg, #ff3333, #990000);
+            border: 1px solid #ff6666;
+            color: #ffffff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 6px rgba(255, 0, 0, 0.4);
+            transition: all 0.15s ease;
+        }
+
+        .exit-btn svg {
+            width: 12px;
+            height: 12px;
+            fill: currentColor;
+        }
+
+        .exit-btn:active {
+            transform: scale(0.92);
+            box-shadow: 0 1px 2px rgba(255, 0, 0, 0.6);
+        }
+
+        .compact-amp-panel {
+            width: 100%;
+            background: transparent !important;
+            border: 1px dashed #454c59;
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #fff;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .amp-knobs-row {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 4px 0;
+        }
+
+        .amp-knob-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .amp-knob-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55rem;
+            font-weight: 800;
+            color: #00e5ff;
+            text-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
+        }
+
+        .knob-3d {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: conic-gradient(
+                #e2e8f0 0deg,
+                #94a3b8 45deg,
+                #cbd5e1 90deg,
+                #64748b 135deg,
+                #f1f5f9 180deg,
+                #94a3b8 225deg,
+                #cbd5e1 270deg,
+                #475569 315deg,
+                #e2e8f0 360deg
+            );
+            border: 2px solid #1e293b;
+            box-shadow: 
+                0 4px 8px rgba(0,0,0,0.8),
+                inset 0 1px 3px rgba(255,255,255,0.9),
+                inset 0 -2px 4px rgba(0,0,0,0.6);
+            position: relative;
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+            transform: rotate(0deg);
+            transition: transform 0.05s linear;
+        }
+
+        .knob-3d:active { cursor: grabbing; }
+
+        .knob-3d::before {
+            content: '';
+            position: absolute;
+            top: 3px; left: 3px; right: 3px; bottom: 3px;
+            border-radius: 50%;
+            background: repeating-radial-gradient(
+                circle at center,
+                rgba(255,255,255,0.2) 0px,
+                rgba(255,255,255,0.2) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+        }
+
+        .knob-3d::after {
+            content: '';
+            position: absolute;
+            top: 3px; left: 50%;
+            transform: translateX(-50%);
+            width: 3px; height: 10px;
+            background: #0f172a;
+            border-radius: 2px;
+            box-shadow: 0 0 2px rgba(255,255,255,0.8);
+        }
+
+        .knob-3d.large {
+            width: 44px; height: 44px;
+            transform: rotate(-135deg);
+        }
+
+        .knob-3d.large::after { height: 14px; }
+
+        .vu-meters-wrapper {
+            width: 100%;
+            display: flex;
+            gap: 8px;
+        }
+
+        .vu-meter-unit {
+            flex: 1;
+            height: 50px;
+            background: #11160a;
+            border: 2px solid #2c3224;
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .vu-meter-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 100%, rgba(255, 204, 0, 0.25) 0%, rgba(0,0,0,0.85) 75%);
+        }
+
+        .vu-needle {
+            position: absolute;
+            bottom: -5px;
+            width: 2px;
+            height: 45px;
+            background: #ff3300;
+            transform-origin: bottom center;
+            transform: rotate(-42deg);
+            transition: transform 0.08s ease-out;
+            box-shadow: 0 0 4px #ff3300;
+            z-index: 2;
+        }
+
+        .vu-scale {
+            position: absolute;
+            top: 4px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55rem;
+            color: #a3b899;
+            width: 100%;
+            text-align: center;
+            letter-spacing: 2px;
+            z-index: 1;
+        }
+
+        .visualizer-container {
+            width: 100%;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            border: 1px solid #2c323d;
+            border-radius: 6px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        #visualizerCanvas {
+            background: transparent !important;
+            width: 100%;
+            max-width: 420px;
+            height: 100%;
+        }
+
+        .vfd-display-panel {
+            width: 100%;
+            background: #000;
+            border: 2px solid #1c2628;
+            border-radius: 6px;
+            padding: 6px 12px;
+            box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.15), 0 0 8px rgba(0,0,0,0.8);
+            text-align: center;
+        }
+
+        #nowPlayingSubtitle {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            color: #ffaa00;
+            margin: 0 0 2px 0;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #currentTrackTitle {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            font-size: 1rem;
+            margin: 0;
+            color: #00e5ff;
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.7);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cassette-deck-well {
+            width: 100%;
+            height: 110px;
+            background: #0d0f12;
+            border: 2px solid #323842;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cassette-deck-well svg.cdeck-svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .spool-overlay-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+        }
+
+        .spool-left-wrapper {
+            position: absolute;
+            left: 23.5%; top: 42.5%;
+            transform: translate(-50%, -50%);
+        }
+
+        .spool-right-wrapper {
+            position: absolute;
+            left: 51.5%; top: 42.5%;
+            transform: translate(-50%, -50%);
+        }
+
+        .tape-wheel {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: #181c22;
+            border: 3px solid #728096;
+            box-shadow: 0 0 8px rgba(0,0,0,0.9), inset 0 0 4px rgba(255,255,255,0.3);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .tape-wheel::before {
+            content: '';
+            position: absolute;
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: #0d0e11;
+            border: 2px solid #a0aec0;
+            z-index: 3;
+        }
+
+        .spoke-cross {
+            position: absolute;
+            width: 100%; height: 100%;
+            top: 0; left: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spoke-bar-h, .spoke-bar-v {
+            position: absolute;
+            background: #e2e8f0;
+            border-radius: 2px;
+            box-shadow: 0 0 2px rgba(0,0,0,0.8);
+        }
+
+        .spoke-bar-h { width: 24px; height: 5px; }
+        .spoke-bar-v { width: 5px; height: 24px; }
+
+        .tape-wheel.spinning {
+            animation: spinWheel 2.5s linear infinite;
+        }
+
+        @keyframes spinWheel {
+            100% { transform: rotate(360deg); }
+        }
+
+        .fm-tuner-panel {
+            width: 100%;
+            background: linear-gradient(145deg, #14161a 0%, #0a0b0d 100%);
+            border: 2px solid #2c323d;
+            border-radius: 6px;
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 0, 0, 0.6);
+        }
+
+        .fm-tuner-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.58rem;
+            color: #ffaa00;
+            letter-spacing: 1.5px;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .fm-buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            width: 100%;
+        }
+
+        .fm-preset-btn {
+            background: linear-gradient(145deg, #2a2e38, #16181f);
+            border: 1px solid #454c59;
+            color: #00e5ff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55rem;
+            font-weight: 800;
+            padding: 6px 2px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 3px 0 #0d0e12;
+            transition: all 0.1s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .fm-preset-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #0d0e12;
+        }
+
+        .fm-preset-btn.active-fm {
+            color: #111;
+            background: linear-gradient(145deg, #ffaa00, #ff7700);
+            border-color: #ffaa00;
+            box-shadow: 0 0 10px rgba(255, 170, 0, 0.7);
+        }
+
+        .fm-preset-btn.off-btn {
+            color: #ff6666;
+            border-color: #ff3333;
+        }
+
+        .controls-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 3px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 18px;
+            width: 18px;
+            background: linear-gradient(145deg, #e6e6e6, #888888);
+            border: 1px solid #222;
+            border-radius: 3px;
+            margin-top: -6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.8);
+        }
+
+        #progressSlider { flex: 1; }
+        .time-display { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: #ffaa00; min-width: 36px; font-weight: 700; }
+
+        .button-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 2px;
+        }
+
+        .music-button {
+            cursor: pointer;
+            border: 1px solid #454c59 !important;
+            outline: none !important;
+            padding: 0 !important;
+            margin: 0;
+            border-radius: 6px;
+            transition: all 0.1s ease;
+            color: #d1d5db;
+            background: linear-gradient(145deg, #3a404d, #1f232b) !important;
+            box-shadow: 0 4px 0 #111317, 0 5px 8px rgba(0,0,0,0.6);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 38px;
+            touch-action: manipulation;
+        }
+
+        .music-button svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .music-button:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #111317, 0 2px 4px rgba(0,0,0,0.6);
+        }
+
+        .music-button.active-mode {
+            color: #ffaa00;
+            border-color: #ffaa00 !important;
+            box-shadow: 0 0 10px rgba(255, 170, 0, 0.4), inset 0 0 6px rgba(255, 170, 0, 0.3);
+        }
+
+        .pl-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .dropdown { position: relative; display: inline-block; }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #181a1f;
+            min-width: 260px;
+            max-width: 80vw;
+            box-shadow: 0px 10px 30px rgba(0,0,0,0.9);
+            z-index: 1000;
+            right: 0;
+            bottom: 100%;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            max-height: 40vh;
+            overflow-y: auto;
+            border: 2px solid #ffaa00;
+        }
+
+        .dropdown-sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: #181a1f;
+        }
+
+        .dropdown-content a, .dropdown-content label {
+            color: #eee;
+            padding: 10px 14px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.8rem;
+            font-family: 'Orbitron', sans-serif;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+        }
+
+        .dropdown-content label {
+            font-weight: bold;
+            color: #ffaa00;
+            background-color: rgba(255, 170, 0, 0.15);
+        }
+
+        .dropdown-content a:active, .dropdown-content a:hover,
+        .dropdown-content label:active, .dropdown-content label:hover { 
+            background-color: #2a2e38; 
+            color: #ffaa00; 
+        }
+
+        .dropdown-content a.active { background-color: #353b47; font-weight: bold; color: #ffaa00; }
+        .dropdown.show .dropdown-content { display: block; }
+
+        .volume-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+            background: #181b20;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #2a2e38;
+        }
+
+        #volumeIcon {
+            color: #ffaa00;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .boost-btn {
+            background: linear-gradient(145deg, #3a404d, #1f232b);
+            border: 1px solid #ffaa00;
+            color: #ffaa00;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .boost-btn svg {
+            width: 11px;
+            height: 11px;
+            fill: currentColor;
+        }
+
+        .boost-btn:active {
+            transform: scale(0.95);
+        }
+
+        #volumeSlider { flex: 1; }
+    </style>
+</head>
+<body>
+
+<div class="music-player-container">
+    <div class="top-deck-header">
+        <div class="brand-label">Chanthiran</div>
+        <div class="top-right-controls">
+            <span class="compo-model-no">MINI HIFI SYSTEM</span>
+            <button class="exit-btn" onclick="exitApp()" title="Exit App">
+                <svg viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg>
+                EXIT
+            </button>
+        </div>
+    </div>
+
+    <!-- Dual Audio Elements to Bypass Lock-Screen Autoplay Policy -->
+    <audio id="audioA" preload="auto" crossorigin="anonymous" playsinline></audio>
+    <audio id="audioB" preload="auto" crossorigin="anonymous" playsinline></audio>
+
+    <div class="hifi-body-wrapper">
+        <div class="compact-amp-panel">
+            <div class="amp-knobs-row">
+                <div class="amp-knob-unit">
+                    <div id="bassKnob" class="knob-3d"></div>
+                    <span class="amp-knob-label">BASS</span>
+                </div>
+                <div class="amp-knob-unit">
+                    <div id="trebleKnob" class="knob-3d"></div>
+                    <span class="amp-knob-label">TREBLE</span>
+                </div>
+                <div class="amp-knob-unit">
+                    <div id="balanceKnob" class="knob-3d"></div>
+                    <span class="amp-knob-label">BALANCE</span>
+                </div>
+                <div class="amp-knob-unit">
+                    <div id="masterVolumeKnob" class="knob-3d large"></div>
+                    <span class="amp-knob-label">VOLUME</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="vu-meters-wrapper">
+            <div class="vu-meter-unit">
+                <div class="vu-scale">VU L</div>
+                <div class="vu-meter-bg"></div>
+                <div id="vuNeedleL" class="vu-needle"></div>
+            </div>
+            <div class="vu-meter-unit">
+                <div class="vu-scale">VU R</div>
+                <div class="vu-meter-bg"></div>
+                <div id="vuNeedleR" class="vu-needle"></div>
+            </div>
+        </div>
+
+        <div class="visualizer-container">
+            <canvas id="visualizerCanvas" width="380" height="50"></canvas>
+        </div>
+
+        <div class="vfd-display-panel">
+            <p id="nowPlayingSubtitle">🎵 ♪ ♫ 🎶</p>
+            <p id="currentTrackTitle">Kayu Ara - Mix hitz</p>
+        </div>
+
+        <div class="cassette-deck-well">
+            <svg class="cdeck-svg" viewBox="0 0 400 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="120" fill="#1e222a"/>
+                <rect x="5" y="5" width="390" height="110" rx="6" fill="#13161c" stroke="#2e3542" stroke-width="2"/>
+                <rect x="15" y="12" width="280" height="96" rx="5" fill="#090a0d" stroke="#3d4656" stroke-width="2"/>
+                <rect x="305" y="12" width="80" height="96" rx="4" fill="#2d333f" stroke="#485265" stroke-width="1.5"/>
+                <path d="M 25 20 L 285 20 L 280 98 L 30 98 Z" fill="#1a1e26" stroke="#2b313d" stroke-width="1"/>
+                <rect x="50" y="30" width="210" height="42" rx="4" fill="#000000" stroke="#333c4a" stroke-width="2"/>
+                <rect x="55" y="34" width="200" height="34" rx="2" fill="#251a14" opacity="0.8"/>
+                <text x="32" y="32" fill="#718096" font-family="Orbitron, sans-serif" font-size="10" font-weight="800">90</text>
+                <text x="230" y="32" fill="#e2e8f0" font-family="Orbitron, sans-serif" font-size="9" font-weight="900">TYPE I</text>
+                <text x="32" y="50" fill="#ffaa00" font-family="Orbitron, sans-serif" font-size="11" font-weight="900">A</text>
+                <rect x="320" y="25" width="50" height="12" rx="2" fill="#1a1d24" stroke="#525d73" stroke-width="1"/>
+                <text x="325" y="34" fill="#a0aec0" font-family="Orbitron, sans-serif" font-size="6" font-weight="800">MEMORY</text>
+                <circle cx="345" cy="55" r="7" fill="#13151b" stroke="#718096" stroke-width="1.5"/>
+                <circle cx="345" cy="55" r="3" fill="#e2e8f0"/>
+                <text x="323" y="70" fill="#718096" font-family="Orbitron, sans-serif" font-size="5" font-weight="800">START OFF STOP</text>
+                <rect x="320" y="80" width="50" height="16" rx="2" fill="#171920" stroke="#718096" stroke-width="1.5"/>
+                <text x="331" y="91" fill="#e2e8f0" font-family="Orbitron, sans-serif" font-size="7" font-weight="900">EJECT</text>
+            </svg>
+
+            <div class="spool-overlay-container">
+                <div class="spool-left-wrapper">
+                    <div id="tapeLeft" class="tape-wheel">
+                        <div class="spoke-cross">
+                            <div class="spoke-bar-h"></div>
+                            <div class="spoke-bar-v"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="spool-right-wrapper">
+                    <div id="tapeRight" class="tape-wheel">
+                        <div class="spoke-cross">
+                            <div class="spoke-bar-h"></div>
+                            <div class="spoke-bar-v"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="fm-tuner-panel">
+            <div class="fm-tuner-label">FM STEREO TUNER PRESETS</div>
+            <div class="fm-buttons-grid">
+                <button class="fm-preset-btn" onclick="playFmStation('minnal', event)">MINNAL FM</button>
+                <button class="fm-preset-btn" onclick="playFmStation('raaga', event)">THR RAAGA</button>
+                <button class="fm-preset-btn" onclick="playFmStation('sooriyan', event)">SOORIYAN FM</button>
+                <button class="fm-preset-btn" onclick="playFmStation('oli', event)">OLI 96.8</button>
+                <button class="fm-preset-btn" onclick="playFmStation('airtamil80s', event)">80'S TAMIL</button>
+                <button class="fm-preset-btn" onclick="playFmStation('ilayaraja', event)">ILAYARAJA</button>
+                <button class="fm-preset-btn" onclick="playFmStation('arrahman', event)">AR RAHMAN</button>
+                <button class="fm-preset-btn off-btn" onclick="turnOffRadio()">TAPE / PL</button>
+            </div>
+        </div>
+
+        <div class="controls-wrapper">
+            <div class="control-row">
+                <span id="currentTime" class="time-display">0:00</span>
+                <input type="range" id="progressSlider" min="0" max="0" value="0" />
+                <span id="duration" class="time-display">0:00</span>
+            </div>
+
+            <div class="button-row">
+                <button id="restartButton" class="music-button" onclick="restartTrack()" title="Start Again / Reconnect Stream">
+                    <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+                </button>
+
+                <button id="prevButton" class="music-button" onclick="playPrevious()" title="Previous Song">
+                    <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                </button>
+
+                <button id="playButton" class="music-button" onclick="togglePlayPause()" title="Play">
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+
+                <button id="pauseButton" class="music-button" onclick="togglePlayPause()" style="display:none;" title="Pause">
+                    <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+
+                <button id="nextButton" class="music-button" onclick="playNext()" title="Next Song">
+                    <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                </button>
+
+                <button id="shuffleButton" class="music-button active-mode" onclick="toggleShuffle()" title="Toggle Shuffle Mode">
+                    <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.45 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+                </button>
+
+                <div class="dropdown">
+                    <button onclick="togglePlaylistDropdown()" class="music-button" title="Playlist">
+                        <span class="pl-text">PL</span>
+                    </button>
+                    <div id="playlistDropdown" class="dropdown-content">
+                        <div class="dropdown-sticky-header">
+                            <label for="localFileInput">📄 Pick Songs / Files...</label>
+                            <input type="file" id="localFileInput" multiple accept="audio/*" style="display:none;" onchange="handleLocalFiles(event)" />
+
+                            <label for="folderInput">📂 Pick Folder / Subfolder...</label>
+                            <input type="file" id="folderInput" webkitdirectory directory accept="audio/*" style="display:none;" onchange="handleLocalFiles(event)" />
+                        </div>
+                        <div id="dropdownTrackList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="volume-container">
+                <span id="volumeIcon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                    </svg>
+                </span>
+                <input type="range" id="volumeSlider" min="0" max="5" step="0.1" value="2.5" />
+                <button id="boostButton" class="boost-btn" onclick="cycleBoostMode()">
+                    <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+                    <span id="boostText">2.5x</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="playerScript">
+    var playlist = [
+        { title: "Abracadabara", src: "https://raw.githack.com/chanbai955/mp3/main/abracadabra!!s.mp3" },
+        { title: "AdukkuMalliYeduthu", src: "https://raw.githack.com/chanbai955/mp3/main/AdukkuMalliYeduthu%20.mp3" },
+        { title: "Always On My Mind", src: "https://raw.githack.com/chanbai955/mp3/main/Willie%20Nelson%20-%20Always%20On%20My%20Mind.mp3" },
+        { title: "Always SomeWhere", src: "https://raw.githack.com/chanbai955/mp3/main/Always%20Somewhere%20-%20Scorpions%20.mp3" },
+        { title: "Ammadi UN Azhagu", src: "https://raw.githack.com/chanbai955/mp3/main/Ammadi%20Un%20Azhagu%20.mp3" },
+        { title: "Anbae Peranbae", src: "https://raw.githack.com/chanbai955/mp3/main/%20Anbae%20Peranbae%20.mp3" },
+        { title: "Andainya Ku Pergi Dulu", src: "https://raw.githack.com/chanbai955/mp3/main/Andainya%20Aku%20Pergi%20Dulu.mp3" },
+        { title: "Apo nak Dikato", src: "https://raw.githack.com/chanbai955/mp3/main/Blues%20Gang%20Apo%20-%20Nak%20Dikato.mp3" },
+        { title: "Aarengum Thaan Uranga", src: "https://raw.githack.com/chanbai955/mp3/main/Aarengumthan%20Urange.mp3" },
+        { title: "Ayyayyo", src: "https://raw.githack.com/chanbai955/mp3/main/Ayyayyo.mp3" },
+        { title: "Beat It", src: "https://raw.githack.com/chanbai955/mp3/main/Micheal%20Jackson%20-%20Beat%20It.mp3" },
+        { title: "Because I Got High", src: "https://raw.githack.com/chanbai955/mp3/main/Afroman%20-%20Because%20I%20Got%20High.mp3" },
+        { title: "Billie Jean", src: "https://raw.githack.com/chanbai955/mp3/main/Michael%20Jackson%20-%20Billie%20Jean.mp3" },
+        { title: "Black Magic Women", src: "https://raw.githack.com/chanbai955/mp3/main/Santana_Black-Magic-Woman-Gypsy-Queen.mp3" },
+        { title: "Cheri Cheri Lady", src: "https://raw.githack.com/chanbai955/mp3/main/ModernTalking-CheriCheriLady98.mp3" },
+        { title: "DilLagaLiya", src: "https://raw.githack.com/chanbai955/mp3/main/DilLagaLiya%20.mp3" },
+        { title: "Dont forget to remember me", src: "https://raw.githack.com/chanbai955/mp3/main/Don't%20Forget%20To%20Remember%20Me%20%E2%80%93%20Bee%20Gees%20.mp3" },
+        { title: "Ellarum Cholanum", src: "https://raw.githack.com/chanbai955/mp3/main/Ellarum%20chollanu%20.mp3" },
+        { title: "Ellu Vaya Pookalaye", src: "https://raw.githack.com/chanbai955/mp3/main/%20Ellu%20Vaya%20Pookalaye%20.mp3" },
+        { title: "EnKanmani", src: "https://raw.githack.com/chanbai955/mp3/main/EnKanmani.mp3" },
+        { title: "Enge antha venila", src: "https://raw.githack.com/chanbai955/mp3/main/Enge%20Andha%20Vennila%20.mp3" },
+        { title: "Eppadi Vandhaayo", src: "https://raw.githack.com/chanbai955/mp3/main/Eppadi%20Vandhaayo%20.mp3" },
+        { title: "Every Breath You Take", src: "https://raw.githack.com/chanbai955/mp3/main/Police%20-%20Every%20Breath%20You%20Take.mp3" },
+        { title: "Get Up Stand UP", src: "https://raw.githack.com/chanbai955/mp3/main/Bob%20Marley%20-%20Get%20Up%20Stand%20Up.mp3" },
+        { title: "Hanya Satu Persinggahan", src: "https://raw.githack.com/chanbai955/mp3/main/%20HanyaSatuPersinggahan.mp3" },
+        { title: "Hello", src: "https://raw.githack.com/chanbai955/mp3/main/HELLO%20-%20%20LIONEL%20RICHIE%20.mp3" },
+        { title: "Highway Star", src: "https://raw.githack.com/chanbai955/mp3/main/Deep%20Purple%20-%20Highway%20Star%20.mp3" },
+        { title: "Highway to Hell", src: "https://raw.githack.com/chanbai955/mp3/main/AC%E2%A7%B8DC%20-%20Highway%20to%20Hell%20.mp3" },
+        { title: "Hingga Akhir Nanti", src: "https://raw.githack.com/chanbai955/mp3/main/Hingga%20Akhir%20Nanti.mp3" },
+        { title: "Holy Diver", src: "https://raw.githack.com/chanbai955/mp3/main/Dio%20-%20Holy%20Diver.mp3" },
+        { title: "Hotel california", src: "https://raw.githack.com/chanbai955/mp3/main/Eagles%20-%20Hotel%20California%20(Original).mp3" },
+        { title: "I Love You", src: "https://raw.githack.com/chanbai955/mp3/main/C%C3%A9line%20Dion%20-%20I%20Love%20You.mp3" },
+        { title: "Islands in the stream", src: "https://raw.githack.com/chanbai955/mp3/main/%20Islands%20In%20the%20Stream.mp3" },
+        { title: "Kaanakarunguyile Kathal", src: "https://raw.githack.com/chanbai955/mp3/main/Kaanakarunguyile%20Kathal.mp3" },
+        { title: "KaalangalilVasantham", src: "https://raw.githack.com/chanbai955/mp3/main/KaalangalilVasantham%20.mp3" },
+        { title: "Kallelaam Maanikka", src: "https://raw.githack.com/chanbai955/mp3/main/Kallelaam%20Maanikka.mp3" },
+        { title: "Kanna Kaattu Podhum", src: "https://raw.githack.com/chanbai955/mp3/main/%20Kanna%20Kaattu%20Podhum.mp3" },
+        { title: "Kannukullae Unnai Vaithen", src: "https://raw.githack.com/chanbai955/mp3/main/Kannukullae%20Unnai%20Vaithen%20.mp3" },
+        { title: "Karma Chameleon", src: "https://raw.githack.com/chanbai955/mp3/main/Culture%20Club%20-%20Karma%20Chameleon.mp3" },
+        { title: "Kerana", src: "https://raw.githack.com/chanbai955/mp3/main/Kerana.mp3" },
+        { title: "Keralanaadu", src: "https://raw.githack.com/chanbai955/mp3/main/Keralanaadu.mp3" },
+        { title: "Knockin Heavens Door", src: "https://raw.githack.com/chanbai955/mp3/main/%20Knockin'%20On%20Heaven's%20Door%20.mp3" },
+        { title: "Konjam Nearam", src: "https://raw.githack.com/chanbai955/mp3/main/%20Innum%20Konjam%20Naeram%20.mp3" },
+        { title: "Koodamela", src: "https://raw.githack.com/chanbai955/mp3/main/%20Koodamela%20Koodavechi.mp3" },
+        { title: "Kudagu Malai", src: "https://raw.githack.com/chanbai955/mp3/main/Kudagu%20Malai%20.mp3" },
+        { title: "Kuruku Sirithavale", src: "https://raw.githack.com/chanbai955/mp3/main/Kurukku%20siruthavale%20.mp3" },
+        { title: "Kuzhal Oothum Kannanukku", src: "https://raw.githack.com/chanbai955/mp3/main/Kuzhal%20Oothum%20Kannanukku%20Song%20.mp3" },
+        { title: "Layang-layang", src: "https://raw.githack.com/chanbai955/mp3/main/Layang%20Layang%20Terputus%20talinya.mp3" },
+        { title: "Like A Virgin", src: "https://raw.githack.com/chanbai955/mp3/main/Madonna-Like%20a%20virg%C3%ADn.mp3" },
+        { title: "MaalaiSooda", src: "https://raw.githack.com/chanbai955/mp3/main/MaalaiSooda%20.mp3" },
+        { title: "Maalaiyil Yaaro Manathodu Pesa", src: "https://raw.githack.com/chanbai955/mp3/main/Maalaiyil%20Yaaro%20Manathodu%20Pesa%20.MP3" },
+        { title: "Malai Kaatru", src: "https://raw.githack.com/chanbai955/mp3/main/Malai%20Kaatru%20.mp3" },
+        { title: "Malarea Mounama", src: "https://raw.githack.com/chanbai955/mp3/main/Malare%20Mounama.mp3" },
+        { title: "MalarnthumMalaradha", src: "https://raw.githack.com/chanbai955/mp3/main/MalarnthumMalaradha.mp3" },
+        { title: "Mallipoo", src: "https://raw.githack.com/chanbai955/mp3/main/Mallipoo%20.mp3" },
+        { title: "Maonamana Neraam", src: "https://raw.githack.com/chanbai955/mp3/main/Maonamana%20neraam.mp3" },
+        { title: "Mun Paniya", src: "https://raw.githack.com/chanbai955/mp3/main/Mun%20Paniya.mp3" },
+        { title: "MuthukkuMuthaga", src: "https://raw.githack.com/chanbai955/mp3/main/MuthukkuMuthaga.mp3" },
+        { title: "Muzhumathi", src: "https://raw.githack.com/chanbai955/mp3/main/Muzhumathi.mp3" },
+        { title: "My Heart Will Go On", src: "https://raw.githack.com/chanbai955/mp3/main/My%20Heart%20Will%20Go%20On.mp3" },
+        { title: "Naam", src: "https://raw.githack.com/chanbai955/mp3/main/Naam%20.mp3" },
+        { title: "Naan Erikkarai", src: "https://raw.githack.com/chanbai955/mp3/main/Naan%20Erikkarai.mp3" },
+        { title: "Naan Malarodu", src: "https://raw.githack.com/chanbai955/mp3/main/Naan%20Malarodu.mp3" },
+        { title: "Nannaga Nanaeruthan", src: "https://raw.githack.com/chanbai955/mp3/main/Nannaga%20Nanaeruthan.mp3" },
+        { title: "NeeKattumSelai", src: "https://raw.githack.com/chanbai955/mp3/main/NeeKattumSelai.mp3" },
+        { title: "Neethanae", src: "https://raw.githack.com/chanbai955/mp3/main/%20Neethanae.mp3" },
+        { title: "Neeyam Naanum", src: "https://raw.githack.com/chanbai955/mp3/main/%20Neeyum%20Naanum.mp3" },
+        { title: "Nejil Maamazhai", src: "https://raw.githack.com/chanbai955/mp3/main/Nejil%20Maamazhai%20.mp3" },
+        { title: "Nota Terakhir", src: "https://raw.githack.com/chanbai955/mp3/main/Alleycats%20-%20Nota%20Terakhir%20.mp3" },
+        { title: "Odugira", src: "https://raw.githack.com/chanbai955/mp3/main/Odugira.mp3" },
+        { title: "Oru Sanam", src: "https://raw.githack.com/chanbai955/mp3/main/Oru%20Sanam.MP3" },
+        { title: "Paakatha", src: "https://raw.githack.com/chanbai955/mp3/main/Paakatha%20.mp3" },
+        { title: "Paattukku Patteduthu", src: "https://raw.githack.com/chanbai955/mp3/main/Paattukku%20Patteduthu%20.mp3" },
+        { title: "Pattu Vanna Rosava", src: "https://raw.githack.com/chanbai955/mp3/main/Pattu%20Vanna%20Rosava.mp3" },
+        { title: "Perfect Strangers", src: "https://raw.githack.com/chanbai955/mp3/main/Deep%20Purple%20%20-%20Perfect%20Strangers%20.mp3" },
+        { title: "PongatruThirumbuma", src: "https://raw.githack.com/chanbai955/mp3/main/PongatruThirumbuma%20.mp3" },
+        { title: "Poongaathe Poongaathe", src: "https://raw.githack.com/chanbai955/mp3/main/Poongaathe%20Poongaathe.mp3" },
+        { title: "Poravale Ponnuthaiyee", src: "https://raw.githack.com/chanbai955/mp3/main/Poravale%20Ponnuthaiyee.mp3" },
+        { title: "PuthamPudhuKaalai", src: "https://raw.githack.com/chanbai955/mp3/main/PuthamPudhuKaalai%20.mp3" },
+        { title: "Raasathi Unna", src: "https://raw.githack.com/chanbai955/mp3/main/Raasathi%20Unna.mp3" },
+        { title: "Raasave", src: "https://raw.githack.com/chanbai955/mp3/main/Raasave.mp3" },
+        { title: "Rhythm of the Rain", src: "https://raw.githack.com/chanbai955/mp3/main/%20Rhythm%20Of%20The%20Rain!s.mp3" },
+        { title: "Right Here waiting for You", src: "https://raw.githack.com/chanbai955/mp3/main/Richard%20Marx%20-%20Right%20Here%20Waiting%20For%20You.mp3" },
+        { title: "Rojamalare", src: "https://raw.githack.com/chanbai955/mp3/main/rojamalare.mp3" },
+        { title: "SaamiKittaSolli", src: "https://raw.githack.com/chanbai955/mp3/main/SaamiKittaSolli.mp3" },
+        { title: "Sampaikan Salam Cintaku", src: "https://raw.githack.com/chanbai955/mp3/main/Sampaikan%20Salam%20Cintaku.mp3" },
+        { title: "Sekuntum Mawar Merah", src: "https://raw.githack.com/chanbai955/mp3/main/Sekuntum%20Mawar%20Merah%20Sebuah%20Puisi.mp3" },
+        { title: "Send me An Angel", src: "https://raw.githack.com/chanbai955/mp3/main/Scorpions%20-%20Send%20me%20an%20angel%20.mp3" },
+        { title: "SenthazhamPoovil", src: "https://raw.githack.com/chanbai955/mp3/main/SenthazhamPoovil%20.mp3" },
+        { title: "Setahun Sudah Berlalu", src: "https://raw.githack.com/chanbai955/mp3/main/Setahun%20Sudah%20Berlalu.mp3" },
+        { title: "Short Clips-002", src: "https://raw.githack.com/chanbai955/mp3/main/shortclips-002.mp3" },
+        { title: "Smoke Is Going Down", src: "https://raw.githack.com/chanbai955/mp3/main/Scorpions%20-%20When%20The%20Smoke%20Is%20Going%20Down%20.mp3" },
+        { title: "Smoke On The Water", src: "https://raw.githack.com/chanbai955/mp3/main/Deep%20Purple%20-%20Smoke%20On%20the%20Water%20.mp3" },
+        { title: "Smooth Criminal", src: "https://raw.githack.com/chanbai955/mp3/main/Smooth%20Operator%20-sade.mp3" },
+        { title: "Solai Pushpangale", src: "https://raw.githack.com/chanbai955/mp3/main/Solai%20Pushpangale.mp3" },
+        { title: "Soldier of Fortune", src: "https://raw.githack.com/chanbai955/mp3/main/Soldier%20of%20Fortune.mp3" },
+        { title: "Sollitaley ava", src: "https://raw.githack.com/chanbai955/mp3/main/%20Sollitaley%20Ava%20Kaadhala%20.mp3" },
+        { title: "Still Loving You", src: "https://raw.githack.com/chanbai955/mp3/main/Scorpions%20-%20Still%20Loving%20You.mp3" },
+        { title: "Suara Kekasih", src: "https://raw.githack.com/chanbai955/mp3/main/Suara%20Kekasih.mp3" },
+        { title: "SuciDalamDebu", src: "https://raw.githack.com/chanbai955/mp3/main/SuciDalamDebu.mp3" },
+        { title: "Suratan", src: "https://raw.githack.com/chanbai955/mp3/main/Suratan.mp3" },
+        { title: "ThalattumPoongatru", src: "https://raw.githack.com/chanbai955/mp3/main/ThalattumPoongatru%20.mp3" },
+        { title: "To Love Somebody", src: "https://raw.githack.com/chanbai955/mp3/main/Bee%20Gees%20-%20To%20Love%20Somebody.mp3" },
+        { title: "Unnai Thaane", src: "https://raw.githack.com/chanbai955/mp3/main/%E0%AE%89%E0%AE%A9%E0%AF%8D%E0%AE%A9%E0%AF%88%20%E0%AE%A4%E0%AE%BE%E0%AE%A9%E0%AF%87%20.MP3" },
+        { title: "UrugutheyMaruguthey", src: "https://raw.githack.com/chanbai955/mp3/main/UrugutheyMaruguthey%20.mp3" },
+        { title: "ValarnthaKalai", src: "https://raw.githack.com/chanbai955/mp3/main/ValarnthaKalai%20.mp3" },
+        { title: "Vella Manam", src: "https://raw.githack.com/chanbai955/mp3/main/Vella%20Marnam%20Ulla%20Macha.MP3" },
+        { title: "Vennilave", src: "https://raw.githack.com/chanbai955/mp3/main/Vennilave%20Vennilave%20.mp3" },
+        { title: "Wind Of Change", src: "https://raw.githack.com/chanbai955/mp3/main/51.Scorpions%20-%20Wind%20Of%20Change.mp3" },
+        { title: "Wonderful World", src: "https://raw.githack.com/chanbai955/mp3/main/Sam%20Cooke%20-%20Wonderful%20World.mp3" },
+        { title: "Wonderful World tonight", src: "https://raw.githack.com/chanbai955/mp3/main/Eric%20Clapton_Wonderful%20Tonight.mp3" },
+        { title: "Yenna Marenthe Poluthe", src: "https://raw.githack.com/chanbai955/mp3/main/Yenna%20Marenthe%20Poluthe.MP3" },
+        { title: "You Send Me", src: "https://raw.githack.com/chanbai955/mp3/main/Kenny%20G%20&%20Micheal%20Bolton%20-%20You%20Send%20Me.mp3" },
+        { title: "Your Man", src: "https://raw.githack.com/chanbai955/mp3/main/Josh%20Turner%20-%20Your%20Man.mp3" }
+    ];
+
+    playlist.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+
+    var fmStations = {
+        minnal: { title: "Minnal FM (96.3)", query: "minnal fm", backup: "https://stream.zeno.fm/f3v48y5168uvh", useApi: true },
+        raaga: { title: "THR Raaga (99.3)", query: "thr raaga", backup: "https://astro3.astro.com.my/raaga/raaga.m3u8", useApi: true },
+        sooriyan: { title: "Sooriyan FM", query: "sooriyan fm", backup: "https://shaincast.riereta.net/listen/sooriyan_fm/radio.mp3", useApi: true },
+        oli: { title: "Oli 96.8 FM", query: "oli 96.8", backup: "https://mediacorp.coltcdn.com/oli968/live.m3u8", useApi: true },
+        airtamil80s: { title: "80's Tamil Hits - AIR Tamil", query: "80s tamil hits", backup: "https://sp4.v3http.xyz/radio/8040/radio.mp3", useApi: true },
+        ilayaraja: { title: "Ilayaraja FM Hits", query: "ilayaraja radio", backup: "https://sp4.v3http.xyz/radio/8020/radio.mp3", useApi: true },
+        arrahman: { title: "A.R. Rahman Radio", query: "ar rahman radio", backup: "https://sp4.v3http.xyz/radio/8010/radio.mp3", useApi: true }
+    };
+
+    var activeFmKey = null;
+    var currentStreamUrl = null;
+    var hls = null;
+    var hlsRetryCount = 0;
+    var maxHlsRetries = 5;
+
+    /* --- INLINE WEB WORKER TIMER FOR BACKGROUND TRACK SWAPPING --- */
+    var workerBlob = new Blob([`
+        var timer = null;
+        self.onmessage = function(e) {
+            if (e.data === 'start') {
+                if (timer) clearInterval(timer);
+                timer = setInterval(function() {
+                    self.postMessage('tick');
+                }, 1000);
+            } else if (e.data === 'stop') {
+                if (timer) clearInterval(timer);
+                timer = null;
+            }
+        };
+    `], { type: 'text/javascript' });
+    var bgWorker = new Worker(URL.createObjectURL(workerBlob));
+
+    /* --- DUAL AUDIO ELEMENT SWAP ENGINE --- */
+    var audioA = document.getElementById('audioA');
+    var audioB = document.getElementById('audioB');
+    var activeAudio = audioA;
+    var idleAudio = audioB;
+
+    var currentTrackTitle = document.getElementById('currentTrackTitle');
+    var nowPlayingSubtitle = document.getElementById('nowPlayingSubtitle');
+    var playButton = document.getElementById('playButton');
+    var pauseButton = document.getElementById('pauseButton');
+    var shuffleButton = document.getElementById('shuffleButton');
+    var playlistDropdown = document.getElementById('playlistDropdown');
+    var dropdownTrackList = document.getElementById('dropdownTrackList');
+    var volumeSlider = document.getElementById('volumeSlider');
+    var boostText = document.getElementById('boostText');
+    var progressSlider = document.getElementById('progressSlider');
+    var currentTimeSpan = document.getElementById('currentTime');
+    var durationSpan = document.getElementById('duration');
+
+    var tapeLeft = document.getElementById('tapeLeft');
+    var tapeRight = document.getElementById('tapeRight');
+    var vuNeedleL = document.getElementById('vuNeedleL');
+    var vuNeedleR = document.getElementById('vuNeedleR');
+
+    var canvas = document.getElementById('visualizerCanvas');
+    var canvasCtx = canvas.getContext('2d');
+    var audioCtx, analyser, gainNode, bassFilter, trebleFilter;
+    var capHeights = [];
+    var wakeLock = null;
+
+    var currentTrackIndex = 0;
+    var isShuffle = true;
+    var playedHistory = [];
+    var hasUserStartedPlayback = false;
+    var currentLocalPlaylist = [];
+    var isPlayingLocal = false;
+    var localTrackIndex = 0;
+    var localPlayedHistory = [];
+
+    function setupKnobControl(knobEl, onValueChange, minVal, maxVal, defaultVal) {
+        if (!knobEl) return;
+        var isDragging = false;
+        var startY = 0;
+
+        function updateVisualAngle(val) {
+            var norm = (val - minVal) / (maxVal - minVal);
+            var angle = -135 + norm * 270;
+            knobEl.style.transform = 'rotate(' + angle + 'deg)';
+            knobEl.setAttribute('data-val', val);
+        }
+
+        knobEl.addEventListener('pointerdown', function(e) {
+            isDragging = true;
+            startY = e.clientY;
+            knobEl.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        });
+
+        knobEl.addEventListener('pointermove', function(e) {
+            if (!isDragging) return;
+            var deltaY = startY - e.clientY;
+            startY = e.clientY;
+
+            var currentVal = parseFloat(knobEl.getAttribute('data-val') || defaultVal);
+            var step = (maxVal - minVal) / 100;
+            var newVal = Math.min(maxVal, Math.max(minVal, currentVal + deltaY * step));
+
+            updateVisualAngle(newVal);
+            onValueChange(newVal);
+        });
+
+        knobEl.addEventListener('pointerup', function(e) {
+            isDragging = false;
+            knobEl.releasePointerCapture(e.pointerId);
+        });
+
+        knobEl.addEventListener('pointercancel', function() {
+            isDragging = false;
+        });
+
+        updateVisualAngle(defaultVal);
+        return updateVisualAngle;
+    }
+
+    var updateVolumeKnobAngle = setupKnobControl(
+        document.getElementById('masterVolumeKnob'),
+        function(newVal) {
+            volumeSlider.value = newVal;
+            initAudioContext();
+            applyVolumeGain();
+        },
+        0.0, 5.0, 2.5
+    );
+
+    setupKnobControl(
+        document.getElementById('bassKnob'),
+        function(newGain) {
+            initAudioContext();
+            if (bassFilter) bassFilter.gain.value = newGain;
+        },
+        -12, 12, 0
+    );
+
+    setupKnobControl(
+        document.getElementById('trebleKnob'),
+        function(newGain) {
+            initAudioContext();
+            if (trebleFilter) trebleFilter.gain.value = newGain;
+        },
+        -12, 12, 0
+    );
+
+    setupKnobControl(
+        document.getElementById('balanceKnob'),
+        function(angle) {},
+        -10, 10, 0
+    );
+
+    function destroyHls() {
+        if (hls) {
+            hls.destroy();
+            hls = null;
+        }
+        hlsRetryCount = 0;
+    }
+
+    function playFmStation(key, evt) {
+        if (!fmStations[key]) return;
+        
+        activeFmKey = key;
+        initAudioContext();
+        activeAudio.pause();
+        idleAudio.pause();
+        destroyHls();
+
+        document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
+        if (evt && evt.currentTarget) {
+            evt.currentTarget.classList.add('active-fm');
+        }
+
+        nowPlayingSubtitle.textContent = "TUNING STREAM...";
+        currentTrackTitle.textContent = fmStations[key].title;
+        
+        currentTimeSpan.textContent = "0:00";
+        durationSpan.textContent = "LIVE";
+        progressSlider.value = 0;
+
+        var stationInfo = fmStations[key];
+
+        if (stationInfo.useApi) {
+            fetch("https://de1.api.radio-browser.info/json/stations/byname/" + encodeURIComponent(stationInfo.query))
+                .then(res => res.json())
+                .then(data => {
+                    if (activeFmKey !== key) return;
+                    var resolvedUrl = (data && data.length > 0 && data[0].url_resolved) ? data[0].url_resolved : stationInfo.backup;
+                    startStreamUrl(stationInfo.title, resolvedUrl);
+                })
+                .catch(() => {
+                    if (activeFmKey !== key) return;
+                    startStreamUrl(stationInfo.title, stationInfo.backup);
+                });
+        } else {
+            startStreamUrl(stationInfo.title, stationInfo.backup);
+        }
+    }
+
+    function startStreamUrl(title, url) {
+        initAudioContext();
+        destroyHls();
+        currentStreamUrl = url;
+        currentTrackTitle.textContent = title;
+
+        if (url.includes('.m3u8')) {
+            if (Hls.isSupported()) {
+                hls = new Hls({
+                    manifestLoadingTimeOut: 10000,
+                    manifestLoadingMaxRetry: 4,
+                    levelLoadingTimeOut: 10000,
+                    fragLoadingTimeOut: 20000
+                });
+                hls.loadSource(url);
+                hls.attachMedia(activeAudio);
+                
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    hlsRetryCount = 0;
+                    nowPlayingSubtitle.textContent = "LIVE FM RADIO";
+                    activeAudio.play().catch(() => {});
+                });
+
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    if (data.fatal) {
+                        switch (data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                handleHlsNetworkError();
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                hls.recoverMediaError();
+                                break;
+                            default:
+                                fallbackToBackupStream();
+                                break;
+                        }
+                    }
+                });
+            } else if (activeAudio.canPlayType('application/vnd.apple.mpegurl')) {
+                activeAudio.src = url;
+                nowPlayingSubtitle.textContent = "LIVE FM RADIO";
+                activeAudio.play().catch(() => {});
+            }
+        } else {
+            activeAudio.src = url;
+
+            var quickPlay = function() {
+                nowPlayingSubtitle.textContent = "LIVE FM RADIO";
+                activeAudio.play().then(() => {
+                    hasUserStartedPlayback = true;
+                    requestWakeLock();
+                }).catch(() => {});
+                activeAudio.removeEventListener('canplay', quickPlay);
+            };
+
+            activeAudio.addEventListener('canplay', quickPlay);
+            activeAudio.load();
+        }
+        updateMediaSession();
+    }
+
+    function handleHlsNetworkError() {
+        if (hlsRetryCount < maxHlsRetries) {
+            hlsRetryCount++;
+            nowPlayingSubtitle.textContent = "RECONNECTING (" + hlsRetryCount + "/" + maxHlsRetries + ")...";
+            setTimeout(() => {
+                if (hls && activeFmKey) {
+                    hls.startLoad();
+                }
+            }, Math.pow(2, hlsRetryCount) * 1000);
+        } else {
+            fallbackToBackupStream();
+        }
+    }
+
+    function fallbackToBackupStream() {
+        if (!activeFmKey || !fmStations[activeFmKey]) return;
+        var backupUrl = fmStations[activeFmKey].backup;
+        if (currentStreamUrl !== backupUrl) {
+            nowPlayingSubtitle.textContent = "SWITCHING BACKUP STREAM...";
+            startStreamUrl(fmStations[activeFmKey].title, backupUrl);
+        } else {
+            nowPlayingSubtitle.textContent = "STREAM OFFLINE";
+        }
+    }
+
+    function reconnectActiveStream() {
+        if (activeFmKey) {
+            nowPlayingSubtitle.textContent = "RECONNECTING STREAM...";
+            playFmStation(activeFmKey);
+        }
+    }
+
+    function turnOffRadio() {
+        activeFmKey = null;
+        currentStreamUrl = null;
+        destroyHls();
+        document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
+        activeAudio.pause();
+        idleAudio.pause();
+        
+        if (currentLocalPlaylist.length > 0) {
+            playLocalTrack(localTrackIndex);
+        } else {
+            loadTrack(currentTrackIndex, true, 0);
+        }
+    }
+
+    function exitApp() {
+        destroyHls();
+        if (activeAudio) activeAudio.pause();
+        if (idleAudio) idleAudio.pause();
+        if (wakeLock) wakeLock.release().catch(()=>{});
+        bgWorker.postMessage('stop');
+        
+        try { window.close(); } catch(e) {}
+        setTimeout(() => { window.location.href = "about:blank"; }, 300);
+    }
+
+    function savePlayerState() {
+        try {
+            var state = {
+                trackIndex: currentTrackIndex,
+                currentTime: activeAudio.currentTime || 0,
+                isShuffle: isShuffle,
+                isPlayingLocal: isPlayingLocal,
+                wasPlaying: !activeAudio.paused,
+                volume: volumeSlider.value
+            };
+            localStorage.setItem('chanthiran_player_state', JSON.stringify(state));
+        } catch(e) {}
+    }
+
+    async function requestWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
+            }
+        } catch (err) {}
+    }
+
+    function readEntry(entry) {
+        return new Promise((resolve) => {
+            if (entry.isFile) {
+                entry.file((file) => {
+                    if (file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|m4a|aac)$/i)) {
+                        var objectUrl = URL.createObjectURL(file);
+                        var cleanTitle = file.name.replace(/\.[^/.]+$/, "");
+                        resolve([{ title: cleanTitle, src: objectUrl }]);
+                    } else {
+                        resolve([]);
+                    }
+                }, () => resolve([]));
+            } else if (entry.isDirectory) {
+                var dirReader = entry.createReader();
+                dirReader.readEntries(async (entries) => {
+                    var results = [];
+                    for (var i = 0; i < entries.length; i++) {
+                        var files = await readEntry(entries[i]);
+                        results = results.concat(files);
+                    }
+                    resolve(results);
+                }, () => resolve([]));
+            } else {
+                resolve([]);
+            }
+        });
+    }
+
+    async function handleLocalFiles(event) {
+        var files = event.target.files;
+        if (!files || files.length === 0) return;
+
+        currentLocalPlaylist = [];
+        localPlayedHistory = [];
+        activeFmKey = null;
+        destroyHls();
+        document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
+
+        if (event.target.webkitEntries && event.target.webkitEntries.length > 0) {
+            var promises = [];
+            for (var i = 0; i < event.target.webkitEntries.length; i++) {
+                promises.push(readEntry(event.target.webkitEntries[i]));
+            }
+            var nestedResults = await Promise.all(promises);
+            nestedResults.forEach(subList => {
+                currentLocalPlaylist = currentLocalPlaylist.concat(subList);
+            });
+        } else {
+            for (var j = 0; j < files.length; j++) {
+                var file = files[j];
+                if (file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|m4a|aac)$/i)) {
+                    var objectUrl = URL.createObjectURL(file);
+                    var cleanTitle = file.name.replace(/\.[^/.]+$/, "");
+                    currentLocalPlaylist.push({ title: cleanTitle, src: objectUrl });
+                }
+            }
+        }
+
+        if (currentLocalPlaylist.length > 0) {
+            currentLocalPlaylist.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+            isPlayingLocal = true;
+            togglePlaylistDropdown();
+            playLocalTrack(0);
+        }
+
+        event.target.value = '';
+    }
+
+    function getNextLocalIndex() {
+        if (currentLocalPlaylist.length <= 1) return 0;
+        if (isShuffle) {
+            if (localPlayedHistory.length >= currentLocalPlaylist.length - 1) {
+                localPlayedHistory = [localTrackIndex];
+            }
+            var randIdx;
+            do {
+                randIdx = Math.floor(Math.random() * currentLocalPlaylist.length);
+            } while (randIdx === localTrackIndex || localPlayedHistory.includes(randIdx));
+            return randIdx;
+        } else {
+            return (localTrackIndex + 1) % currentLocalPlaylist.length;
+        }
+    }
+
+    function playLocalTrack(index, targetTime = 0) {
+        if (currentLocalPlaylist.length === 0) return;
+        localTrackIndex = index;
+        localPlayedHistory.push(localTrackIndex);
+
+        initAudioContext();
+        destroyHls();
+        
+        var temp = activeAudio;
+        activeAudio = idleAudio;
+        idleAudio = temp;
+
+        idleAudio.pause();
+        activeAudio.src = currentLocalPlaylist[localTrackIndex].src;
+
+        if (targetTime > 0) {
+            var applySeek = function() {
+                activeAudio.currentTime = targetTime;
+                activeAudio.removeEventListener('loadedmetadata', applySeek);
+            };
+            activeAudio.addEventListener('loadedmetadata', applySeek);
+        }
+
+        nowPlayingSubtitle.textContent = "NOW PLAYING";
+        currentTrackTitle.textContent = currentLocalPlaylist[localTrackIndex].title;
+        updateMediaSession();
+
+        activeAudio.play().then(function() {
+            hasUserStartedPlayback = true;
+            requestWakeLock();
+            preloadNextTrack();
+        }).catch(function() {
+            activeAudio.play();
+        });
+    }
+
+    function updateMediaSession() {
+        if ('mediaSession' in navigator) {
+            var activeTitle = activeFmKey ? fmStations[activeFmKey].title : (isPlayingLocal ? currentLocalPlaylist[localTrackIndex].title : playlist[currentTrackIndex].title);
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: activeTitle,
+                artist: "Chanthiran Music Player",
+                album: activeFmKey ? "FM Tuner" : "BGM Player"
+            });
+
+            navigator.mediaSession.playbackState = activeAudio.paused ? "paused" : "playing";
+
+            if ('setPositionState' in navigator.mediaSession && !activeFmKey && activeAudio.duration) {
+                try {
+                    navigator.mediaSession.setPositionState({
+                        duration: activeAudio.duration || 0,
+                        playbackRate: activeAudio.playbackRate || 1,
+                        position: activeAudio.currentTime || 0
+                    });
+                } catch(e) {}
+            }
+
+            navigator.mediaSession.setActionHandler('play', function() { togglePlayPause(); });
+            navigator.mediaSession.setActionHandler('pause', function() { togglePlayPause(); });
+            navigator.mediaSession.setActionHandler('previoustrack', function() { playPrevious(); });
+            navigator.mediaSession.setActionHandler('nexttrack', function() { playNext(); });
+        }
+    }
+
+    function initAudioContext() {
+        if (!audioCtx) {
+            var AudioCtx = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioCtx();
+
+            bassFilter = audioCtx.createBiquadFilter();
+            bassFilter.type = 'lowshelf';
+            bassFilter.frequency.value = 250;
+
+            trebleFilter = audioCtx.createBiquadFilter();
+            trebleFilter.type = 'highshelf';
+            trebleFilter.frequency.value = 4000;
+
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 64;
+            
+            gainNode = audioCtx.createGain();
+            
+            applyVolumeGain();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    function applyVolumeGain() {
+        var val = parseFloat(volumeSlider.value);
+        if (gainNode) {
+            gainNode.gain.value = val;
+            activeAudio.volume = 1.0;
+            idleAudio.volume = 1.0;
+        } else {
+            activeAudio.volume = Math.min(1.0, val);
+            idleAudio.volume = Math.min(1.0, val);
+        }
+        
+        var multiplier = Math.round(val * 10) / 10;
+        boostText.textContent = multiplier + "x";
+
+        if (typeof updateVolumeKnobAngle === 'function') {
+            updateVolumeKnobAngle(val);
+        }
+        savePlayerState();
+    }
+
+    function cycleBoostMode() {
+        initAudioContext();
+        var val = parseFloat(volumeSlider.value);
+        if (val < 1.0) { volumeSlider.value = 1.0; }
+        else if (val < 2.5) { volumeSlider.value = 2.5; }
+        else if (val < 4.0) { volumeSlider.value = 4.0; }
+        else if (val < 5.0) { volumeSlider.value = 5.0; }
+        else { volumeSlider.value = 1.0; }
+        applyVolumeGain();
+    }
+
+    function preloadNextTrack() {
+        if (isPlayingLocal || activeFmKey) return;
+        var nextIdx = isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
+        idleAudio.src = playlist[nextIdx].src;
+        idleAudio.load();
+    }
+
+    function animateVUMeters() {
+        requestAnimationFrame(animateVUMeters);
+        if (!activeAudio.paused && analyser) {
+            var dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(dataArray);
+            var average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+            
+            var angleL = -42 + (average / 255) * 80 + (Math.random() * 6 - 3);
+            var angleR = -42 + (average / 255) * 80 + (Math.random() * 6 - 3);
+
+            vuNeedleL.style.transform = 'rotate(' + Math.min(42, Math.max(-42, angleL)) + 'deg)';
+            vuNeedleR.style.transform = 'rotate(' + Math.min(42, Math.max(-42, angleR)) + 'deg)';
+        } else {
+            vuNeedleL.style.transform = 'rotate(-42deg)';
+            vuNeedleR.style.transform = 'rotate(-42deg)';
+        }
+    }
+
+    function renderVisualizer() {
+        requestAnimationFrame(renderVisualizer);
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+        var numBars = 24, barWidth = 8, gap = 10;
+        var startX = (canvas.width - (numBars * (barWidth + gap))) / 2;
+
+        if (analyser && !activeAudio.paused) {
+            var dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(dataArray);
+
+            for (var i = 0; i < numBars; i++) {
+                var val = dataArray[i] || 0;
+                var targetHeight = Math.max(4, (val / 255) * (canvas.height - 10));
+                
+                if (!capHeights[i] || targetHeight > capHeights[i]) {
+                    capHeights[i] = targetHeight;
+                } else {
+                    capHeights[i] -= 0.8;
+                }
+
+                var x = startX + i * (barWidth + gap);
+                var barHeight = targetHeight;
+
+                var gradient = canvasCtx.createLinearGradient(0, canvas.height, 0, 0);
+                gradient.addColorStop(0, '#ff4b1f');
+                gradient.addColorStop(0.6, '#ffaa00');
+                gradient.addColorStop(1, '#00e5ff');
+
+                canvasCtx.beginPath();
+                canvasCtx.fillStyle = gradient;
+                canvasCtx.shadowColor = 'rgba(255, 170, 0, 0.6)';
+                canvasCtx.shadowBlur = 6;
+                if (canvasCtx.roundRect) {
+                    canvasCtx.roundRect(x, canvas.height - barHeight - 2, barWidth, barHeight, [3]);
+                } else {
+                    canvasCtx.rect(x, canvas.height - barHeight - 2, barWidth, barHeight);
+                }
+                canvasCtx.fill();
+
+                canvasCtx.beginPath();
+                canvasCtx.fillStyle = '#ffffff';
+                canvasCtx.shadowColor = '#00e5ff';
+                canvasCtx.shadowBlur = 8;
+                canvasCtx.arc(x + barWidth / 2, canvas.height - capHeights[i] - 5, 2, 0, Math.PI * 2);
+                canvasCtx.fill();
+            }
+        } else {
+            for (var j = 0; j < numBars; j++) {
+                var idleX = startX + j * (barWidth + gap);
+                canvasCtx.beginPath();
+                canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                canvasCtx.shadowBlur = 0;
+                if (canvasCtx.roundRect) {
+                    canvasCtx.roundRect(idleX, canvas.height - 6, barWidth, 3, [2]);
+                } else {
+                    canvasCtx.rect(idleX, canvas.height - 6, barWidth, 3);
+                }
+                canvasCtx.fill();
+            }
+        }
+    }
+
+    function formatTime(seconds) {
+        var min = Math.floor(seconds / 60);
+        var sec = Math.floor(seconds % 60);
+        return min + ':' + (sec < 10 ? '0' + sec : sec);
+    }
+
+    function populatePlaylistDropdown() {
+        dropdownTrackList.innerHTML = '';
+        playlist.forEach(function(track, index) {
+            var a = document.createElement('a');
+            a.href = '#';
+            a.target = '_self';
+            a.textContent = track.title;
+            a.onclick = function(e) { 
+                e.preventDefault(); 
+                activeFmKey = null;
+                destroyHls();
+                document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
+                isPlayingLocal = false; 
+                loadTrack(index, true, 0); 
+                togglePlaylistDropdown(); 
+            };
+            dropdownTrackList.appendChild(a);
+        });
+    }
+
+    function updateActiveTrackHighlight() {
+        Array.from(dropdownTrackList.children).forEach((item, idx) => {
+            item.classList.toggle('active', !isPlayingLocal && !activeFmKey && idx === currentTrackIndex);
+        });
+    }
+
+    function toggleShuffle() {
+        isShuffle = !isShuffle;
+        shuffleButton.classList.toggle('active-mode', isShuffle);
+        savePlayerState();
+    }
+
+    function getRandomIndex() {
+        if (playlist.length <= 1) return 0;
+        if (playedHistory.length >= playlist.length - 1) {
+            playedHistory = [currentTrackIndex];
+        }
+
+        var randomIndex;
+        do {
+            randomIndex = Math.floor(Math.random() * playlist.length);
+        } while (randomIndex === currentTrackIndex || playedHistory.includes(randomIndex));
+
+        return randomIndex;
+    }
+
+    function restartTrack() {
+        if (activeFmKey) {
+            reconnectActiveStream();
+            return;
+        }
+        initAudioContext();
+        activeAudio.currentTime = 0;
+        activeAudio.play();
+    }
+
+    function revealSongTitles() {
+        hasUserStartedPlayback = true;
+        if (activeFmKey) {
+            nowPlayingSubtitle.textContent = "LIVE FM RADIO";
+            currentTrackTitle.textContent = fmStations[activeFmKey].title;
+        } else {
+            var title = isPlayingLocal ? currentLocalPlaylist[localTrackIndex].title : playlist[currentTrackIndex].title;
+            nowPlayingSubtitle.textContent = "NOW PLAYING";
+            currentTrackTitle.textContent = title;
+        }
+    }
+
+    function loadTrack(index, autoPlay = true, startPos = 0) {
+        if (playlist.length === 0) return;
+        activeFmKey = null;
+        destroyHls();
+        isPlayingLocal = false;
+        currentTrackIndex = index;
+        playedHistory.push(currentTrackIndex);
+        
+        var temp = activeAudio;
+        activeAudio = idleAudio;
+        idleAudio = temp;
+
+        idleAudio.pause();
+        activeAudio.src = playlist[currentTrackIndex].src;
+
+        if (startPos > 0) {
+            var applySeek = function() {
+                activeAudio.currentTime = startPos;
+                activeAudio.removeEventListener('loadedmetadata', applySeek);
+            };
+            activeAudio.addEventListener('loadedmetadata', applySeek);
+        }
+        
+        nowPlayingSubtitle.textContent = hasUserStartedPlayback ? "NOW PLAYING" : "🎵 ♪ ♫ 🎶";
+        currentTrackTitle.textContent = playlist[currentTrackIndex].title;
+        
+        updateActiveTrackHighlight();
+        updateMediaSession();
+        initAudioContext();
+
+        if (autoPlay) {
+            var playPromise = activeAudio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(function() {
+                    revealSongTitles();
+                    preloadNextTrack();
+                    requestWakeLock();
+                }).catch(function() {
+                    activeAudio.play();
+                });
+            }
+        }
+    }
+
+    function togglePlayPause() {
+        if (isPlayingLocal && currentLocalPlaylist.length > 0 && !hasUserStartedPlayback) {
+            playLocalTrack(0);
+            return;
+        }
+
+        initAudioContext();
+        if (activeAudio.paused) { 
+            revealSongTitles();
+            activeAudio.play();
+        } else { 
+            activeAudio.pause(); 
+        }
+    }
+
+    function playNext() {
+        if (activeFmKey) return;
+        if (isPlayingLocal && currentLocalPlaylist.length > 0) {
+            playLocalTrack(getNextLocalIndex());
+            return;
+        }
+
+        if (playlist.length === 0) return;
+        var nextIdx = isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
+        loadTrack(nextIdx, true, 0);
+    }
+
+    function playPrevious() {
+        if (activeFmKey) return;
+        if (isPlayingLocal && currentLocalPlaylist.length > 0) {
+            var prevLocalIndex;
+            if (isShuffle && localPlayedHistory.length > 1) {
+                localPlayedHistory.pop();
+                prevLocalIndex = localPlayedHistory.pop();
+            } else {
+                prevLocalIndex = (localTrackIndex - 1 + currentLocalPlaylist.length) % currentLocalPlaylist.length;
+            }
+            playLocalTrack(prevLocalIndex);
+            return;
+        }
+
+        if (playlist.length === 0) return;
+        if (isShuffle && playedHistory.length > 1) {
+            playedHistory.pop();
+            var prevIndex = playedHistory.pop();
+            loadTrack(prevIndex, true, 0);
+        } else {
+            loadTrack((currentTrackIndex - 1 + playlist.length) % playlist.length, true, 0);
+        }
+    }
+
+    function togglePlaylistDropdown() { playlistDropdown.parentElement.classList.toggle('show'); }
+
+    /* --- BIND WORKER AND AUDIO EVENTS --- */
+    bgWorker.onmessage = function(e) {
+        if (e.data === 'tick' && activeAudio && !activeAudio.paused) {
+            if (activeAudio.duration && (activeAudio.duration - activeAudio.currentTime <= 1.5)) {
+                if (!activeAudio.dataset.advancing) {
+                    activeAudio.dataset.advancing = "true";
+                    playNext();
+                }
+            }
+        }
+    };
+
+    function attachAudioEvents(elem) {
+        elem.addEventListener('ended', function() {
+            elem.dataset.advancing = "";
+            playNext();
+        });
+
+        elem.addEventListener('play', () => { 
+            elem.dataset.advancing = "";
+            revealSongTitles();
+            playButton.style.display = 'none'; 
+            pauseButton.style.display = 'inline-flex'; 
+            tapeLeft.classList.add('spinning');
+            tapeRight.classList.add('spinning');
+            updateActiveTrackHighlight();
+            requestWakeLock();
+            updateMediaSession();
+            bgWorker.postMessage('start');
+        });
+
+        elem.addEventListener('pause', () => { 
+            if (activeAudio.paused && idleAudio.paused) {
+                playButton.style.display = 'inline-flex'; 
+                pauseButton.style.display = 'none'; 
+                tapeLeft.classList.remove('spinning');
+                tapeRight.classList.remove('spinning');
+                savePlayerState();
+                bgWorker.postMessage('stop');
+                if (wakeLock !== null) {
+                    wakeLock.release().then(() => { wakeLock = null; });
+                }
+                updateMediaSession();
+            }
+        });
+
+        elem.addEventListener('timeupdate', () => {
+            if (elem === activeAudio && !activeFmKey && !isNaN(activeAudio.duration)) {
+                progressSlider.value = activeAudio.currentTime;
+                currentTimeSpan.textContent = formatTime(activeAudio.currentTime);
+                if (Math.floor(activeAudio.currentTime) % 3 === 0) {
+                    savePlayerState();
+                }
+            }
+        });
+
+        elem.addEventListener('loadedmetadata', () => {
+            if (elem === activeAudio && !activeFmKey) {
+                progressSlider.max = activeAudio.duration;
+                durationSpan.textContent = formatTime(activeAudio.duration);
+            }
+        });
+    }
+
+    attachAudioEvents(audioA);
+    attachAudioEvents(audioB);
+
+    volumeSlider.addEventListener('input', () => { 
+        initAudioContext();
+        applyVolumeGain(); 
+    });
+
+    progressSlider.addEventListener('input', () => { 
+        if (!activeFmKey) {
+            activeAudio.currentTime = progressSlider.value;
+            savePlayerState();
+        }
+    });
+
+    window.onclick = function(event) {
+        if (!event.target.closest('.music-button') && !event.target.matches('.pl-text')) {
+            document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
+        }
+    };
+
+    function initPlayer() {
+        populatePlaylistDropdown();
+        animateVUMeters();
+        renderVisualizer();
+        
+        var savedState = null;
+        try {
+            savedState = JSON.parse(localStorage.getItem('chanthiran_player_state'));
+        } catch(e) {}
+
+        if (savedState) {
+            volumeSlider.value = (typeof savedState.volume !== 'undefined') ? savedState.volume : 2.5;
+            if (typeof savedState.isShuffle === 'boolean') {
+                isShuffle = savedState.isShuffle;
+                shuffleButton.classList.toggle('active-mode', isShuffle);
+            }
+            if (typeof savedState.trackIndex === 'number' && savedState.trackIndex < playlist.length) {
+                loadTrack(savedState.trackIndex, false, savedState.currentTime || 0);
+            } else {
+                loadTrack(Math.floor(Math.random() * playlist.length), false, 0);
+            }
+        } else {
+            volumeSlider.value = 2.5;
+            loadTrack(Math.floor(Math.random() * playlist.length), false, 0);
+        }
+        
+        applyVolumeGain();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPlayer);
+    } else {
+        initPlayer();
+    }
+
+    /* --- SERVICE WORKER REGISTRATION --- */
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('sw.js').catch(function(err) {});
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "Chanthiran Mini HiFi System",
+  "short_name": "Mini HiFi",
+  "description": "Retro Web Music Player & FM Tuner",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0c",
+  "theme_color": "#ffaa00",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3083/3083411.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3083/3083411.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
