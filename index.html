@@ -692,7 +692,7 @@
         </div>
     </div>
 
-    <!-- Dual Audio Elements for Persistent Background Transition -->
+    <!-- Dual Audio Elements to Bypass Lock-Screen Autoplay Policy -->
     <audio id="audioA" preload="auto" crossorigin="anonymous" playsinline></audio>
     <audio id="audioB" preload="auto" crossorigin="anonymous" playsinline></audio>
 
@@ -1004,7 +1004,7 @@
                 if (timer) clearInterval(timer);
                 timer = setInterval(function() {
                     self.postMessage('tick');
-                }, 500);
+                }, 1000);
             } else if (e.data === 'stop') {
                 if (timer) clearInterval(timer);
                 timer = null;
@@ -1013,12 +1013,11 @@
     `], { type: 'text/javascript' });
     var bgWorker = new Worker(URL.createObjectURL(workerBlob));
 
-    /* --- DUAL AUDIO ELEMENT SWAP ENGINE & SINGLE AUTHORITY LOCK --- */
+    /* --- DUAL AUDIO ELEMENT SWAP ENGINE --- */
     var audioA = document.getElementById('audioA');
     var audioB = document.getElementById('audioB');
     var activeAudio = audioA;
     var idleAudio = audioB;
-    var isTransitioning = false; // Lock flag to eliminate race conditions & double playing
 
     var currentTrackTitle = document.getElementById('currentTrackTitle');
     var nowPlayingSubtitle = document.getElementById('nowPlayingSubtitle');
@@ -1041,7 +1040,6 @@
     var canvas = document.getElementById('visualizerCanvas');
     var canvasCtx = canvas.getContext('2d');
     var audioCtx, analyser, gainNode, bassFilter, trebleFilter;
-    var sourceNodeA, sourceNodeB;
     var capHeights = [];
     var wakeLock = null;
 
@@ -1429,6 +1427,8 @@
             activeAudio.addEventListener('loadedmetadata', applySeek);
         }
 
+        nowPlayingSubtitle.textContent = "NOW PLAYING";
+        currentTrackTitle.textContent = currentLocalPlaylist[localTrackIndex].title;
         updateMediaSession();
 
         activeAudio.play().then(function() {
@@ -1468,7 +1468,6 @@
         }
     }
 
-    /* --- INITIALIZE AUDIO CONTEXT (PERSISTENT NODE CONNECT) --- */
     function initAudioContext() {
         if (!audioCtx) {
             var AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -1486,20 +1485,7 @@
             analyser.fftSize = 64;
             
             gainNode = audioCtx.createGain();
-
-            try {
-                sourceNodeA = audioCtx.createMediaElementSource(audioA);
-                sourceNodeB = audioCtx.createMediaElementSource(audioB);
-
-                sourceNodeA.connect(bassFilter);
-                sourceNodeB.connect(bassFilter);
-
-                bassFilter.connect(trebleFilter);
-                trebleFilter.connect(analyser);
-                analyser.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-            } catch(e) {}
-
+            
             applyVolumeGain();
         }
         if (audioCtx.state === 'suspended') {
@@ -1538,12 +1524,10 @@
         applyVolumeGain();
     }
 
-    /* --- PRE-BUFFER NEXT TRACK INTO MEMORY --- */
     function preloadNextTrack() {
         if (isPlayingLocal || activeFmKey) return;
         var nextIdx = isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
         idleAudio.src = playlist[nextIdx].src;
-        idleAudio.preload = "auto";
         idleAudio.load();
     }
 
@@ -1725,13 +1709,18 @@
             activeAudio.addEventListener('loadedmetadata', applySeek);
         }
         
+        nowPlayingSubtitle.textContent = hasUserStartedPlayback ? "NOW PLAYING" : "🎵 ♪ ♫ 🎶";
+        currentTrackTitle.textContent = playlist[currentTrackIndex].title;
+        
         updateActiveTrackHighlight();
+        updateMediaSession();
         initAudioContext();
 
         if (autoPlay) {
             var playPromise = activeAudio.play();
             if (playPromise !== undefined) {
                 playPromise.then(function() {
+                    revealSongTitles();
                     preloadNextTrack();
                     requestWakeLock();
                 }).catch(function() {
@@ -1749,57 +1738,23 @@
 
         initAudioContext();
         if (activeAudio.paused) { 
-            activeAudio.pausedByUser = false;
+            revealSongTitles();
             activeAudio.play();
         } else { 
-            activeAudio.pausedByUser = true;
             activeAudio.pause(); 
         }
     }
 
     function playNext() {
-        if (isTransitioning) return; // Prevent double execution
-        isTransitioning = true;
-
-        if (activeFmKey) {
-            isTransitioning = false;
-            return;
-        }
-
+        if (activeFmKey) return;
         if (isPlayingLocal && currentLocalPlaylist.length > 0) {
             playLocalTrack(getNextLocalIndex());
-            setTimeout(() => { isTransitioning = false; }, 500);
             return;
         }
 
-        if (playlist.length === 0) {
-            isTransitioning = false;
-            return;
-        }
-
+        if (playlist.length === 0) return;
         var nextIdx = isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
-        
-        // Fast Direct Swap Execution
-        var oldActive = activeAudio;
-        activeAudio = idleAudio;
-        idleAudio = oldActive;
-
-        oldActive.pause();
-        currentTrackIndex = nextIdx;
-        playedHistory.push(currentTrackIndex);
-
-        var playPromise = activeAudio.play();
-        if (playPromise !== undefined) {
-            playPromise.then(function() {
-                preloadNextTrack();
-                setTimeout(() => { isTransitioning = false; }, 500);
-            }).catch(function() {
-                activeAudio.play();
-                setTimeout(() => { isTransitioning = false; }, 500);
-            });
-        } else {
-            setTimeout(() => { isTransitioning = false; }, 500);
-        }
+        loadTrack(nextIdx, true, 0);
     }
 
     function playPrevious() {
@@ -1828,50 +1783,34 @@
 
     function togglePlaylistDropdown() { playlistDropdown.parentElement.classList.toggle('show'); }
 
-    /* --- BACKGROUND TRACK TRANSITION & EVENT HANDLERS --- */
+    /* --- BIND WORKER AND AUDIO EVENTS --- */
     bgWorker.onmessage = function(e) {
-        if (e.data === 'tick' && activeAudio && !activeAudio.paused && !isTransitioning) {
-            if (activeAudio.duration && (activeAudio.duration - activeAudio.currentTime <= 0.8)) {
-                playNext();
+        if (e.data === 'tick' && activeAudio && !activeAudio.paused) {
+            if (activeAudio.duration && (activeAudio.duration - activeAudio.currentTime <= 1.5)) {
+                if (!activeAudio.dataset.advancing) {
+                    activeAudio.dataset.advancing = "true";
+                    playNext();
+                }
             }
         }
     };
 
-    /* --- AUTO-RESUME PLAYBACK AFTER NOTIFICATION INTERRUPTIONS --- */
-    function setupAudioInterruptionHandler(elem) {
-        elem.addEventListener('pause', function() {
-            if (hasUserStartedPlayback && !elem.ended && !elem.pausedByUser && !isTransitioning) {
-                setTimeout(function() {
-                    if (elem.paused && !elem.pausedByUser && !isTransitioning) {
-                        elem.play().catch(function() {});
-                    }
-                }, 1000);
-            }
-        });
-    }
-
     function attachAudioEvents(elem) {
-        setupAudioInterruptionHandler(elem);
-
         elem.addEventListener('ended', function() {
-            if (!isTransitioning) {
-                playNext();
-            }
-        });
-
-        // UPDATE TITLE AND UI AT THE EXACT MILLISECOND AUDIO SOUND STARTS
-        elem.addEventListener('playing', () => {
-            revealSongTitles();
-            updateMediaSession();
+            elem.dataset.advancing = "";
+            playNext();
         });
 
         elem.addEventListener('play', () => { 
+            elem.dataset.advancing = "";
+            revealSongTitles();
             playButton.style.display = 'none'; 
             pauseButton.style.display = 'inline-flex'; 
             tapeLeft.classList.add('spinning');
             tapeRight.classList.add('spinning');
             updateActiveTrackHighlight();
             requestWakeLock();
+            updateMediaSession();
             bgWorker.postMessage('start');
         });
 
