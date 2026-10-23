@@ -1539,10 +1539,12 @@
         applyVolumeGain();
     }
 
+    /* --- PRE-BUFFER NEXT TRACK INTO MEMORY --- */
     function preloadNextTrack() {
         if (isPlayingLocal || activeFmKey) return;
         var nextIdx = isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
         idleAudio.src = playlist[nextIdx].src;
+        idleAudio.preload = "auto";
         idleAudio.load();
     }
 
@@ -1798,10 +1800,10 @@
 
     function togglePlaylistDropdown() { playlistDropdown.parentElement.classList.toggle('show'); }
 
-    /* --- BIND WORKER AND AUDIO EVENTS --- */
+    /* --- BACKGROUND TRACK TRANSITION & EVENT HANDLERS --- */
     bgWorker.onmessage = function(e) {
         if (e.data === 'tick' && activeAudio && !activeAudio.paused) {
-            if (activeAudio.duration && (activeAudio.duration - activeAudio.currentTime <= 1.5)) {
+            if (activeAudio.duration && (activeAudio.duration - activeAudio.currentTime <= 1.2)) {
                 if (!activeAudio.dataset.advancing) {
                     activeAudio.dataset.advancing = "true";
                     playNext();
@@ -1813,7 +1815,33 @@
     function attachAudioEvents(elem) {
         elem.addEventListener('ended', function() {
             elem.dataset.advancing = "";
-            playNext();
+            
+            // Perform synchronous transition using pre-buffered track
+            if (isPlayingLocal && currentLocalPlaylist.length > 0) {
+                playLocalTrack(getNextLocalIndex());
+            } else if (playlist.length > 0) {
+                var nextIdx = isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
+                
+                var temp = activeAudio;
+                activeAudio = idleAudio;
+                idleAudio = temp;
+
+                currentTrackIndex = nextIdx;
+                playedHistory.push(currentTrackIndex);
+
+                nowPlayingSubtitle.textContent = "NOW PLAYING";
+                currentTrackTitle.textContent = playlist[currentTrackIndex].title;
+
+                var playPromise = activeAudio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(function() {
+                        updateMediaSession();
+                        preloadNextTrack();
+                    }).catch(function() {
+                        activeAudio.play();
+                    });
+                }
+            }
         });
 
         elem.addEventListener('play', () => { 
