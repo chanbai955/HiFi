@@ -1755,9 +1755,11 @@
 
         initAudioContext();
         if (activeAudio.paused) { 
+            activeAudio.pausedByUser = false;
             revealSongTitles();
             activeAudio.play();
         } else { 
+            activeAudio.pausedByUser = true;
             activeAudio.pause(); 
         }
     }
@@ -1812,11 +1814,25 @@
         }
     };
 
+    /* --- AUTO-RESUME PLAYBACK AFTER NOTIFICATION INTERRUPTIONS --- */
+    function setupAudioInterruptionHandler(elem) {
+        elem.addEventListener('pause', function() {
+            if (hasUserStartedPlayback && !elem.ended && !elem.pausedByUser) {
+                setTimeout(function() {
+                    if (elem.paused && !elem.pausedByUser) {
+                        elem.play().catch(function() {});
+                    }
+                }, 1000);
+            }
+        });
+    }
+
     function attachAudioEvents(elem) {
+        setupAudioInterruptionHandler(elem);
+
         elem.addEventListener('ended', function() {
             elem.dataset.advancing = "";
             
-            // Perform synchronous transition using pre-buffered track
             if (isPlayingLocal && currentLocalPlaylist.length > 0) {
                 playLocalTrack(getNextLocalIndex());
             } else if (playlist.length > 0) {
