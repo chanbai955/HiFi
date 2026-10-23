@@ -1004,7 +1004,7 @@
                 if (timer) clearInterval(timer);
                 timer = setInterval(function() {
                     self.postMessage('tick');
-                }, 1000);
+                }, 500);
             } else if (e.data === 'stop') {
                 if (timer) clearInterval(timer);
                 timer = null;
