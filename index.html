@@ -1013,11 +1013,12 @@
     `], { type: 'text/javascript' });
     var bgWorker = new Worker(URL.createObjectURL(workerBlob));
 
-    /* --- DUAL AUDIO ELEMENT SWAP ENGINE --- */
+    /* --- DUAL AUDIO ELEMENT SWAP ENGINE & SINGLE AUTHORITY LOCK --- */
     var audioA = document.getElementById('audioA');
     var audioB = document.getElementById('audioB');
     var activeAudio = audioA;
     var idleAudio = audioB;
+    var isTransitioning = false; // Lock flag to eliminate race conditions & double playing
 
     var currentTrackTitle = document.getElementById('currentTrackTitle');
     var nowPlayingSubtitle = document.getElementById('nowPlayingSubtitle');
@@ -1428,8 +1429,6 @@
             activeAudio.addEventListener('loadedmetadata', applySeek);
         }
 
-        nowPlayingSubtitle.textContent = "NOW PLAYING";
-        currentTrackTitle.textContent = currentLocalPlaylist[localTrackIndex].title;
         updateMediaSession();
 
         activeAudio.play().then(function() {
@@ -1733,7 +1732,6 @@
             var playPromise = activeAudio.play();
             if (playPromise !== undefined) {
                 playPromise.then(function() {
-                    revealSongTitles();
                     preloadNextTrack();
                     requestWakeLock();
                 }).catch(function() {
@@ -1752,7 +1750,6 @@
         initAudioContext();
         if (activeAudio.paused) { 
             activeAudio.pausedByUser = false;
-            revealSongTitles();
             activeAudio.play();
         } else { 
             activeAudio.pausedByUser = true;
@@ -1761,15 +1758,48 @@
     }
 
     function playNext() {
-        if (activeFmKey) return;
-        if (isPlayingLocal && currentLocalPlaylist.length > 0) {
-            playLocalTrack(getNextLocalIndex());
+        if (isTransitioning) return; // Prevent double execution
+        isTransitioning = true;
+
+        if (activeFmKey) {
+            isTransitioning = false;
             return;
         }
 
-        if (playlist.length === 0) return;
+        if (isPlayingLocal && currentLocalPlaylist.length > 0) {
+            playLocalTrack(getNextLocalIndex());
+            setTimeout(() => { isTransitioning = false; }, 500);
+            return;
+        }
+
+        if (playlist.length === 0) {
+            isTransitioning = false;
+            return;
+        }
+
         var nextIdx = isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
-        loadTrack(nextIdx, true, 0);
+        
+        // Fast Direct Swap Execution
+        var oldActive = activeAudio;
+        activeAudio = idleAudio;
+        idleAudio = oldActive;
+
+        oldActive.pause();
+        currentTrackIndex = nextIdx;
+        playedHistory.push(currentTrackIndex);
+
+        var playPromise = activeAudio.play();
+        if (playPromise !== undefined) {
+            playPromise.then(function() {
+                preloadNextTrack();
+                setTimeout(() => { isTransitioning = false; }, 500);
+            }).catch(function() {
+                activeAudio.play();
+                setTimeout(() => { isTransitioning = false; }, 500);
+            });
+        } else {
+            setTimeout(() => { isTransitioning = false; }, 500);
+        }
     }
 
     function playPrevious() {
@@ -1800,12 +1830,9 @@
 
     /* --- BACKGROUND TRACK TRANSITION & EVENT HANDLERS --- */
     bgWorker.onmessage = function(e) {
-        if (e.data === 'tick' && activeAudio && !activeAudio.paused) {
-            if (activeAudio.duration && (activeAudio.duration - activeAudio.currentTime <= 1.2)) {
-                if (!activeAudio.dataset.advancing) {
-                    activeAudio.dataset.advancing = "true";
-                    playNext();
-                }
+        if (e.data === 'tick' && activeAudio && !activeAudio.paused && !isTransitioning) {
+            if (activeAudio.duration && (activeAudio.duration - activeAudio.currentTime <= 0.8)) {
+                playNext();
             }
         }
     };
@@ -1813,9 +1840,9 @@
     /* --- AUTO-RESUME PLAYBACK AFTER NOTIFICATION INTERRUPTIONS --- */
     function setupAudioInterruptionHandler(elem) {
         elem.addEventListener('pause', function() {
-            if (hasUserStartedPlayback && !elem.ended && !elem.pausedByUser) {
+            if (hasUserStartedPlayback && !elem.ended && !elem.pausedByUser && !isTransitioning) {
                 setTimeout(function() {
-                    if (elem.paused && !elem.pausedByUser) {
+                    if (elem.paused && !elem.pausedByUser && !isTransitioning) {
                         elem.play().catch(function() {});
                     }
                 }, 1000);
@@ -1827,29 +1854,8 @@
         setupAudioInterruptionHandler(elem);
 
         elem.addEventListener('ended', function() {
-            elem.dataset.advancing = "";
-            
-            if (isPlayingLocal && currentLocalPlaylist.length > 0) {
-                playLocalTrack(getNextLocalIndex());
-            } else if (playlist.length > 0) {
-                var nextIdx = isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
-                
-                var temp = activeAudio;
-                activeAudio = idleAudio;
-                idleAudio = temp;
-
-                currentTrackIndex = nextIdx;
-                playedHistory.push(currentTrackIndex);
-
-                var playPromise = activeAudio.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(function() {
-                        updateMediaSession();
-                        preloadNextTrack();
-                    }).catch(function() {
-                        activeAudio.play();
-                    });
-                }
+            if (!isTransitioning) {
+                playNext();
             }
         });
 
@@ -1860,7 +1866,6 @@
         });
 
         elem.addEventListener('play', () => { 
-            elem.dataset.advancing = "";
             playButton.style.display = 'none'; 
             pauseButton.style.display = 'inline-flex'; 
             tapeLeft.classList.add('spinning');
