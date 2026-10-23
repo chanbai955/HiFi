@@ -1040,6 +1040,7 @@
     var canvas = document.getElementById('visualizerCanvas');
     var canvasCtx = canvas.getContext('2d');
     var audioCtx, analyser, gainNode, bassFilter, trebleFilter;
+    var sourceNodeA, sourceNodeB;
     var capHeights = [];
     var wakeLock = null;
 
@@ -1468,6 +1469,7 @@
         }
     }
 
+    /* --- ENHANCED AUDIO CONTEXT (CONNECTS BOTH AUDIO NODES) --- */
     function initAudioContext() {
         if (!audioCtx) {
             var AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -1485,7 +1487,20 @@
             analyser.fftSize = 64;
             
             gainNode = audioCtx.createGain();
-            
+
+            try {
+                sourceNodeA = audioCtx.createMediaElementSource(audioA);
+                sourceNodeB = audioCtx.createMediaElementSource(audioB);
+
+                sourceNodeA.connect(bassFilter);
+                sourceNodeB.connect(bassFilter);
+
+                bassFilter.connect(trebleFilter);
+                trebleFilter.connect(analyser);
+                analyser.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+            } catch(e) {}
+
             applyVolumeGain();
         }
         if (audioCtx.state === 'suspended') {
