@@ -1726,11 +1726,7 @@
             activeAudio.addEventListener('loadedmetadata', applySeek);
         }
         
-        nowPlayingSubtitle.textContent = hasUserStartedPlayback ? "NOW PLAYING" : "🎵 ♪ ♫ 🎶";
-        currentTrackTitle.textContent = playlist[currentTrackIndex].title;
-        
         updateActiveTrackHighlight();
-        updateMediaSession();
         initAudioContext();
 
         if (autoPlay) {
@@ -1845,9 +1841,6 @@
                 currentTrackIndex = nextIdx;
                 playedHistory.push(currentTrackIndex);
 
-                nowPlayingSubtitle.textContent = "NOW PLAYING";
-                currentTrackTitle.textContent = playlist[currentTrackIndex].title;
-
                 var playPromise = activeAudio.play();
                 if (playPromise !== undefined) {
                     playPromise.then(function() {
@@ -1860,16 +1853,20 @@
             }
         });
 
+        // UPDATE TITLE AND UI AT THE EXACT MILLISECOND AUDIO SOUND STARTS
+        elem.addEventListener('playing', () => {
+            revealSongTitles();
+            updateMediaSession();
+        });
+
         elem.addEventListener('play', () => { 
             elem.dataset.advancing = "";
-            revealSongTitles();
             playButton.style.display = 'none'; 
             pauseButton.style.display = 'inline-flex'; 
             tapeLeft.classList.add('spinning');
             tapeRight.classList.add('spinning');
             updateActiveTrackHighlight();
             requestWakeLock();
-            updateMediaSession();
             bgWorker.postMessage('start');
         });
 
