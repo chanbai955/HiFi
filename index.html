@@ -692,9 +692,8 @@
         </div>
     </div>
 
-    <!-- Dual Audio Elements to Bypass Lock-Screen Autoplay Policy -->
-    <audio id="audioA" preload="auto" crossorigin="anonymous" playsinline></audio>
-    <audio id="audioB" preload="auto" crossorigin="anonymous" playsinline></audio>
+    <!-- Single Persistent Media Stream to Maintain Continuous Lock-Screen Authorization -->
+    <audio id="mainAudio" preload="auto" crossorigin="anonymous" playsinline></audio>
 
     <div class="hifi-body-wrapper">
         <div class="compact-amp-panel">
@@ -996,28 +995,9 @@
     var hlsRetryCount = 0;
     var maxHlsRetries = 5;
 
-    /* --- INLINE WEB WORKER TIMER FOR BACKGROUND TRACK SWAPPING --- */
-    var workerBlob = new Blob([`
-        var timer = null;
-        self.onmessage = function(e) {
-            if (e.data === 'start') {
-                if (timer) clearInterval(timer);
-                timer = setInterval(function() {
-                    self.postMessage('tick');
-                }, 1000);
-            } else if (e.data === 'stop') {
-                if (timer) clearInterval(timer);
-                timer = null;
-            }
-        };
-    `], { type: 'text/javascript' });
-    var bgWorker = new Worker(URL.createObjectURL(workerBlob));
-
-    /* --- DUAL AUDIO ELEMENT SWAP ENGINE --- */
-    var audioA = document.getElementById('audioA');
-    var audioB = document.getElementById('audioB');
-    var activeAudio = audioA;
-    var idleAudio = audioB;
+    /* --- THE SINGLE ACTIVE AUDIO ENGINE --- */
+    var mainAudio = document.getElementById('mainAudio');
+    var isTransitioning = false;
 
     var currentTrackTitle = document.getElementById('currentTrackTitle');
     var nowPlayingSubtitle = document.getElementById('nowPlayingSubtitle');
@@ -1039,8 +1019,7 @@
 
     var canvas = document.getElementById('visualizerCanvas');
     var canvasCtx = canvas.getContext('2d');
-    var audioCtx, analyser, gainNode, bassFilter, trebleFilter;
-    var sourceNodeA, sourceNodeB;
+    var audioCtx, analyser, gainNode, bassFilter, trebleFilter, sourceNode;
     var capHeights = [];
     var wakeLock = null;
 
@@ -1145,8 +1124,7 @@
         
         activeFmKey = key;
         initAudioContext();
-        activeAudio.pause();
-        idleAudio.pause();
+        mainAudio.pause();
         destroyHls();
 
         document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
@@ -1195,12 +1173,12 @@
                     fragLoadingTimeOut: 20000
                 });
                 hls.loadSource(url);
-                hls.attachMedia(activeAudio);
+                hls.attachMedia(mainAudio);
                 
                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
                     hlsRetryCount = 0;
                     nowPlayingSubtitle.textContent = "LIVE FM RADIO";
-                    activeAudio.play().catch(() => {});
+                    mainAudio.play().catch(() => {});
                 });
 
                 hls.on(Hls.Events.ERROR, function(event, data) {
@@ -1218,25 +1196,17 @@
                         }
                     }
                 });
-            } else if (activeAudio.canPlayType('application/vnd.apple.mpegurl')) {
-                activeAudio.src = url;
+            } else if (mainAudio.canPlayType('application/vnd.apple.mpegurl')) {
+                mainAudio.src = url;
                 nowPlayingSubtitle.textContent = "LIVE FM RADIO";
-                activeAudio.play().catch(() => {});
+                mainAudio.play().catch(() => {});
             }
         } else {
-            activeAudio.src = url;
-
-            var quickPlay = function() {
-                nowPlayingSubtitle.textContent = "LIVE FM RADIO";
-                activeAudio.play().then(() => {
-                    hasUserStartedPlayback = true;
-                    requestWakeLock();
-                }).catch(() => {});
-                activeAudio.removeEventListener('canplay', quickPlay);
-            };
-
-            activeAudio.addEventListener('canplay', quickPlay);
-            activeAudio.load();
+            mainAudio.src = url;
+            mainAudio.play().then(() => {
+                hasUserStartedPlayback = true;
+                requestWakeLock();
+            }).catch(() => {});
         }
         updateMediaSession();
     }
@@ -1278,8 +1248,7 @@
         currentStreamUrl = null;
         destroyHls();
         document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
-        activeAudio.pause();
-        idleAudio.pause();
+        mainAudio.pause();
         
         if (currentLocalPlaylist.length > 0) {
             playLocalTrack(localTrackIndex);
@@ -1290,10 +1259,8 @@
 
     function exitApp() {
         destroyHls();
-        if (activeAudio) activeAudio.pause();
-        if (idleAudio) idleAudio.pause();
+        if (mainAudio) mainAudio.pause();
         if (wakeLock) wakeLock.release().catch(()=>{});
-        bgWorker.postMessage('stop');
         
         try { window.close(); } catch(e) {}
         setTimeout(() => { window.location.href = "about:blank"; }, 300);
@@ -1303,10 +1270,10 @@
         try {
             var state = {
                 trackIndex: currentTrackIndex,
-                currentTime: activeAudio.currentTime || 0,
+                currentTime: mainAudio.currentTime || 0,
                 isShuffle: isShuffle,
                 isPlayingLocal: isPlayingLocal,
-                wasPlaying: !activeAudio.paused,
+                wasPlaying: !mainAudio.paused,
                 volume: volumeSlider.value
             };
             localStorage.setItem('chanthiran_player_state', JSON.stringify(state));
@@ -1413,31 +1380,21 @@
         initAudioContext();
         destroyHls();
         
-        var temp = activeAudio;
-        activeAudio = idleAudio;
-        idleAudio = temp;
-
-        idleAudio.pause();
-        activeAudio.src = currentLocalPlaylist[localTrackIndex].src;
+        mainAudio.src = currentLocalPlaylist[localTrackIndex].src;
 
         if (targetTime > 0) {
             var applySeek = function() {
-                activeAudio.currentTime = targetTime;
-                activeAudio.removeEventListener('loadedmetadata', applySeek);
+                mainAudio.currentTime = targetTime;
+                mainAudio.removeEventListener('loadedmetadata', applySeek);
             };
-            activeAudio.addEventListener('loadedmetadata', applySeek);
+            mainAudio.addEventListener('loadedmetadata', applySeek);
         }
 
-        nowPlayingSubtitle.textContent = "NOW PLAYING";
-        currentTrackTitle.textContent = currentLocalPlaylist[localTrackIndex].title;
-        updateMediaSession();
-
-        activeAudio.play().then(function() {
+        mainAudio.play().then(function() {
             hasUserStartedPlayback = true;
             requestWakeLock();
-            preloadNextTrack();
         }).catch(function() {
-            activeAudio.play();
+            mainAudio.play();
         });
     }
 
@@ -1450,14 +1407,14 @@
                 album: activeFmKey ? "FM Tuner" : "BGM Player"
             });
 
-            navigator.mediaSession.playbackState = activeAudio.paused ? "paused" : "playing";
+            navigator.mediaSession.playbackState = mainAudio.paused ? "paused" : "playing";
 
-            if ('setPositionState' in navigator.mediaSession && !activeFmKey && activeAudio.duration) {
+            if ('setPositionState' in navigator.mediaSession && !activeFmKey && mainAudio.duration) {
                 try {
                     navigator.mediaSession.setPositionState({
-                        duration: activeAudio.duration || 0,
-                        playbackRate: activeAudio.playbackRate || 1,
-                        position: activeAudio.currentTime || 0
+                        duration: mainAudio.duration || 0,
+                        playbackRate: mainAudio.playbackRate || 1,
+                        position: mainAudio.currentTime || 0
                     });
                 } catch(e) {}
             }
@@ -1469,7 +1426,6 @@
         }
     }
 
-    /* --- ENHANCED AUDIO CONTEXT (CONNECTS BOTH AUDIO NODES) --- */
     function initAudioContext() {
         if (!audioCtx) {
             var AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -1489,12 +1445,8 @@
             gainNode = audioCtx.createGain();
 
             try {
-                sourceNodeA = audioCtx.createMediaElementSource(audioA);
-                sourceNodeB = audioCtx.createMediaElementSource(audioB);
-
-                sourceNodeA.connect(bassFilter);
-                sourceNodeB.connect(bassFilter);
-
+                sourceNode = audioCtx.createMediaElementSource(mainAudio);
+                sourceNode.connect(bassFilter);
                 bassFilter.connect(trebleFilter);
                 trebleFilter.connect(analyser);
                 analyser.connect(gainNode);
@@ -1512,11 +1464,9 @@
         var val = parseFloat(volumeSlider.value);
         if (gainNode) {
             gainNode.gain.value = val;
-            activeAudio.volume = 1.0;
-            idleAudio.volume = 1.0;
+            mainAudio.volume = 1.0;
         } else {
-            activeAudio.volume = Math.min(1.0, val);
-            idleAudio.volume = Math.min(1.0, val);
+            mainAudio.volume = Math.min(1.0, val);
         }
         
         var multiplier = Math.round(val * 10) / 10;
@@ -1539,16 +1489,9 @@
         applyVolumeGain();
     }
 
-    function preloadNextTrack() {
-        if (isPlayingLocal || activeFmKey) return;
-        var nextIdx = isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
-        idleAudio.src = playlist[nextIdx].src;
-        idleAudio.load();
-    }
-
     function animateVUMeters() {
         requestAnimationFrame(animateVUMeters);
-        if (!activeAudio.paused && analyser) {
+        if (!mainAudio.paused && analyser) {
             var dataArray = new Uint8Array(analyser.frequencyBinCount);
             analyser.getByteFrequencyData(dataArray);
             var average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
@@ -1571,7 +1514,7 @@
         var numBars = 24, barWidth = 8, gap = 10;
         var startX = (canvas.width - (numBars * (barWidth + gap))) / 2;
 
-        if (analyser && !activeAudio.paused) {
+        if (analyser && !mainAudio.paused) {
             var dataArray = new Uint8Array(analyser.frequencyBinCount);
             analyser.getByteFrequencyData(dataArray);
 
@@ -1685,8 +1628,8 @@
             return;
         }
         initAudioContext();
-        activeAudio.currentTime = 0;
-        activeAudio.play();
+        mainAudio.currentTime = 0;
+        mainAudio.play();
     }
 
     function revealSongTitles() {
@@ -1709,37 +1652,26 @@
         currentTrackIndex = index;
         playedHistory.push(currentTrackIndex);
         
-        var temp = activeAudio;
-        activeAudio = idleAudio;
-        idleAudio = temp;
-
-        idleAudio.pause();
-        activeAudio.src = playlist[currentTrackIndex].src;
+        mainAudio.src = playlist[currentTrackIndex].src;
 
         if (startPos > 0) {
             var applySeek = function() {
-                activeAudio.currentTime = startPos;
-                activeAudio.removeEventListener('loadedmetadata', applySeek);
+                mainAudio.currentTime = startPos;
+                mainAudio.removeEventListener('loadedmetadata', applySeek);
             };
-            activeAudio.addEventListener('loadedmetadata', applySeek);
+            mainAudio.addEventListener('loadedmetadata', applySeek);
         }
         
-        nowPlayingSubtitle.textContent = hasUserStartedPlayback ? "NOW PLAYING" : "🎵 ♪ ♫ 🎶";
-        currentTrackTitle.textContent = playlist[currentTrackIndex].title;
-        
         updateActiveTrackHighlight();
-        updateMediaSession();
         initAudioContext();
 
         if (autoPlay) {
-            var playPromise = activeAudio.play();
+            var playPromise = mainAudio.play();
             if (playPromise !== undefined) {
                 playPromise.then(function() {
-                    revealSongTitles();
-                    preloadNextTrack();
                     requestWakeLock();
                 }).catch(function() {
-                    activeAudio.play();
+                    mainAudio.play();
                 });
             }
         }
@@ -1752,24 +1684,39 @@
         }
 
         initAudioContext();
-        if (activeAudio.paused) { 
+        if (mainAudio.paused) { 
+            mainAudio.pausedByUser = false;
             revealSongTitles();
-            activeAudio.play();
+            mainAudio.play();
         } else { 
-            activeAudio.pause(); 
+            mainAudio.pausedByUser = true;
+            mainAudio.pause(); 
         }
     }
 
     function playNext() {
-        if (activeFmKey) return;
-        if (isPlayingLocal && currentLocalPlaylist.length > 0) {
-            playLocalTrack(getNextLocalIndex());
+        if (isTransitioning) return;
+        isTransitioning = true;
+
+        if (activeFmKey) {
+            isTransitioning = false;
             return;
         }
 
-        if (playlist.length === 0) return;
+        if (isPlayingLocal && currentLocalPlaylist.length > 0) {
+            playLocalTrack(getNextLocalIndex());
+            setTimeout(() => { isTransitioning = false; }, 300);
+            return;
+        }
+
+        if (playlist.length === 0) {
+            isTransitioning = false;
+            return;
+        }
+
         var nextIdx = isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
         loadTrack(nextIdx, true, 0);
+        setTimeout(() => { isTransitioning = false; }, 300);
     }
 
     function playPrevious() {
@@ -1798,72 +1745,64 @@
 
     function togglePlaylistDropdown() { playlistDropdown.parentElement.classList.toggle('show'); }
 
-    /* --- BIND WORKER AND AUDIO EVENTS --- */
-    bgWorker.onmessage = function(e) {
-        if (e.data === 'tick' && activeAudio && !activeAudio.paused) {
-            if (activeAudio.duration && (activeAudio.duration - activeAudio.currentTime <= 1.5)) {
-                if (!activeAudio.dataset.advancing) {
-                    activeAudio.dataset.advancing = "true";
-                    playNext();
-                }
+    /* --- EVENT ATTACHMENTS FOR THE SINGLE AUDIO ELEMENT --- */
+    mainAudio.addEventListener('ended', function() {
+        playNext();
+    });
+
+    mainAudio.addEventListener('playing', () => {
+        revealSongTitles();
+        updateMediaSession();
+    });
+
+    mainAudio.addEventListener('play', () => { 
+        playButton.style.display = 'none'; 
+        pauseButton.style.display = 'inline-flex'; 
+        tapeLeft.classList.add('spinning');
+        tapeRight.classList.add('spinning');
+        updateActiveTrackHighlight();
+        requestWakeLock();
+    });
+
+    mainAudio.addEventListener('pause', () => { 
+        if (mainAudio.paused) {
+            playButton.style.display = 'inline-flex'; 
+            pauseButton.style.display = 'none'; 
+            tapeLeft.classList.remove('spinning');
+            tapeRight.classList.remove('spinning');
+            savePlayerState();
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => { wakeLock = null; });
+            }
+            updateMediaSession();
+
+            // Resume automatically if Android paused playback for a notification chime
+            if (hasUserStartedPlayback && !mainAudio.ended && !mainAudio.pausedByUser) {
+                setTimeout(function() {
+                    if (mainAudio.paused && !mainAudio.pausedByUser) {
+                        mainAudio.play().catch(function() {});
+                    }
+                }, 1000);
             }
         }
-    };
+    });
 
-    function attachAudioEvents(elem) {
-        elem.addEventListener('ended', function() {
-            elem.dataset.advancing = "";
-            playNext();
-        });
-
-        elem.addEventListener('play', () => { 
-            elem.dataset.advancing = "";
-            revealSongTitles();
-            playButton.style.display = 'none'; 
-            pauseButton.style.display = 'inline-flex'; 
-            tapeLeft.classList.add('spinning');
-            tapeRight.classList.add('spinning');
-            updateActiveTrackHighlight();
-            requestWakeLock();
-            updateMediaSession();
-            bgWorker.postMessage('start');
-        });
-
-        elem.addEventListener('pause', () => { 
-            if (activeAudio.paused && idleAudio.paused) {
-                playButton.style.display = 'inline-flex'; 
-                pauseButton.style.display = 'none'; 
-                tapeLeft.classList.remove('spinning');
-                tapeRight.classList.remove('spinning');
+    mainAudio.addEventListener('timeupdate', () => {
+        if (!activeFmKey && !isNaN(mainAudio.duration)) {
+            progressSlider.value = mainAudio.currentTime;
+            currentTimeSpan.textContent = formatTime(mainAudio.currentTime);
+            if (Math.floor(mainAudio.currentTime) % 3 === 0) {
                 savePlayerState();
-                bgWorker.postMessage('stop');
-                if (wakeLock !== null) {
-                    wakeLock.release().then(() => { wakeLock = null; });
-                }
-                updateMediaSession();
             }
-        });
+        }
+    });
 
-        elem.addEventListener('timeupdate', () => {
-            if (elem === activeAudio && !activeFmKey && !isNaN(activeAudio.duration)) {
-                progressSlider.value = activeAudio.currentTime;
-                currentTimeSpan.textContent = formatTime(activeAudio.currentTime);
-                if (Math.floor(activeAudio.currentTime) % 3 === 0) {
-                    savePlayerState();
-                }
-            }
-        });
-
-        elem.addEventListener('loadedmetadata', () => {
-            if (elem === activeAudio && !activeFmKey) {
-                progressSlider.max = activeAudio.duration;
-                durationSpan.textContent = formatTime(activeAudio.duration);
-            }
-        });
-    }
-
-    attachAudioEvents(audioA);
-    attachAudioEvents(audioB);
+    mainAudio.addEventListener('loadedmetadata', () => {
+        if (!activeFmKey) {
+            progressSlider.max = mainAudio.duration;
+            durationSpan.textContent = formatTime(mainAudio.duration);
+        }
+    });
 
     volumeSlider.addEventListener('input', () => { 
         initAudioContext();
@@ -1872,7 +1811,7 @@
 
     progressSlider.addEventListener('input', () => { 
         if (!activeFmKey) {
-            activeAudio.currentTime = progressSlider.value;
+            mainAudio.currentTime = progressSlider.value;
             savePlayerState();
         }
     });
