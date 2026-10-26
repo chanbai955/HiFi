@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chanthiran Mini HiFi System</title>
     
-    <!-- PWA Meta Tags -->
+    <!-- PWA & Mobile Web App Meta Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffaa00">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- HLS for Radio -->
+    <!-- HLS Engine for Live Dynamic Streaming -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Orbitron:wght@600;800;900&display=swap');
@@ -111,8 +111,16 @@
             transition: all 0.15s ease;
         }
 
-        .exit-btn svg { width: 12px; height: 12px; fill: currentColor; }
-        .exit-btn:active { transform: scale(0.92); }
+        .exit-btn svg {
+            width: 12px;
+            height: 12px;
+            fill: currentColor;
+        }
+
+        .exit-btn:active {
+            transform: scale(0.92);
+            box-shadow: 0 1px 2px rgba(255, 0, 0, 0.6);
+        }
 
         .compact-amp-panel {
             width: 100%;
@@ -121,6 +129,7 @@
             border-radius: 6px;
             padding: 8px 12px;
             color: #fff;
+            box-shadow: none;
             display: flex;
             flex-direction: column;
             gap: 6px;
@@ -153,19 +162,46 @@
             height: 34px;
             border-radius: 50%;
             background: conic-gradient(
-                #e2e8f0 0deg, #94a3b8 45deg, #cbd5e1 90deg, #64748b 135deg,
-                #f1f5f9 180deg, #94a3b8 225deg, #cbd5e1 270deg, #475569 315deg, #e2e8f0 360deg
+                #e2e8f0 0deg,
+                #94a3b8 45deg,
+                #cbd5e1 90deg,
+                #64748b 135deg,
+                #f1f5f9 180deg,
+                #94a3b8 225deg,
+                #cbd5e1 270deg,
+                #475569 315deg,
+                #e2e8f0 360deg
             );
             border: 2px solid #1e293b;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.8), inset 0 1px 3px rgba(255,255,255,0.9);
+            box-shadow: 
+                0 4px 8px rgba(0,0,0,0.8),
+                inset 0 1px 3px rgba(255,255,255,0.9),
+                inset 0 -2px 4px rgba(0,0,0,0.6);
             position: relative;
             cursor: grab;
             user-select: none;
             touch-action: none;
             transform: rotate(0deg);
+            transition: transform 0.05s linear;
         }
 
-        .knob-3d.large { width: 44px; height: 44px; transform: rotate(135deg); }
+        .knob-3d:active { cursor: grabbing; }
+
+        .knob-3d::before {
+            content: '';
+            position: absolute;
+            top: 3px; left: 3px; right: 3px; bottom: 3px;
+            border-radius: 50%;
+            background: repeating-radial-gradient(
+                circle at center,
+                rgba(255,255,255,0.2) 0px,
+                rgba(255,255,255,0.2) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+        }
+
         .knob-3d::after {
             content: '';
             position: absolute;
@@ -174,7 +210,14 @@
             width: 3px; height: 10px;
             background: #0f172a;
             border-radius: 2px;
+            box-shadow: 0 0 2px rgba(255,255,255,0.8);
         }
+
+        .knob-3d.large {
+            width: 44px; height: 44px;
+            transform: rotate(-135deg);
+        }
+
         .knob-3d.large::after { height: 14px; }
 
         .vu-meters-wrapper {
@@ -212,7 +255,7 @@
             background: #ff3300;
             transform-origin: bottom center;
             transform: rotate(-42deg);
-            transition: transform 0.06s ease-out;
+            transition: transform 0.08s ease-out;
             box-shadow: 0 0 4px #ff3300;
             z-index: 2;
         }
@@ -297,7 +340,11 @@
             align-items: center;
         }
 
-        .cassette-deck-well svg.cdeck-svg { width: 100%; height: 100%; display: block; }
+        .cassette-deck-well svg.cdeck-svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
 
         .spool-overlay-container {
             position: absolute;
@@ -306,19 +353,38 @@
             pointer-events: none;
         }
 
-        .spool-left-wrapper { position: absolute; left: 23.5%; top: 42.5%; transform: translate(-50%, -50%); }
-        .spool-right-wrapper { position: absolute; left: 51.5%; top: 42.5%; transform: translate(-50%, -50%); }
+        .spool-left-wrapper {
+            position: absolute;
+            left: 23.5%; top: 42.5%;
+            transform: translate(-50%, -50%);
+        }
+
+        .spool-right-wrapper {
+            position: absolute;
+            left: 51.5%; top: 42.5%;
+            transform: translate(-50%, -50%);
+        }
 
         .tape-wheel {
             width: 32px; height: 32px;
             border-radius: 50%;
             background: #181c22;
             border: 3px solid #728096;
-            box-shadow: 0 0 8px rgba(0,0,0,0.9);
+            box-shadow: 0 0 8px rgba(0,0,0,0.9), inset 0 0 4px rgba(255,255,255,0.3);
             position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
+        }
+
+        .tape-wheel::before {
+            content: '';
+            position: absolute;
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: #0d0e11;
+            border: 2px solid #a0aec0;
+            z-index: 3;
         }
 
         .spoke-cross {
@@ -330,12 +396,23 @@
             align-items: center;
         }
 
-        .spoke-bar-h, .spoke-bar-v { position: absolute; background: #e2e8f0; border-radius: 2px; }
+        .spoke-bar-h, .spoke-bar-v {
+            position: absolute;
+            background: #e2e8f0;
+            border-radius: 2px;
+            box-shadow: 0 0 2px rgba(0,0,0,0.8);
+        }
+
         .spoke-bar-h { width: 24px; height: 5px; }
         .spoke-bar-v { width: 5px; height: 24px; }
 
-        .tape-wheel.spinning { animation: spinWheel 2.5s linear infinite; }
-        @keyframes spinWheel { 100% { transform: rotate(360deg); } }
+        .tape-wheel.spinning {
+            animation: spinWheel 2.5s linear infinite;
+        }
+
+        @keyframes spinWheel {
+            100% { transform: rotate(360deg); }
+        }
 
         .fm-tuner-panel {
             width: 100%;
@@ -346,6 +423,7 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
+            box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 0, 0, 0.6);
         }
 
         .fm-tuner-label {
@@ -375,13 +453,29 @@
             border-radius: 4px;
             cursor: pointer;
             text-align: center;
+            box-shadow: 0 3px 0 #0d0e12;
+            transition: all 0.1s ease;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .fm-preset-btn.active-fm { color: #111; background: linear-gradient(145deg, #ffaa00, #ff7700); border-color: #ffaa00; }
-        .fm-preset-btn.off-btn { color: #ff6666; border-color: #ff3333; }
+        .fm-preset-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #0d0e12;
+        }
+
+        .fm-preset-btn.active-fm {
+            color: #111;
+            background: linear-gradient(145deg, #ffaa00, #ff7700);
+            border-color: #ffaa00;
+            box-shadow: 0 0 10px rgba(255, 170, 0, 0.7);
+        }
+
+        .fm-preset-btn.off-btn {
+            color: #ff6666;
+            border-color: #ff3333;
+        }
 
         .controls-wrapper {
             width: 100%;
@@ -404,6 +498,7 @@
             appearance: none;
             background: transparent;
             cursor: pointer;
+            touch-action: manipulation;
         }
 
         input[type="range"]::-webkit-slider-runnable-track {
@@ -423,6 +518,7 @@
             border: 1px solid #222;
             border-radius: 3px;
             margin-top: -6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.8);
         }
 
         #progressSlider { flex: 1; }
@@ -443,21 +539,44 @@
             padding: 0 !important;
             margin: 0;
             border-radius: 6px;
+            transition: all 0.1s ease;
             color: #d1d5db;
             background: linear-gradient(145deg, #3a404d, #1f232b) !important;
-            box-shadow: 0 4px 0 #111317;
+            box-shadow: 0 4px 0 #111317, 0 5px 8px rgba(0,0,0,0.6);
             display: inline-flex;
             align-items: center;
             justify-content: center;
             width: 44px;
             height: 38px;
+            touch-action: manipulation;
         }
 
-        .music-button svg { width: 18px; height: 18px; fill: currentColor; }
-        .music-button.active-mode { color: #ffaa00; border-color: #ffaa00 !important; }
-        .pl-text { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 800; }
+        .music-button svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .music-button:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #111317, 0 2px 4px rgba(0,0,0,0.6);
+        }
+
+        .music-button.active-mode {
+            color: #ffaa00;
+            border-color: #ffaa00 !important;
+            box-shadow: 0 0 10px rgba(255, 170, 0, 0.4), inset 0 0 6px rgba(255, 170, 0, 0.3);
+        }
+
+        .pl-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 800;
+            line-height: 1;
+        }
 
         .dropdown { position: relative; display: inline-block; }
+
         .dropdown-content {
             display: none;
             position: absolute;
@@ -474,7 +593,14 @@
             overflow-y: auto;
             border: 2px solid #ffaa00;
         }
-        .dropdown.show .dropdown-content { display: block; }
+
+        .dropdown-sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: #181a1f;
+        }
+
         .dropdown-content a, .dropdown-content label {
             color: #eee;
             padding: 10px 14px;
@@ -482,10 +608,25 @@
             display: block;
             font-size: 0.8rem;
             font-family: 'Orbitron', sans-serif;
+            text-align: left;
             border-bottom: 1px solid rgba(255,255,255,0.08);
             cursor: pointer;
         }
-        .dropdown-content a.active { background-color: #353b47; color: #ffaa00; font-weight: bold; }
+
+        .dropdown-content label {
+            font-weight: bold;
+            color: #ffaa00;
+            background-color: rgba(255, 170, 0, 0.15);
+        }
+
+        .dropdown-content a:active, .dropdown-content a:hover,
+        .dropdown-content label:active, .dropdown-content label:hover { 
+            background-color: #2a2e38; 
+            color: #ffaa00; 
+        }
+
+        .dropdown-content a.active { background-color: #353b47; font-weight: bold; color: #ffaa00; }
+        .dropdown.show .dropdown-content { display: block; }
 
         .volume-container {
             display: flex;
@@ -498,17 +639,42 @@
             border-radius: 6px;
             border: 1px solid #2a2e38;
         }
-        #volumeIcon { color: #ffaa00; }
+
+        #volumeIcon {
+            color: #ffaa00;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .boost-btn {
             background: linear-gradient(145deg, #3a404d, #1f232b);
             border: 1px solid #ffaa00;
             color: #ffaa00;
             font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
             font-size: 0.7rem;
             padding: 4px 8px;
             border-radius: 4px;
             cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
+
+        .boost-btn svg {
+            width: 11px;
+            height: 11px;
+            fill: currentColor;
+        }
+
+        .boost-btn:active {
+            transform: scale(0.95);
+        }
+
         #volumeSlider { flex: 1; }
     </style>
 </head>
@@ -526,22 +692,43 @@
         </div>
     </div>
 
-    <!-- PURE DIRECT AUDIO STREAM: 100% Native OS-level Background Rights -->
-    <audio id="hifiAudio" preload="auto" playsinline></audio>
+    <!-- Dual Audio Elements for Background Transitions -->
+    <audio id="audioA" preload="auto" crossorigin="anonymous" playsinline></audio>
+    <audio id="audioB" preload="auto" crossorigin="anonymous" playsinline></audio>
 
     <div class="hifi-body-wrapper">
         <div class="compact-amp-panel">
             <div class="amp-knobs-row">
-                <div class="amp-knob-unit"><div id="bassKnob" class="knob-3d"></div><span class="amp-knob-label">BASS</span></div>
-                <div class="amp-knob-unit"><div id="trebleKnob" class="knob-3d"></div><span class="amp-knob-label">TREBLE</span></div>
-                <div class="amp-knob-unit"><div id="balanceKnob" class="knob-3d"></div><span class="amp-knob-label">BALANCE</span></div>
-                <div class="amp-knob-unit"><div id="masterVolumeKnob" class="knob-3d large"></div><span class="amp-knob-label">VOLUME</span></div>
+                <div class="amp-knob-unit">
+                    <div id="bassKnob" class="knob-3d"></div>
+                    <span class="amp-knob-label">BASS</span>
+                </div>
+                <div class="amp-knob-unit">
+                    <div id="trebleKnob" class="knob-3d"></div>
+                    <span class="amp-knob-label">TREBLE</span>
+                </div>
+                <div class="amp-knob-unit">
+                    <div id="balanceKnob" class="knob-3d"></div>
+                    <span class="amp-knob-label">BALANCE</span>
+                </div>
+                <div class="amp-knob-unit">
+                    <div id="masterVolumeKnob" class="knob-3d large"></div>
+                    <span class="amp-knob-label">VOLUME</span>
+                </div>
             </div>
         </div>
 
         <div class="vu-meters-wrapper">
-            <div class="vu-meter-unit"><div class="vu-scale">VU L</div><div class="vu-meter-bg"></div><div id="vuNeedleL" class="vu-needle"></div></div>
-            <div class="vu-meter-unit"><div class="vu-scale">VU R</div><div class="vu-meter-bg"></div><div id="vuNeedleR" class="vu-needle"></div></div>
+            <div class="vu-meter-unit">
+                <div class="vu-scale">VU L</div>
+                <div class="vu-meter-bg"></div>
+                <div id="vuNeedleL" class="vu-needle"></div>
+            </div>
+            <div class="vu-meter-unit">
+                <div class="vu-scale">VU R</div>
+                <div class="vu-meter-bg"></div>
+                <div id="vuNeedleR" class="vu-needle"></div>
+            </div>
         </div>
 
         <div class="visualizer-container">
@@ -554,7 +741,7 @@
         </div>
 
         <div class="cassette-deck-well">
-            <svg class="cdeck-svg" viewBox="0 0 400 120" preserveAspectRatio="none">
+            <svg class="cdeck-svg" viewBox="0 0 400 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="400" height="120" fill="#1e222a"/>
                 <rect x="5" y="5" width="390" height="110" rx="6" fill="#13161c" stroke="#2e3542" stroke-width="2"/>
                 <rect x="15" y="12" width="280" height="96" rx="5" fill="#090a0d" stroke="#3d4656" stroke-width="2"/>
@@ -565,11 +752,32 @@
                 <text x="32" y="32" fill="#718096" font-family="Orbitron, sans-serif" font-size="10" font-weight="800">90</text>
                 <text x="230" y="32" fill="#e2e8f0" font-family="Orbitron, sans-serif" font-size="9" font-weight="900">TYPE I</text>
                 <text x="32" y="50" fill="#ffaa00" font-family="Orbitron, sans-serif" font-size="11" font-weight="900">A</text>
+                <rect x="320" y="25" width="50" height="12" rx="2" fill="#1a1d24" stroke="#525d73" stroke-width="1"/>
+                <text x="325" y="34" fill="#a0aec0" font-family="Orbitron, sans-serif" font-size="6" font-weight="800">MEMORY</text>
+                <circle cx="345" cy="55" r="7" fill="#13151b" stroke="#718096" stroke-width="1.5"/>
+                <circle cx="345" cy="55" r="3" fill="#e2e8f0"/>
+                <text x="323" y="70" fill="#718096" font-family="Orbitron, sans-serif" font-size="5" font-weight="800">START OFF STOP</text>
+                <rect x="320" y="80" width="50" height="16" rx="2" fill="#171920" stroke="#718096" stroke-width="1.5"/>
+                <text x="331" y="91" fill="#e2e8f0" font-family="Orbitron, sans-serif" font-size="7" font-weight="900">EJECT</text>
             </svg>
 
             <div class="spool-overlay-container">
-                <div class="spool-left-wrapper"><div id="tapeLeft" class="tape-wheel"><div class="spoke-cross"><div class="spoke-bar-h"></div><div class="spoke-bar-v"></div></div></div></div>
-                <div class="spool-right-wrapper"><div id="tapeRight" class="tape-wheel"><div class="spoke-cross"><div class="spoke-bar-h"></div><div class="spoke-bar-v"></div></div></div></div>
+                <div class="spool-left-wrapper">
+                    <div id="tapeLeft" class="tape-wheel">
+                        <div class="spoke-cross">
+                            <div class="spoke-bar-h"></div>
+                            <div class="spoke-bar-v"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="spool-right-wrapper">
+                    <div id="tapeRight" class="tape-wheel">
+                        <div class="spoke-cross">
+                            <div class="spoke-bar-h"></div>
+                            <div class="spoke-bar-v"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -595,31 +803,42 @@
             </div>
 
             <div class="button-row">
-                <button id="restartButton" class="music-button" onclick="restartTrack()" title="Reconnect / Start Again">
+                <button id="restartButton" class="music-button" onclick="restartTrack()" title="Start Again / Reconnect Stream">
                     <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
                 </button>
+
                 <button id="prevButton" class="music-button" onclick="playPrevious()" title="Previous Song">
                     <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
                 </button>
+
                 <button id="playButton" class="music-button" onclick="togglePlayPause()" title="Play">
                     <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 </button>
+
                 <button id="pauseButton" class="music-button" onclick="togglePlayPause()" style="display:none;" title="Pause">
                     <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                 </button>
+
                 <button id="nextButton" class="music-button" onclick="playNext()" title="Next Song">
                     <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
                 </button>
-                <button id="shuffleButton" class="music-button active-mode" onclick="toggleShuffle()" title="Shuffle">
+
+                <button id="shuffleButton" class="music-button active-mode" onclick="toggleShuffle()" title="Toggle Shuffle Mode">
                     <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.45 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
                 </button>
+
                 <div class="dropdown">
-                    <button onclick="togglePlaylistDropdown()" class="music-button" title="Playlist"><span class="pl-text">PL</span></button>
+                    <button onclick="togglePlaylistDropdown()" class="music-button" title="Playlist">
+                        <span class="pl-text">PL</span>
+                    </button>
                     <div id="playlistDropdown" class="dropdown-content">
-                        <label for="localFileInput">📄 Pick Songs / Files...</label>
-                        <input type="file" id="localFileInput" multiple accept="audio/*" style="display:none;" onchange="handleLocalFiles(event)" />
-                        <label for="folderInput">📂 Pick Folder / Subfolder...</label>
-                        <input type="file" id="folderInput" webkitdirectory directory accept="audio/*" style="display:none;" onchange="handleLocalFiles(event)" />
+                        <div class="dropdown-sticky-header">
+                            <label for="localFileInput">📄 Pick Songs / Files...</label>
+                            <input type="file" id="localFileInput" multiple accept="audio/*" style="display:none;" onchange="handleLocalFiles(event)" />
+
+                            <label for="folderInput">📂 Pick Folder / Subfolder...</label>
+                            <input type="file" id="folderInput" webkitdirectory directory accept="audio/*" style="display:none;" onchange="handleLocalFiles(event)" />
+                        </div>
                         <div id="dropdownTrackList"></div>
                     </div>
                 </div>
@@ -631,8 +850,11 @@
                         <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
                     </svg>
                 </span>
-                <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1.0" />
-                <button id="boostButton" class="boost-btn" onclick="cycleBoostMode()"><span id="boostText">1.0x</span></button>
+                <input type="range" id="volumeSlider" min="0" max="5" step="0.1" value="2.5" />
+                <button id="boostButton" class="boost-btn" onclick="cycleBoostMode()">
+                    <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+                    <span id="boostText">2.5x</span>
+                </button>
             </div>
         </div>
     </div>
@@ -771,10 +993,31 @@
     var activeFmKey = null;
     var currentStreamUrl = null;
     var hls = null;
+    var hlsRetryCount = 0;
+    var maxHlsRetries = 5;
 
-    /* --- THE SINGLE NATIVE AUDIO STREAM ENGINE --- */
-    var hifiAudio = document.getElementById('hifiAudio');
-    var loadTimeout = null;
+    /* --- INLINE WEB WORKER TIMER FOR BACKGROUND TRACK SWAPPING --- */
+    var workerBlob = new Blob([`
+        var timer = null;
+        self.onmessage = function(e) {
+            if (e.data === 'start') {
+                if (timer) clearInterval(timer);
+                timer = setInterval(function() {
+                    self.postMessage('tick');
+                }, 1000);
+            } else if (e.data === 'stop') {
+                if (timer) clearInterval(timer);
+                timer = null;
+            }
+        };
+    `], { type: 'text/javascript' });
+    var bgWorker = new Worker(URL.createObjectURL(workerBlob));
+
+    /* --- DUAL AUDIO ELEMENT SWAP ENGINE --- */
+    var audioA = document.getElementById('audioA');
+    var audioB = document.getElementById('audioB');
+    var activeAudio = audioA;
+    var idleAudio = audioB;
 
     var currentTrackTitle = document.getElementById('currentTrackTitle');
     var nowPlayingSubtitle = document.getElementById('nowPlayingSubtitle');
@@ -796,25 +1039,19 @@
 
     var canvas = document.getElementById('visualizerCanvas');
     var canvasCtx = canvas.getContext('2d');
-    var capHeights = new Array(24).fill(4);
-    var barLevels = new Array(24).fill(4);
-    var vuLevelL = 0;
-    var vuLevelR = 0;
+    var audioCtx, analyser, gainNode, bassFilter, trebleFilter;
+    var sourceNodeA, sourceNodeB;
+    var capHeights = [];
     var wakeLock = null;
 
     var currentTrackIndex = 0;
     var isShuffle = true;
+    var playedHistory = [];
     var hasUserStartedPlayback = false;
     var currentLocalPlaylist = [];
     var isPlayingLocal = false;
     var localTrackIndex = 0;
-
-    function clearLoadGuard() {
-        if (loadTimeout) {
-            clearTimeout(loadTimeout);
-            loadTimeout = null;
-        }
-    }
+    var localPlayedHistory = [];
 
     function setupKnobControl(knobEl, onValueChange, minVal, maxVal, defaultVal) {
         if (!knobEl) return;
@@ -853,6 +1090,10 @@
             knobEl.releasePointerCapture(e.pointerId);
         });
 
+        knobEl.addEventListener('pointercancel', function() {
+            isDragging = false;
+        });
+
         updateVisualAngle(defaultVal);
         return updateVisualAngle;
     }
@@ -861,28 +1102,52 @@
         document.getElementById('masterVolumeKnob'),
         function(newVal) {
             volumeSlider.value = newVal;
+            initAudioContext();
             applyVolumeGain();
         },
-        0.0, 1.0, 1.0
+        0.0, 5.0, 2.5
     );
 
-    setupKnobControl(document.getElementById('bassKnob'), function() {}, -12, 12, 0);
-    setupKnobControl(document.getElementById('trebleKnob'), function() {}, -12, 12, 0);
-    setupKnobControl(document.getElementById('balanceKnob'), function() {}, -10, 10, 0);
+    setupKnobControl(
+        document.getElementById('bassKnob'),
+        function(newGain) {
+            initAudioContext();
+            if (bassFilter) bassFilter.gain.value = newGain;
+        },
+        -12, 12, 0
+    );
+
+    setupKnobControl(
+        document.getElementById('trebleKnob'),
+        function(newGain) {
+            initAudioContext();
+            if (trebleFilter) trebleFilter.gain.value = newGain;
+        },
+        -12, 12, 0
+    );
+
+    setupKnobControl(
+        document.getElementById('balanceKnob'),
+        function(angle) {},
+        -10, 10, 0
+    );
 
     function destroyHls() {
         if (hls) {
             hls.destroy();
             hls = null;
         }
+        hlsRetryCount = 0;
     }
 
     function playFmStation(key, evt) {
         if (!fmStations[key]) return;
+        
         activeFmKey = key;
-        hifiAudio.pause();
+        initAudioContext();
+        activeAudio.pause();
+        idleAudio.pause();
         destroyHls();
-        clearLoadGuard();
 
         document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
         if (evt && evt.currentTarget) {
@@ -897,6 +1162,7 @@
         progressSlider.value = 0;
 
         var stationInfo = fmStations[key];
+
         if (stationInfo.useApi) {
             fetch("https://de1.api.radio-browser.info/json/stations/byname/" + encodeURIComponent(stationInfo.query))
                 .then(res => res.json())
@@ -915,28 +1181,96 @@
     }
 
     function startStreamUrl(title, url) {
+        initAudioContext();
         destroyHls();
         currentStreamUrl = url;
         currentTrackTitle.textContent = title;
 
         if (url.includes('.m3u8')) {
             if (Hls.isSupported()) {
-                hls = new Hls();
-                hls.loadSource(url);
-                hls.attachMedia(hifiAudio);
-                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    nowPlayingSubtitle.textContent = "LIVE FM RADIO";
-                    hifiAudio.play().catch(() => {});
+                hls = new Hls({
+                    manifestLoadingTimeOut: 10000,
+                    manifestLoadingMaxRetry: 4,
+                    levelLoadingTimeOut: 10000,
+                    fragLoadingTimeOut: 20000
                 });
-            } else if (hifiAudio.canPlayType('application/vnd.apple.mpegurl')) {
-                hifiAudio.src = url;
-                hifiAudio.play().catch(() => {});
+                hls.loadSource(url);
+                hls.attachMedia(activeAudio);
+                
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    hlsRetryCount = 0;
+                    nowPlayingSubtitle.textContent = "LIVE FM RADIO";
+                    activeAudio.play().catch(() => {});
+                });
+
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    if (data.fatal) {
+                        switch (data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                handleHlsNetworkError();
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                hls.recoverMediaError();
+                                break;
+                            default:
+                                fallbackToBackupStream();
+                                break;
+                        }
+                    }
+                });
+            } else if (activeAudio.canPlayType('application/vnd.apple.mpegurl')) {
+                activeAudio.src = url;
+                nowPlayingSubtitle.textContent = "LIVE FM RADIO";
+                activeAudio.play().catch(() => {});
             }
         } else {
-            hifiAudio.src = url;
-            hifiAudio.play().catch(() => {});
+            activeAudio.src = url;
+
+            var quickPlay = function() {
+                nowPlayingSubtitle.textContent = "LIVE FM RADIO";
+                activeAudio.play().then(() => {
+                    hasUserStartedPlayback = true;
+                    requestWakeLock();
+                }).catch(() => {});
+                activeAudio.removeEventListener('canplay', quickPlay);
+            };
+
+            activeAudio.addEventListener('canplay', quickPlay);
+            activeAudio.load();
         }
         updateMediaSession();
+    }
+
+    function handleHlsNetworkError() {
+        if (hlsRetryCount < maxHlsRetries) {
+            hlsRetryCount++;
+            nowPlayingSubtitle.textContent = "RECONNECTING (" + hlsRetryCount + "/" + maxHlsRetries + ")...";
+            setTimeout(() => {
+                if (hls && activeFmKey) {
+                    hls.startLoad();
+                }
+            }, Math.pow(2, hlsRetryCount) * 1000);
+        } else {
+            fallbackToBackupStream();
+        }
+    }
+
+    function fallbackToBackupStream() {
+        if (!activeFmKey || !fmStations[activeFmKey]) return;
+        var backupUrl = fmStations[activeFmKey].backup;
+        if (currentStreamUrl !== backupUrl) {
+            nowPlayingSubtitle.textContent = "SWITCHING BACKUP STREAM...";
+            startStreamUrl(fmStations[activeFmKey].title, backupUrl);
+        } else {
+            nowPlayingSubtitle.textContent = "STREAM OFFLINE";
+        }
+    }
+
+    function reconnectActiveStream() {
+        if (activeFmKey) {
+            nowPlayingSubtitle.textContent = "RECONNECTING STREAM...";
+            playFmStation(activeFmKey);
+        }
     }
 
     function turnOffRadio() {
@@ -944,21 +1278,39 @@
         currentStreamUrl = null;
         destroyHls();
         document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
-        hifiAudio.pause();
+        activeAudio.pause();
+        idleAudio.pause();
         
         if (currentLocalPlaylist.length > 0) {
             playLocalTrack(localTrackIndex);
         } else {
-            loadTrack(currentTrackIndex, true);
+            loadTrack(currentTrackIndex, true, 0);
         }
     }
 
     function exitApp() {
         destroyHls();
-        if (hifiAudio) hifiAudio.pause();
+        if (activeAudio) activeAudio.pause();
+        if (idleAudio) idleAudio.pause();
         if (wakeLock) wakeLock.release().catch(()=>{});
+        bgWorker.postMessage('stop');
+        
         try { window.close(); } catch(e) {}
         setTimeout(() => { window.location.href = "about:blank"; }, 300);
+    }
+
+    function savePlayerState() {
+        try {
+            var state = {
+                trackIndex: currentTrackIndex,
+                currentTime: activeAudio.currentTime || 0,
+                isShuffle: isShuffle,
+                isPlayingLocal: isPlayingLocal,
+                wasPlaying: !activeAudio.paused,
+                volume: volumeSlider.value
+            };
+            localStorage.setItem('chanthiran_player_state', JSON.stringify(state));
+        } catch(e) {}
     }
 
     async function requestWakeLock() {
@@ -969,21 +1321,61 @@
         } catch (err) {}
     }
 
-    function handleLocalFiles(event) {
+    function readEntry(entry) {
+        return new Promise((resolve) => {
+            if (entry.isFile) {
+                entry.file((file) => {
+                    if (file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|m4a|aac)$/i)) {
+                        var objectUrl = URL.createObjectURL(file);
+                        var cleanTitle = file.name.replace(/\.[^/.]+$/, "");
+                        resolve([{ title: cleanTitle, src: objectUrl }]);
+                    } else {
+                        resolve([]);
+                    }
+                }, () => resolve([]));
+            } else if (entry.isDirectory) {
+                var dirReader = entry.createReader();
+                dirReader.readEntries(async (entries) => {
+                    var results = [];
+                    for (var i = 0; i < entries.length; i++) {
+                        var files = await readEntry(entries[i]);
+                        results = results.concat(files);
+                    }
+                    resolve(results);
+                }, () => resolve([]));
+            } else {
+                resolve([]);
+            }
+        });
+    }
+
+    async function handleLocalFiles(event) {
         var files = event.target.files;
         if (!files || files.length === 0) return;
 
         currentLocalPlaylist = [];
+        localPlayedHistory = [];
         activeFmKey = null;
         destroyHls();
         document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
 
-        for (var j = 0; j < files.length; j++) {
-            var file = files[j];
-            if (file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|m4a|aac)$/i)) {
-                var objectUrl = URL.createObjectURL(file);
-                var cleanTitle = file.name.replace(/\.[^/.]+$/, "");
-                currentLocalPlaylist.push({ title: cleanTitle, src: objectUrl });
+        if (event.target.webkitEntries && event.target.webkitEntries.length > 0) {
+            var promises = [];
+            for (var i = 0; i < event.target.webkitEntries.length; i++) {
+                promises.push(readEntry(event.target.webkitEntries[i]));
+            }
+            var nestedResults = await Promise.all(promises);
+            nestedResults.forEach(subList => {
+                currentLocalPlaylist = currentLocalPlaylist.concat(subList);
+            });
+        } else {
+            for (var j = 0; j < files.length; j++) {
+                var file = files[j];
+                if (file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|m4a|aac)$/i)) {
+                    var objectUrl = URL.createObjectURL(file);
+                    var cleanTitle = file.name.replace(/\.[^/.]+$/, "");
+                    currentLocalPlaylist.push({ title: cleanTitle, src: objectUrl });
+                }
             }
         }
 
@@ -993,32 +1385,60 @@
             togglePlaylistDropdown();
             playLocalTrack(0);
         }
+
         event.target.value = '';
     }
 
     function getNextLocalIndex() {
         if (currentLocalPlaylist.length <= 1) return 0;
         if (isShuffle) {
+            if (localPlayedHistory.length >= currentLocalPlaylist.length - 1) {
+                localPlayedHistory = [localTrackIndex];
+            }
             var randIdx;
             do {
                 randIdx = Math.floor(Math.random() * currentLocalPlaylist.length);
-            } while (randIdx === localTrackIndex);
+            } while (randIdx === localTrackIndex || localPlayedHistory.includes(randIdx));
             return randIdx;
         } else {
             return (localTrackIndex + 1) % currentLocalPlaylist.length;
         }
     }
 
-    function playLocalTrack(index) {
+    function playLocalTrack(index, targetTime = 0) {
         if (currentLocalPlaylist.length === 0) return;
         localTrackIndex = index;
+        localPlayedHistory.push(localTrackIndex);
+
+        initAudioContext();
         destroyHls();
-        clearLoadGuard();
-        hifiAudio.src = currentLocalPlaylist[localTrackIndex].src;
-        hifiAudio.play().then(() => {
+        
+        var temp = activeAudio;
+        activeAudio = idleAudio;
+        idleAudio = temp;
+
+        idleAudio.pause();
+        activeAudio.src = currentLocalPlaylist[localTrackIndex].src;
+
+        if (targetTime > 0) {
+            var applySeek = function() {
+                activeAudio.currentTime = targetTime;
+                activeAudio.removeEventListener('loadedmetadata', applySeek);
+            };
+            activeAudio.addEventListener('loadedmetadata', applySeek);
+        }
+
+        nowPlayingSubtitle.textContent = "NOW PLAYING";
+        currentTrackTitle.textContent = currentLocalPlaylist[localTrackIndex].title;
+        updateMediaSession();
+
+        activeAudio.play().then(function() {
             hasUserStartedPlayback = true;
             requestWakeLock();
-        }).catch(() => {});
+            preloadNextTrack();
+        }).catch(function() {
+            activeAudio.play();
+        });
     }
 
     function updateMediaSession() {
@@ -1029,100 +1449,180 @@
                 artist: "Chanthiran Music Player",
                 album: activeFmKey ? "FM Tuner" : "BGM Player"
             });
-            navigator.mediaSession.playbackState = hifiAudio.paused ? "paused" : "playing";
 
-            navigator.mediaSession.setActionHandler('play', () => togglePlayPause());
-            navigator.mediaSession.setActionHandler('pause', () => togglePlayPause());
-            navigator.mediaSession.setActionHandler('previoustrack', () => playPrevious());
-            navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
+            navigator.mediaSession.playbackState = activeAudio.paused ? "paused" : "playing";
+
+            if ('setPositionState' in navigator.mediaSession && !activeFmKey && activeAudio.duration) {
+                try {
+                    navigator.mediaSession.setPositionState({
+                        duration: activeAudio.duration || 0,
+                        playbackRate: activeAudio.playbackRate || 1,
+                        position: activeAudio.currentTime || 0
+                    });
+                } catch(e) {}
+            }
+
+            navigator.mediaSession.setActionHandler('play', function() { togglePlayPause(); });
+            navigator.mediaSession.setActionHandler('pause', function() { togglePlayPause(); });
+            navigator.mediaSession.setActionHandler('previoustrack', function() { playPrevious(); });
+            navigator.mediaSession.setActionHandler('nexttrack', function() { playNext(); });
+        }
+    }
+
+    /* --- INITIALIZE AUDIO CONTEXT (PERSISTENT NODE CONNECT) --- */
+    function initAudioContext() {
+        if (!audioCtx) {
+            var AudioCtx = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioCtx();
+
+            bassFilter = audioCtx.createBiquadFilter();
+            bassFilter.type = 'lowshelf';
+            bassFilter.frequency.value = 250;
+
+            trebleFilter = audioCtx.createBiquadFilter();
+            trebleFilter.type = 'highshelf';
+            trebleFilter.frequency.value = 4000;
+
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 64;
+            
+            gainNode = audioCtx.createGain();
+
+            try {
+                sourceNodeA = audioCtx.createMediaElementSource(audioA);
+                sourceNodeB = audioCtx.createMediaElementSource(audioB);
+
+                sourceNodeA.connect(bassFilter);
+                sourceNodeB.connect(bassFilter);
+
+                bassFilter.connect(trebleFilter);
+                trebleFilter.connect(analyser);
+                analyser.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+            } catch(e) {}
+
+            applyVolumeGain();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
         }
     }
 
     function applyVolumeGain() {
         var val = parseFloat(volumeSlider.value);
-        hifiAudio.volume = Math.min(1.0, Math.max(0.0, val));
-        boostText.textContent = (Math.round(val * 10) / 10) + "x";
+        if (gainNode) {
+            gainNode.gain.value = val;
+            activeAudio.volume = 1.0;
+            idleAudio.volume = 1.0;
+        } else {
+            activeAudio.volume = Math.min(1.0, val);
+            idleAudio.volume = Math.min(1.0, val);
+        }
+        
+        var multiplier = Math.round(val * 10) / 10;
+        boostText.textContent = multiplier + "x";
+
         if (typeof updateVolumeKnobAngle === 'function') {
             updateVolumeKnobAngle(val);
         }
+        savePlayerState();
     }
 
     function cycleBoostMode() {
+        initAudioContext();
         var val = parseFloat(volumeSlider.value);
-        if (val < 0.5) volumeSlider.value = 0.5;
-        else if (val < 0.8) volumeSlider.value = 0.8;
-        else if (val < 1.0) volumeSlider.value = 1.0;
-        else volumeSlider.value = 0.5;
+        if (val < 1.0) { volumeSlider.value = 1.0; }
+        else if (val < 2.5) { volumeSlider.value = 2.5; }
+        else if (val < 4.0) { volumeSlider.value = 4.0; }
+        else if (val < 5.0) { volumeSlider.value = 5.0; }
+        else { volumeSlider.value = 1.0; }
         applyVolumeGain();
+    }
+
+    function preloadNextTrack() {
+        if (isPlayingLocal || activeFmKey) return;
+        var nextIdx = isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
+        idleAudio.src = playlist[nextIdx].src;
+        idleAudio.load();
     }
 
     function animateVUMeters() {
         requestAnimationFrame(animateVUMeters);
-        if (!hifiAudio.paused && hifiAudio.volume > 0) {
-            var vol = hifiAudio.volume;
-            var t = Date.now() / 1000;
-            var beat = Math.pow(Math.sin(t * Math.PI * 2.1), 4) * 0.75 + Math.random() * 0.25;
-            var targetL = beat * 75 * vol;
-            var targetR = (beat * 0.88 + Math.random() * 0.12) * 75 * vol;
+        if (!activeAudio.paused && analyser) {
+            var dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(dataArray);
+            var average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
             
-            vuLevelL += (targetL - vuLevelL) * 0.28;
-            vuLevelR += (targetR - vuLevelR) * 0.28;
-            
-            vuNeedleL.style.transform = 'rotate(' + (-42 + Math.min(84, vuLevelL)) + 'deg)';
-            vuNeedleR.style.transform = 'rotate(' + (-42 + Math.min(84, vuLevelR)) + 'deg)';
+            var angleL = -42 + (average / 255) * 80 + (Math.random() * 6 - 3);
+            var angleR = -42 + (average / 255) * 80 + (Math.random() * 6 - 3);
+
+            vuNeedleL.style.transform = 'rotate(' + Math.min(42, Math.max(-42, angleL)) + 'deg)';
+            vuNeedleR.style.transform = 'rotate(' + Math.min(42, Math.max(-42, angleR)) + 'deg)';
         } else {
-            vuLevelL += (0 - vuLevelL) * 0.15;
-            vuLevelR += (0 - vuLevelR) * 0.15;
-            vuNeedleL.style.transform = 'rotate(' + (-42 + vuLevelL) + 'deg)';
-            vuNeedleR.style.transform = 'rotate(' + (-42 + vuLevelR) + 'deg)';
+            vuNeedleL.style.transform = 'rotate(-42deg)';
+            vuNeedleR.style.transform = 'rotate(-42deg)';
         }
     }
 
     function renderVisualizer() {
         requestAnimationFrame(renderVisualizer);
         canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+
         var numBars = 24, barWidth = 8, gap = 10;
         var startX = (canvas.width - (numBars * (barWidth + gap))) / 2;
-        var vol = hifiAudio.volume;
-        var t = Date.now() / 1000;
 
-        for (var i = 0; i < numBars; i++) {
-            var x = startX + i * (barWidth + gap);
-            if (!hifiAudio.paused && vol > 0) {
-                var freqFactor;
-                if (i < 7) {
-                    freqFactor = Math.pow(Math.sin(t * 7 + i * 0.25), 4) * 0.7 + 0.3;
-                } else if (i < 16) {
-                    freqFactor = (Math.sin(t * 11 + i * 0.4) * 0.3 + Math.cos(t * 13 + i * 0.7) * 0.3 + 0.4);
+        if (analyser && !activeAudio.paused) {
+            var dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(dataArray);
+
+            for (var i = 0; i < numBars; i++) {
+                var val = dataArray[i] || 0;
+                var targetHeight = Math.max(4, (val / 255) * (canvas.height - 10));
+                
+                if (!capHeights[i] || targetHeight > capHeights[i]) {
+                    capHeights[i] = targetHeight;
                 } else {
-                    freqFactor = Math.random() * 0.5 + Math.sin(t * 19 + i) * 0.2 + 0.3;
+                    capHeights[i] -= 0.8;
                 }
 
-                var targetHeight = Math.max(4, freqFactor * (canvas.height - 12) * vol);
-                barLevels[i] += (targetHeight - barLevels[i]) * 0.35;
-                var barHeight = barLevels[i];
-
-                if (!capHeights[i] || barHeight > capHeights[i]) {
-                    capHeights[i] = barHeight;
-                } else {
-                    capHeights[i] = Math.max(4, capHeights[i] - 0.7);
-                }
+                var x = startX + i * (barWidth + gap);
+                var barHeight = targetHeight;
 
                 var gradient = canvasCtx.createLinearGradient(0, canvas.height, 0, 0);
                 gradient.addColorStop(0, '#ff4b1f');
                 gradient.addColorStop(0.6, '#ffaa00');
                 gradient.addColorStop(1, '#00e5ff');
 
-                canvasCtx.fillStyle = gradient;
-                canvasCtx.fillRect(x, canvas.height - barHeight - 2, barWidth, barHeight);
-
-                canvasCtx.fillStyle = '#ffffff';
                 canvasCtx.beginPath();
+                canvasCtx.fillStyle = gradient;
+                canvasCtx.shadowColor = 'rgba(255, 170, 0, 0.6)';
+                canvasCtx.shadowBlur = 6;
+                if (canvasCtx.roundRect) {
+                    canvasCtx.roundRect(x, canvas.height - barHeight - 2, barWidth, barHeight, [3]);
+                } else {
+                    canvasCtx.rect(x, canvas.height - barHeight - 2, barWidth, barHeight);
+                }
+                canvasCtx.fill();
+
+                canvasCtx.beginPath();
+                canvasCtx.fillStyle = '#ffffff';
+                canvasCtx.shadowColor = '#00e5ff';
+                canvasCtx.shadowBlur = 8;
                 canvasCtx.arc(x + barWidth / 2, canvas.height - capHeights[i] - 5, 2, 0, Math.PI * 2);
                 canvasCtx.fill();
-            } else {
+            }
+        } else {
+            for (var j = 0; j < numBars; j++) {
+                var idleX = startX + j * (barWidth + gap);
+                canvasCtx.beginPath();
                 canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-                canvasCtx.fillRect(x, canvas.height - 6, barWidth, 3);
+                canvasCtx.shadowBlur = 0;
+                if (canvasCtx.roundRect) {
+                    canvasCtx.roundRect(idleX, canvas.height - 6, barWidth, 3, [2]);
+                } else {
+                    canvasCtx.rect(idleX, canvas.height - 6, barWidth, 3);
+                }
+                canvasCtx.fill();
             }
         }
     }
@@ -1138,6 +1638,7 @@
         playlist.forEach(function(track, index) {
             var a = document.createElement('a');
             a.href = '#';
+            a.target = '_self';
             a.textContent = track.title;
             a.onclick = function(e) { 
                 e.preventDefault(); 
@@ -1145,7 +1646,7 @@
                 destroyHls();
                 document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
                 isPlayingLocal = false; 
-                loadTrack(index, true); 
+                loadTrack(index, true, 0); 
                 togglePlaylistDropdown(); 
             };
             dropdownTrackList.appendChild(a);
@@ -1161,27 +1662,34 @@
     function toggleShuffle() {
         isShuffle = !isShuffle;
         shuffleButton.classList.toggle('active-mode', isShuffle);
+        savePlayerState();
     }
 
     function getRandomIndex() {
         if (playlist.length <= 1) return 0;
+        if (playedHistory.length >= playlist.length - 1) {
+            playedHistory = [currentTrackIndex];
+        }
+
         var randomIndex;
         do {
             randomIndex = Math.floor(Math.random() * playlist.length);
-        } while (randomIndex === currentTrackIndex);
+        } while (randomIndex === currentTrackIndex || playedHistory.includes(randomIndex));
+
         return randomIndex;
     }
 
     function restartTrack() {
         if (activeFmKey) {
-            playFmStation(activeFmKey);
+            reconnectActiveStream();
             return;
         }
-        hifiAudio.currentTime = 0;
-        hifiAudio.play().catch(()=>{});
+        initAudioContext();
+        activeAudio.currentTime = 0;
+        activeAudio.play();
     }
 
-    function syncTrackUI() {
+    function revealSongTitles() {
         hasUserStartedPlayback = true;
         if (activeFmKey) {
             nowPlayingSubtitle.textContent = "LIVE FM RADIO";
@@ -1191,31 +1699,47 @@
             nowPlayingSubtitle.textContent = "NOW PLAYING";
             currentTrackTitle.textContent = title;
         }
-        updateActiveTrackHighlight();
-        updateMediaSession();
     }
 
-    function loadTrack(index, autoPlay = true) {
+    function loadTrack(index, autoPlay = true, startPos = 0) {
         if (playlist.length === 0) return;
         activeFmKey = null;
         destroyHls();
-        clearLoadGuard();
         isPlayingLocal = false;
         currentTrackIndex = index;
+        playedHistory.push(currentTrackIndex);
+        
+        var temp = activeAudio;
+        activeAudio = idleAudio;
+        idleAudio = temp;
 
-        // Set source
-        hifiAudio.src = playlist[currentTrackIndex].src;
-        syncTrackUI();
+        idleAudio.pause();
+        activeAudio.src = playlist[currentTrackIndex].src;
+
+        if (startPos > 0) {
+            var applySeek = function() {
+                activeAudio.currentTime = startPos;
+                activeAudio.removeEventListener('loadedmetadata', applySeek);
+            };
+            activeAudio.addEventListener('loadedmetadata', applySeek);
+        }
+        
+        nowPlayingSubtitle.textContent = hasUserStartedPlayback ? "NOW PLAYING" : "🎵 ♪ ♫ 🎶";
+        currentTrackTitle.textContent = playlist[currentTrackIndex].title;
+        
+        updateActiveTrackHighlight();
+        updateMediaSession();
+        initAudioContext();
 
         if (autoPlay) {
-            var playPromise = hifiAudio.play();
+            var playPromise = activeAudio.play();
             if (playPromise !== undefined) {
-                playPromise.then(() => {
+                playPromise.then(function() {
+                    revealSongTitles();
+                    preloadNextTrack();
                     requestWakeLock();
-                }).catch(() => {
-                    setTimeout(() => {
-                        hifiAudio.play().catch(()=>{});
-                    }, 250);
+                }).catch(function() {
+                    activeAudio.play();
                 });
             }
         }
@@ -1227,17 +1751,17 @@
             return;
         }
 
-        if (hifiAudio.paused) { 
-            hifiAudio.play().catch(()=>{});
+        initAudioContext();
+        if (activeAudio.paused) { 
+            revealSongTitles();
+            activeAudio.play();
         } else { 
-            hifiAudio.pause(); 
+            activeAudio.pause(); 
         }
     }
 
     function playNext() {
-        clearLoadGuard();
         if (activeFmKey) return;
-
         if (isPlayingLocal && currentLocalPlaylist.length > 0) {
             playLocalTrack(getNextLocalIndex());
             return;
@@ -1245,86 +1769,111 @@
 
         if (playlist.length === 0) return;
         var nextIdx = isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
-        loadTrack(nextIdx, true);
+        loadTrack(nextIdx, true, 0);
     }
 
     function playPrevious() {
-        clearLoadGuard();
         if (activeFmKey) return;
         if (isPlayingLocal && currentLocalPlaylist.length > 0) {
-            var prevLocalIndex = (localTrackIndex - 1 + currentLocalPlaylist.length) % currentLocalPlaylist.length;
+            var prevLocalIndex;
+            if (isShuffle && localPlayedHistory.length > 1) {
+                localPlayedHistory.pop();
+                prevLocalIndex = localPlayedHistory.pop();
+            } else {
+                prevLocalIndex = (localTrackIndex - 1 + currentLocalPlaylist.length) % currentLocalPlaylist.length;
+            }
             playLocalTrack(prevLocalIndex);
             return;
         }
 
         if (playlist.length === 0) return;
-        var prevIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
-        loadTrack(prevIndex, true);
+        if (isShuffle && playedHistory.length > 1) {
+            playedHistory.pop();
+            var prevIndex = playedHistory.pop();
+            loadTrack(prevIndex, true, 0);
+        } else {
+            loadTrack((currentTrackIndex - 1 + playlist.length) % playlist.length, true, 0);
+        }
     }
 
     function togglePlaylistDropdown() { playlistDropdown.parentElement.classList.toggle('show'); }
 
-    /* --- NATIVE CONTINUOUS EVENT LISTENERS & AUTO-RECOVERY --- */
-    hifiAudio.addEventListener('ended', function() {
-        playNext();
-    });
-
-    // AUTO-RECOVER FROM DEAD/BLOCKED SONGS
-    hifiAudio.addEventListener('error', function() {
-        clearLoadGuard();
-        nowPlayingSubtitle.textContent = "SKIPPING UNAVAILABLE TRACK...";
-        setTimeout(playNext, 1000);
-    });
-
-    // PREVENT INFINITE BUFFERING
-    hifiAudio.addEventListener('waiting', function() {
-        clearLoadGuard();
-        loadTimeout = setTimeout(function() {
-            if (hifiAudio.readyState < 3 && !hifiAudio.paused) {
-                playNext();
+    /* --- BIND WORKER AND AUDIO EVENTS --- */
+    bgWorker.onmessage = function(e) {
+        if (e.data === 'tick' && activeAudio && !activeAudio.paused) {
+            if (activeAudio.duration && (activeAudio.duration - activeAudio.currentTime <= 1.5)) {
+                if (!activeAudio.dataset.advancing) {
+                    activeAudio.dataset.advancing = "true";
+                    playNext();
+                }
             }
-        }, 4000);
-    });
+        }
+    };
 
-    hifiAudio.addEventListener('playing', () => {
-        clearLoadGuard();
-        syncTrackUI();
-        playButton.style.display = 'none'; 
-        pauseButton.style.display = 'inline-flex'; 
-        tapeLeft.classList.add('spinning');
-        tapeRight.classList.add('spinning');
-    });
+    function attachAudioEvents(elem) {
+        elem.addEventListener('ended', function() {
+            elem.dataset.advancing = "";
+            playNext();
+        });
 
-    hifiAudio.addEventListener('pause', () => { 
-        if (hifiAudio.paused) {
-            playButton.style.display = 'inline-flex'; 
-            pauseButton.style.display = 'none'; 
-            tapeLeft.classList.remove('spinning');
-            tapeRight.classList.remove('spinning');
+        elem.addEventListener('play', () => { 
+            elem.dataset.advancing = "";
+            revealSongTitles();
+            playButton.style.display = 'none'; 
+            pauseButton.style.display = 'inline-flex'; 
+            tapeLeft.classList.add('spinning');
+            tapeRight.classList.add('spinning');
+            updateActiveTrackHighlight();
+            requestWakeLock();
             updateMediaSession();
-        }
-    });
+            bgWorker.postMessage('start');
+        });
 
-    hifiAudio.addEventListener('timeupdate', () => {
-        if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
-            progressSlider.value = hifiAudio.currentTime;
-            currentTimeSpan.textContent = formatTime(hifiAudio.currentTime);
-        }
-    });
+        elem.addEventListener('pause', () => { 
+            if (activeAudio.paused && idleAudio.paused) {
+                playButton.style.display = 'inline-flex'; 
+                pauseButton.style.display = 'none'; 
+                tapeLeft.classList.remove('spinning');
+                tapeRight.classList.remove('spinning');
+                savePlayerState();
+                bgWorker.postMessage('stop');
+                if (wakeLock !== null) {
+                    wakeLock.release().then(() => { wakeLock = null; });
+                }
+                updateMediaSession();
+            }
+        });
 
-    hifiAudio.addEventListener('loadedmetadata', () => {
-        if (!activeFmKey && !isNaN(hifiAudio.duration)) {
-            progressSlider.max = hifiAudio.duration;
-            durationSpan.textContent = formatTime(hifiAudio.duration);
-        }
-        syncTrackUI();
-    });
+        elem.addEventListener('timeupdate', () => {
+            if (elem === activeAudio && !activeFmKey && !isNaN(activeAudio.duration)) {
+                progressSlider.value = activeAudio.currentTime;
+                currentTimeSpan.textContent = formatTime(activeAudio.currentTime);
+                if (Math.floor(activeAudio.currentTime) % 3 === 0) {
+                    savePlayerState();
+                }
+            }
+        });
 
-    volumeSlider.addEventListener('input', () => applyVolumeGain());
+        elem.addEventListener('loadedmetadata', () => {
+            if (elem === activeAudio && !activeFmKey) {
+                progressSlider.max = activeAudio.duration;
+                durationSpan.textContent = formatTime(activeAudio.duration);
+            }
+        });
+    }
+
+    attachAudioEvents(audioA);
+    attachAudioEvents(audioB);
+
+    volumeSlider.addEventListener('input', () => { 
+        initAudioContext();
+        applyVolumeGain(); 
+    });
 
     progressSlider.addEventListener('input', () => { 
         if (!activeFmKey) {
-            hifiAudio.currentTime = progressSlider.value;
+            activeAudio.currentTime = progressSlider.value;
+            savePlayerState();
         }
     });
 
@@ -1338,7 +1887,28 @@
         populatePlaylistDropdown();
         animateVUMeters();
         renderVisualizer();
-        loadTrack(Math.floor(Math.random() * playlist.length), false);
+        
+        var savedState = null;
+        try {
+            savedState = JSON.parse(localStorage.getItem('chanthiran_player_state'));
+        } catch(e) {}
+
+        if (savedState) {
+            volumeSlider.value = (typeof savedState.volume !== 'undefined') ? savedState.volume : 2.5;
+            if (typeof savedState.isShuffle === 'boolean') {
+                isShuffle = savedState.isShuffle;
+                shuffleButton.classList.toggle('active-mode', isShuffle);
+            }
+            if (typeof savedState.trackIndex === 'number' && savedState.trackIndex < playlist.length) {
+                loadTrack(savedState.trackIndex, false, savedState.currentTime || 0);
+            } else {
+                loadTrack(Math.floor(Math.random() * playlist.length), false, 0);
+            }
+        } else {
+            volumeSlider.value = 2.5;
+            loadTrack(Math.floor(Math.random() * playlist.length), false, 0);
+        }
+        
         applyVolumeGain();
     }
 
@@ -1348,10 +1918,10 @@
         initPlayer();
     }
 
-    /* --- SERVICE WORKER --- */
+    /* --- SERVICE WORKER REGISTRATION --- */
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-            navigator.serviceWorker.register('sw.js').catch(function() {});
+            navigator.serviceWorker.register('sw.js').catch(function(err) {});
         });
     }
 </script>
