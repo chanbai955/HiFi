@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chanthiran Mini HiFi System</title>
     
-    <!-- PWA Meta -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffaa00">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- HLS for Radio -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Orbitron:wght@600;800;900&display=swap');
@@ -111,16 +109,8 @@
             transition: all 0.15s ease;
         }
 
-        .exit-btn svg {
-            width: 12px;
-            height: 12px;
-            fill: currentColor;
-        }
-
-        .exit-btn:active {
-            transform: scale(0.92);
-            box-shadow: 0 1px 2px rgba(255, 0, 0, 0.6);
-        }
+        .exit-btn svg { width: 12px; height: 12px; fill: currentColor; }
+        .exit-btn:active { transform: scale(0.92); }
 
         .compact-amp-panel {
             width: 100%;
@@ -129,7 +119,6 @@
             border-radius: 6px;
             padding: 8px 12px;
             color: #fff;
-            box-shadow: none;
             display: flex;
             flex-direction: column;
             gap: 6px;
@@ -162,34 +151,19 @@
             height: 34px;
             border-radius: 50%;
             background: conic-gradient(
-                #e2e8f0 0deg,
-                #94a3b8 45deg,
-                #cbd5e1 90deg,
-                #64748b 135deg,
-                #f1f5f9 180deg,
-                #94a3b8 225deg,
-                #cbd5e1 270deg,
-                #475569 315deg,
-                #e2e8f0 360deg
+                #e2e8f0 0deg, #94a3b8 45deg, #cbd5e1 90deg, #64748b 135deg,
+                #f1f5f9 180deg, #94a3b8 225deg, #cbd5e1 270deg, #475569 315deg, #e2e8f0 360deg
             );
             border: 2px solid #1e293b;
-            box-shadow: 
-                0 4px 8px rgba(0,0,0,0.8),
-                inset 0 1px 3px rgba(255,255,255,0.9),
-                inset 0 -2px 4px rgba(0,0,0,0.6);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.8), inset 0 1px 3px rgba(255,255,255,0.9);
             position: relative;
             cursor: grab;
             user-select: none;
             touch-action: none;
             transform: rotate(0deg);
-            transition: transform 0.05s linear;
         }
 
-        .knob-3d.large {
-            width: 44px; height: 44px;
-            transform: rotate(135deg);
-        }
-
+        .knob-3d.large { width: 44px; height: 44px; transform: rotate(135deg); }
         .knob-3d::after {
             content: '';
             position: absolute;
@@ -198,9 +172,7 @@
             width: 3px; height: 10px;
             background: #0f172a;
             border-radius: 2px;
-            box-shadow: 0 0 2px rgba(255,255,255,0.8);
         }
-
         .knob-3d.large::after { height: 14px; }
 
         .vu-meters-wrapper {
@@ -238,7 +210,7 @@
             background: #ff3300;
             transform-origin: bottom center;
             transform: rotate(-42deg);
-            transition: transform 0.08s ease-out;
+            transition: transform 0.06s ease-out;
             box-shadow: 0 0 4px #ff3300;
             z-index: 2;
         }
@@ -323,11 +295,7 @@
             align-items: center;
         }
 
-        .cassette-deck-well svg.cdeck-svg {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
+        .cassette-deck-well svg.cdeck-svg { width: 100%; height: 100%; display: block; }
 
         .spool-overlay-container {
             position: absolute;
@@ -336,24 +304,15 @@
             pointer-events: none;
         }
 
-        .spool-left-wrapper {
-            position: absolute;
-            left: 23.5%; top: 42.5%;
-            transform: translate(-50%, -50%);
-        }
-
-        .spool-right-wrapper {
-            position: absolute;
-            left: 51.5%; top: 42.5%;
-            transform: translate(-50%, -50%);
-        }
+        .spool-left-wrapper { position: absolute; left: 23.5%; top: 42.5%; transform: translate(-50%, -50%); }
+        .spool-right-wrapper { position: absolute; left: 51.5%; top: 42.5%; transform: translate(-50%, -50%); }
 
         .tape-wheel {
             width: 32px; height: 32px;
             border-radius: 50%;
             background: #181c22;
             border: 3px solid #728096;
-            box-shadow: 0 0 8px rgba(0,0,0,0.9), inset 0 0 4px rgba(255,255,255,0.3);
+            box-shadow: 0 0 8px rgba(0,0,0,0.9);
             position: relative;
             display: flex;
             justify-content: center;
@@ -369,22 +328,12 @@
             align-items: center;
         }
 
-        .spoke-bar-h, .spoke-bar-v {
-            position: absolute;
-            background: #e2e8f0;
-            border-radius: 2px;
-        }
-
+        .spoke-bar-h, .spoke-bar-v { position: absolute; background: #e2e8f0; border-radius: 2px; }
         .spoke-bar-h { width: 24px; height: 5px; }
         .spoke-bar-v { width: 5px; height: 24px; }
 
-        .tape-wheel.spinning {
-            animation: spinWheel 2.5s linear infinite;
-        }
-
-        @keyframes spinWheel {
-            100% { transform: rotate(360deg); }
-        }
+        .tape-wheel.spinning { animation: spinWheel 2.5s linear infinite; }
+        @keyframes spinWheel { 100% { transform: rotate(360deg); } }
 
         .fm-tuner-panel {
             width: 100%;
@@ -429,16 +378,8 @@
             text-overflow: ellipsis;
         }
 
-        .fm-preset-btn.active-fm {
-            color: #111;
-            background: linear-gradient(145deg, #ffaa00, #ff7700);
-            border-color: #ffaa00;
-        }
-
-        .fm-preset-btn.off-btn {
-            color: #ff6666;
-            border-color: #ff3333;
-        }
+        .fm-preset-btn.active-fm { color: #111; background: linear-gradient(145deg, #ffaa00, #ff7700); border-color: #ffaa00; }
+        .fm-preset-btn.off-btn { color: #ff6666; border-color: #ff3333; }
 
         .controls-wrapper {
             width: 100%;
@@ -583,8 +524,8 @@
         </div>
     </div>
 
-    <!-- PURE DIRECT AUDIO STREAM: 100% Native Background Priority -->
-    <audio id="hifiAudio" preload="auto" playsinline></audio>
+    <!-- PURE DIRECT AUDIO STREAM -->
+    <audio id="hifiAudio" crossorigin="anonymous" preload="auto" playsinline></audio>
 
     <div class="hifi-body-wrapper">
         <div class="compact-amp-panel">
@@ -828,12 +769,9 @@
     var activeFmKey = null;
     var currentStreamUrl = null;
     var hls = null;
-    var hlsRetryCount = 0;
-    var maxHlsRetries = 5;
 
     /* --- THE SINGLE NATIVE AUDIO STREAM ENGINE --- */
     var hifiAudio = document.getElementById('hifiAudio');
-    var isChangingTrack = false;
 
     var currentTrackTitle = document.getElementById('currentTrackTitle');
     var nowPlayingSubtitle = document.getElementById('nowPlayingSubtitle');
@@ -858,16 +796,18 @@
     var capHeights = [];
     var wakeLock = null;
 
+    // WEB AUDIO INITIALIZATION
+    var audioCtx = null;
+    var analyser = null;
+    var audioSourceConnected = false;
+
     var currentTrackIndex = 0;
     var isShuffle = true;
-    var playedHistory = [];
     var hasUserStartedPlayback = false;
     var currentLocalPlaylist = [];
     var isPlayingLocal = false;
     var localTrackIndex = 0;
-    var localPlayedHistory = [];
 
-    // Smooth UI Simulator for Knobs
     function setupKnobControl(knobEl, onValueChange, minVal, maxVal, defaultVal) {
         if (!knobEl) return;
         var isDragging = false;
@@ -922,12 +862,33 @@
     setupKnobControl(document.getElementById('trebleKnob'), function() {}, -12, 12, 0);
     setupKnobControl(document.getElementById('balanceKnob'), function() {}, -10, 10, 0);
 
+    // NON-BLOCKING REAL WEB AUDIO CONTEXT
+    function initRealAudioContext() {
+        if (!audioCtx) {
+            try {
+                var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 64;
+
+                if (!audioSourceConnected) {
+                    var source = audioCtx.createMediaElementSource(hifiAudio);
+                    source.connect(analyser);
+                    analyser.connect(audioCtx.destination);
+                    audioSourceConnected = true;
+                }
+            } catch(e) {}
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(()=>{});
+        }
+    }
+
     function destroyHls() {
         if (hls) {
             hls.destroy();
             hls = null;
         }
-        hlsRetryCount = 0;
     }
 
     function playFmStation(key, evt) {
@@ -1026,7 +987,6 @@
         if (!files || files.length === 0) return;
 
         currentLocalPlaylist = [];
-        localPlayedHistory = [];
         activeFmKey = null;
         destroyHls();
         document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
@@ -1066,7 +1026,9 @@
         if (currentLocalPlaylist.length === 0) return;
         localTrackIndex = index;
         destroyHls();
+        initRealAudioContext();
         hifiAudio.src = currentLocalPlaylist[localTrackIndex].src;
+        // DO NOT call hifiAudio.load()
         hifiAudio.play().then(() => {
             hasUserStartedPlayback = true;
             requestWakeLock();
@@ -1108,41 +1070,65 @@
         applyVolumeGain();
     }
 
-    // Dynamic Lightweight Visualizer Simulation (Prevents Web Audio background freeze)
+    // REAL FREQUENCY-DRIVEN METERS
     function animateVUMeters() {
         requestAnimationFrame(animateVUMeters);
-        if (!hifiAudio.paused) {
-            var simLevel = Math.sin(Date.now() / 140) * 25 + Math.random() * 8;
-            vuNeedleL.style.transform = 'rotate(' + (-20 + simLevel) + 'deg)';
-            vuNeedleR.style.transform = 'rotate(' + (-20 + simLevel) + 'deg)';
+        if (!hifiAudio.paused && analyser) {
+            var dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(dataArray);
+            var average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+            
+            var angleL = -42 + (average / 255) * 82;
+            var angleR = -42 + (average / 255) * 82;
+
+            vuNeedleL.style.transform = 'rotate(' + Math.min(42, Math.max(-42, angleL)) + 'deg)';
+            vuNeedleR.style.transform = 'rotate(' + Math.min(42, Math.max(-42, angleR)) + 'deg)';
         } else {
             vuNeedleL.style.transform = 'rotate(-42deg)';
             vuNeedleR.style.transform = 'rotate(-42deg)';
         }
     }
 
+    // REAL FREQUENCY-DRIVEN VISUALIZER
     function renderVisualizer() {
         requestAnimationFrame(renderVisualizer);
         canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
         var numBars = 24, barWidth = 8, gap = 10;
         var startX = (canvas.width - (numBars * (barWidth + gap))) / 2;
 
-        for (var i = 0; i < numBars; i++) {
-            var x = startX + i * (barWidth + gap);
-            if (!hifiAudio.paused) {
-                var wave = Math.sin((Date.now() / 120) + i) * 0.5 + 0.5;
-                var barHeight = Math.max(4, wave * (canvas.height - 12));
-                
+        if (!hifiAudio.paused && analyser) {
+            var dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(dataArray);
+
+            for (var i = 0; i < numBars; i++) {
+                var val = dataArray[i] || 0;
+                var targetHeight = Math.max(4, (val / 255) * (canvas.height - 10));
+
+                if (!capHeights[i] || targetHeight > capHeights[i]) {
+                    capHeights[i] = targetHeight;
+                } else {
+                    capHeights[i] -= 0.8;
+                }
+
+                var x = startX + i * (barWidth + gap);
                 var gradient = canvasCtx.createLinearGradient(0, canvas.height, 0, 0);
                 gradient.addColorStop(0, '#ff4b1f');
                 gradient.addColorStop(0.6, '#ffaa00');
                 gradient.addColorStop(1, '#00e5ff');
 
                 canvasCtx.fillStyle = gradient;
-                canvasCtx.fillRect(x, canvas.height - barHeight - 2, barWidth, barHeight);
-            } else {
+                canvasCtx.fillRect(x, canvas.height - targetHeight - 2, barWidth, targetHeight);
+
+                canvasCtx.fillStyle = '#ffffff';
+                canvasCtx.beginPath();
+                canvasCtx.arc(x + barWidth / 2, canvas.height - capHeights[i] - 5, 2, 0, Math.PI * 2);
+                canvasCtx.fill();
+            }
+        } else {
+            for (var j = 0; j < numBars; j++) {
+                var idleX = startX + j * (barWidth + gap);
                 canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-                canvasCtx.fillRect(x, canvas.height - 6, barWidth, 3);
+                canvasCtx.fillRect(idleX, canvas.height - 6, barWidth, 3);
             }
         }
     }
@@ -1198,10 +1184,10 @@
             return;
         }
         hifiAudio.currentTime = 0;
-        hifiAudio.play();
+        hifiAudio.play().catch(()=>{});
     }
 
-    function revealSongTitles() {
+    function syncTrackUI() {
         hasUserStartedPlayback = true;
         if (activeFmKey) {
             nowPlayingSubtitle.textContent = "LIVE FM RADIO";
@@ -1211,9 +1197,11 @@
             nowPlayingSubtitle.textContent = "NOW PLAYING";
             currentTrackTitle.textContent = title;
         }
+        updateActiveTrackHighlight();
+        updateMediaSession();
     }
 
-    // Direct synchronous lock-screen transfer
+    // DIRECT STREAM-SAFE LOADING: NO .load() TO PREVENT HANGS
     function loadTrack(index, autoPlay = true) {
         if (playlist.length === 0) return;
         activeFmKey = null;
@@ -1221,54 +1209,51 @@
         isPlayingLocal = false;
         currentTrackIndex = index;
         
+        initRealAudioContext();
+        
+        // Setting .src directly WITHOUT calling .load() guarantees zero audio pipeline deadlocks
         hifiAudio.src = playlist[currentTrackIndex].src;
-        updateActiveTrackHighlight();
+        syncTrackUI();
 
         if (autoPlay) {
-            hifiAudio.play().then(() => {
-                requestWakeLock();
-            }).catch(() => {
-                hifiAudio.play();
-            });
+            var playPromise = hifiAudio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    requestWakeLock();
+                }).catch(() => {
+                    // Fail-safe retry
+                    hifiAudio.play().catch(()=>{});
+                });
+            }
         }
     }
 
     function togglePlayPause() {
+        initRealAudioContext();
         if (isPlayingLocal && currentLocalPlaylist.length > 0 && !hasUserStartedPlayback) {
             playLocalTrack(0);
             return;
         }
 
         if (hifiAudio.paused) { 
-            hifiAudio.play();
+            hifiAudio.play().catch(()=>{});
         } else { 
             hifiAudio.pause(); 
         }
     }
 
+    // INSTANT MANUAL BUTTON ACTION
     function playNext() {
-        if (isChangingTrack) return;
-        isChangingTrack = true;
-
-        if (activeFmKey) {
-            isChangingTrack = false;
-            return;
-        }
+        if (activeFmKey) return;
 
         if (isPlayingLocal && currentLocalPlaylist.length > 0) {
             playLocalTrack(getNextLocalIndex());
-            setTimeout(() => { isChangingTrack = false; }, 400);
             return;
         }
 
-        if (playlist.length === 0) {
-            isChangingTrack = false;
-            return;
-        }
-
+        if (playlist.length === 0) return;
         var nextIdx = isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
         loadTrack(nextIdx, true);
-        setTimeout(() => { isChangingTrack = false; }, 400);
     }
 
     function playPrevious() {
@@ -1286,15 +1271,14 @@
 
     function togglePlaylistDropdown() { playlistDropdown.parentElement.classList.toggle('show'); }
 
-    /* --- SYNCHRONOUS AND NATIVE ANDROID BACKGROUND EVENTS --- */
+    /* --- NATIVE AUDIO EVENTS --- */
     hifiAudio.addEventListener('ended', function() {
-        // Synchronously chain next song to maintain OS audio-focus rights
         playNext();
     });
 
     hifiAudio.addEventListener('playing', () => {
-        revealSongTitles();
-        updateMediaSession();
+        syncTrackUI();
+        initRealAudioContext();
         playButton.style.display = 'none'; 
         pauseButton.style.display = 'inline-flex'; 
         tapeLeft.classList.add('spinning');
