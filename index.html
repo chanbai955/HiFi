@@ -774,6 +774,7 @@
 
     /* --- THE SINGLE NATIVE AUDIO STREAM ENGINE --- */
     var hifiAudio = document.getElementById('hifiAudio');
+    var loadTimeout = null;
 
     var currentTrackTitle = document.getElementById('currentTrackTitle');
     var nowPlayingSubtitle = document.getElementById('nowPlayingSubtitle');
@@ -807,6 +808,13 @@
     var currentLocalPlaylist = [];
     var isPlayingLocal = false;
     var localTrackIndex = 0;
+
+    function clearLoadGuard() {
+        if (loadTimeout) {
+            clearTimeout(loadTimeout);
+            loadTimeout = null;
+        }
+    }
 
     function setupKnobControl(knobEl, onValueChange, minVal, maxVal, defaultVal) {
         if (!knobEl) return;
@@ -874,6 +882,7 @@
         activeFmKey = key;
         hifiAudio.pause();
         destroyHls();
+        clearLoadGuard();
 
         document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
         if (evt && evt.currentTarget) {
@@ -1004,6 +1013,7 @@
         if (currentLocalPlaylist.length === 0) return;
         localTrackIndex = index;
         destroyHls();
+        clearLoadGuard();
         hifiAudio.src = currentLocalPlaylist[localTrackIndex].src;
         hifiAudio.play().then(() => {
             hasUserStartedPlayback = true;
@@ -1046,7 +1056,6 @@
         applyVolumeGain();
     }
 
-    // REALISTIC INERTIAL VU NEEDLES (Smooth mechanical physics)
     function animateVUMeters() {
         requestAnimationFrame(animateVUMeters);
         if (!hifiAudio.paused && hifiAudio.volume > 0) {
@@ -1069,7 +1078,6 @@
         }
     }
 
-    // REALISTIC 24-BAND VFD EQUALIZER (Bass, Mids, Treble & Gravity Peak Dots)
     function renderVisualizer() {
         requestAnimationFrame(renderVisualizer);
         canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1081,10 +1089,6 @@
         for (var i = 0; i < numBars; i++) {
             var x = startX + i * (barWidth + gap);
             if (!hifiAudio.paused && vol > 0) {
-                // Realistic frequency bands:
-                // Bars 0-6: Punchy Bass kicks
-                // Bars 7-15: Vibrant Mids & Vocals
-                // Bars 16-23: High-frequency Treble flickers
                 var freqFactor;
                 if (i < 7) {
                     freqFactor = Math.pow(Math.sin(t * 7 + i * 0.25), 4) * 0.7 + 0.3;
@@ -1112,7 +1116,6 @@
                 canvasCtx.fillStyle = gradient;
                 canvasCtx.fillRect(x, canvas.height - barHeight - 2, barWidth, barHeight);
 
-                // White Peak Dot
                 canvasCtx.fillStyle = '#ffffff';
                 canvasCtx.beginPath();
                 canvasCtx.arc(x + barWidth / 2, canvas.height - capHeights[i] - 5, 2, 0, Math.PI * 2);
@@ -1192,15 +1195,15 @@
         updateMediaSession();
     }
 
-    // DIRECT NATIVE LOAD & PLAY (NO .load() TO PREVENT BACKGROUND FREEZE)
     function loadTrack(index, autoPlay = true) {
         if (playlist.length === 0) return;
         activeFmKey = null;
         destroyHls();
+        clearLoadGuard();
         isPlayingLocal = false;
         currentTrackIndex = index;
 
-        // Assigning .src directly retains native Android audio permissions
+        // Set source
         hifiAudio.src = playlist[currentTrackIndex].src;
         syncTrackUI();
 
@@ -1231,8 +1234,8 @@
         }
     }
 
-    // INSTANT MANUAL NEXT TRIGGER
     function playNext() {
+        clearLoadGuard();
         if (activeFmKey) return;
 
         if (isPlayingLocal && currentLocalPlaylist.length > 0) {
@@ -1245,8 +1248,8 @@
         loadTrack(nextIdx, true);
     }
 
-    // INSTANT MANUAL PREVIOUS TRIGGER
     function playPrevious() {
+        clearLoadGuard();
         if (activeFmKey) return;
         if (isPlayingLocal && currentLocalPlaylist.length > 0) {
             var prevLocalIndex = (localTrackIndex - 1 + currentLocalPlaylist.length) % currentLocalPlaylist.length;
@@ -1261,12 +1264,30 @@
 
     function togglePlaylistDropdown() { playlistDropdown.parentElement.classList.toggle('show'); }
 
-    /* --- NATIVE CONTINUOUS EVENT LISTENERS --- */
+    /* --- NATIVE CONTINUOUS EVENT LISTENERS & AUTO-RECOVERY --- */
     hifiAudio.addEventListener('ended', function() {
         playNext();
     });
 
+    // AUTO-RECOVER FROM DEAD/BLOCKED SONGS
+    hifiAudio.addEventListener('error', function() {
+        clearLoadGuard();
+        nowPlayingSubtitle.textContent = "SKIPPING UNAVAILABLE TRACK...";
+        setTimeout(playNext, 1000);
+    });
+
+    // PREVENT INFINITE BUFFERING
+    hifiAudio.addEventListener('waiting', function() {
+        clearLoadGuard();
+        loadTimeout = setTimeout(function() {
+            if (hifiAudio.readyState < 3 && !hifiAudio.paused) {
+                playNext();
+            }
+        }, 4000);
+    });
+
     hifiAudio.addEventListener('playing', () => {
+        clearLoadGuard();
         syncTrackUI();
         playButton.style.display = 'none'; 
         pauseButton.style.display = 'inline-flex'; 
