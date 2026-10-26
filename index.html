@@ -692,8 +692,8 @@
         </div>
     </div>
 
-    <!-- Single Persistent Media Stream to Maintain Continuous Lock-Screen Authorization -->
-    <audio id="mainAudio" preload="auto" crossorigin="anonymous" playsinline></audio>
+    <!-- Direct Uninterrupted HTML5 Audio Stream -->
+    <audio id="mainAudio" preload="auto" playsinline></audio>
 
     <div class="hifi-body-wrapper">
         <div class="compact-amp-panel">
@@ -849,10 +849,10 @@
                         <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
                     </svg>
                 </span>
-                <input type="range" id="volumeSlider" min="0" max="5" step="0.1" value="2.5" />
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1.0" />
                 <button id="boostButton" class="boost-btn" onclick="cycleBoostMode()">
                     <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
-                    <span id="boostText">2.5x</span>
+                    <span id="boostText">1.0x</span>
                 </button>
             </div>
         </div>
@@ -1019,7 +1019,7 @@
 
     var canvas = document.getElementById('visualizerCanvas');
     var canvasCtx = canvas.getContext('2d');
-    var audioCtx, analyser, gainNode, bassFilter, trebleFilter, sourceNode;
+    var audioCtx, analyser, sourceNode;
     var capHeights = [];
     var wakeLock = null;
 
@@ -1081,35 +1081,14 @@
         document.getElementById('masterVolumeKnob'),
         function(newVal) {
             volumeSlider.value = newVal;
-            initAudioContext();
             applyVolumeGain();
         },
-        0.0, 5.0, 2.5
+        0.0, 1.0, 1.0
     );
 
-    setupKnobControl(
-        document.getElementById('bassKnob'),
-        function(newGain) {
-            initAudioContext();
-            if (bassFilter) bassFilter.gain.value = newGain;
-        },
-        -12, 12, 0
-    );
-
-    setupKnobControl(
-        document.getElementById('trebleKnob'),
-        function(newGain) {
-            initAudioContext();
-            if (trebleFilter) trebleFilter.gain.value = newGain;
-        },
-        -12, 12, 0
-    );
-
-    setupKnobControl(
-        document.getElementById('balanceKnob'),
-        function(angle) {},
-        -10, 10, 0
-    );
+    setupKnobControl(document.getElementById('bassKnob'), function() {}, -12, 12, 0);
+    setupKnobControl(document.getElementById('trebleKnob'), function() {}, -12, 12, 0);
+    setupKnobControl(document.getElementById('balanceKnob'), function() {}, -10, 10, 0);
 
     function destroyHls() {
         if (hls) {
@@ -1123,7 +1102,6 @@
         if (!fmStations[key]) return;
         
         activeFmKey = key;
-        initAudioContext();
         mainAudio.pause();
         destroyHls();
 
@@ -1159,7 +1137,6 @@
     }
 
     function startStreamUrl(title, url) {
-        initAudioContext();
         destroyHls();
         currentStreamUrl = url;
         currentTrackTitle.textContent = title;
@@ -1377,9 +1354,7 @@
         localTrackIndex = index;
         localPlayedHistory.push(localTrackIndex);
 
-        initAudioContext();
         destroyHls();
-        
         mainAudio.src = currentLocalPlaylist[localTrackIndex].src;
 
         if (targetTime > 0) {
@@ -1426,48 +1401,27 @@
         }
     }
 
+    // AudioContext is initialized for visualizer only
     function initAudioContext() {
         if (!audioCtx) {
-            var AudioCtx = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioCtx();
-
-            bassFilter = audioCtx.createBiquadFilter();
-            bassFilter.type = 'lowshelf';
-            bassFilter.frequency.value = 250;
-
-            trebleFilter = audioCtx.createBiquadFilter();
-            trebleFilter.type = 'highshelf';
-            trebleFilter.frequency.value = 4000;
-
-            analyser = audioCtx.createAnalyser();
-            analyser.fftSize = 64;
-            
-            gainNode = audioCtx.createGain();
-
             try {
+                var AudioCtx = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioCtx();
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 64;
                 sourceNode = audioCtx.createMediaElementSource(mainAudio);
-                sourceNode.connect(bassFilter);
-                bassFilter.connect(trebleFilter);
-                trebleFilter.connect(analyser);
-                analyser.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
+                sourceNode.connect(analyser);
+                analyser.connect(audioCtx.destination);
             } catch(e) {}
-
-            applyVolumeGain();
         }
-        if (audioCtx.state === 'suspended') {
+        if (audioCtx && audioCtx.state === 'suspended') {
             audioCtx.resume();
         }
     }
 
     function applyVolumeGain() {
         var val = parseFloat(volumeSlider.value);
-        if (gainNode) {
-            gainNode.gain.value = val;
-            mainAudio.volume = 1.0;
-        } else {
-            mainAudio.volume = Math.min(1.0, val);
-        }
+        mainAudio.volume = Math.min(1.0, Math.max(0.0, val));
         
         var multiplier = Math.round(val * 10) / 10;
         boostText.textContent = multiplier + "x";
@@ -1479,13 +1433,11 @@
     }
 
     function cycleBoostMode() {
-        initAudioContext();
         var val = parseFloat(volumeSlider.value);
-        if (val < 1.0) { volumeSlider.value = 1.0; }
-        else if (val < 2.5) { volumeSlider.value = 2.5; }
-        else if (val < 4.0) { volumeSlider.value = 4.0; }
-        else if (val < 5.0) { volumeSlider.value = 5.0; }
-        else { volumeSlider.value = 1.0; }
+        if (val < 0.5) { volumeSlider.value = 0.5; }
+        else if (val < 0.8) { volumeSlider.value = 0.8; }
+        else if (val < 1.0) { volumeSlider.value = 1.0; }
+        else { volumeSlider.value = 0.5; }
         applyVolumeGain();
     }
 
@@ -1501,6 +1453,11 @@
 
             vuNeedleL.style.transform = 'rotate(' + Math.min(42, Math.max(-42, angleL)) + 'deg)';
             vuNeedleR.style.transform = 'rotate(' + Math.min(42, Math.max(-42, angleR)) + 'deg)';
+        } else if (!mainAudio.paused) {
+            // Native fallback simulation if AudioContext is sleeping
+            var simLevel = Math.sin(Date.now() / 150) * 20 + 10;
+            vuNeedleL.style.transform = 'rotate(' + (-30 + simLevel) + 'deg)';
+            vuNeedleR.style.transform = 'rotate(' + (-30 + simLevel) + 'deg)';
         } else {
             vuNeedleL.style.transform = 'rotate(-42deg)';
             vuNeedleR.style.transform = 'rotate(-42deg)';
@@ -1627,7 +1584,6 @@
             reconnectActiveStream();
             return;
         }
-        initAudioContext();
         mainAudio.currentTime = 0;
         mainAudio.play();
     }
@@ -1644,6 +1600,7 @@
         }
     }
 
+    // Direct synchronous load & play
     function loadTrack(index, autoPlay = true, startPos = 0) {
         if (playlist.length === 0) return;
         activeFmKey = null;
@@ -1663,7 +1620,6 @@
         }
         
         updateActiveTrackHighlight();
-        initAudioContext();
 
         if (autoPlay) {
             var playPromise = mainAudio.play();
@@ -1745,7 +1701,7 @@
 
     function togglePlaylistDropdown() { playlistDropdown.parentElement.classList.toggle('show'); }
 
-    /* --- EVENT ATTACHMENTS FOR THE SINGLE AUDIO ELEMENT --- */
+    /* --- OS-LEVEL NATIVE CONTINUOUS EVENT HANDLERS --- */
     mainAudio.addEventListener('ended', function() {
         playNext();
     });
@@ -1753,6 +1709,7 @@
     mainAudio.addEventListener('playing', () => {
         revealSongTitles();
         updateMediaSession();
+        initAudioContext();
     });
 
     mainAudio.addEventListener('play', () => { 
@@ -1776,7 +1733,7 @@
             }
             updateMediaSession();
 
-            // Resume automatically if Android paused playback for a notification chime
+            // Auto-resume if interrupted by Android notification chime
             if (hasUserStartedPlayback && !mainAudio.ended && !mainAudio.pausedByUser) {
                 setTimeout(function() {
                     if (mainAudio.paused && !mainAudio.pausedByUser) {
@@ -1805,7 +1762,6 @@
     });
 
     volumeSlider.addEventListener('input', () => { 
-        initAudioContext();
         applyVolumeGain(); 
     });
 
@@ -1833,7 +1789,7 @@
         } catch(e) {}
 
         if (savedState) {
-            volumeSlider.value = (typeof savedState.volume !== 'undefined') ? savedState.volume : 2.5;
+            volumeSlider.value = (typeof savedState.volume !== 'undefined') ? savedState.volume : 1.0;
             if (typeof savedState.isShuffle === 'boolean') {
                 isShuffle = savedState.isShuffle;
                 shuffleButton.classList.toggle('active-mode', isShuffle);
@@ -1844,7 +1800,7 @@
                 loadTrack(Math.floor(Math.random() * playlist.length), false, 0);
             }
         } else {
-            volumeSlider.value = 2.5;
+            volumeSlider.value = 1.0;
             loadTrack(Math.floor(Math.random() * playlist.length), false, 0);
         }
         
