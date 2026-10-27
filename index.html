@@ -210,7 +210,7 @@
             background: #ff3300;
             transform-origin: bottom center;
             transform: rotate(-42deg);
-            transition: transform 0.06s ease-out;
+            transition: transform 0.05s ease-out;
             box-shadow: 0 0 4px #ff3300;
             z-index: 2;
         }
@@ -524,8 +524,8 @@
         </div>
     </div>
 
-    <!-- NATIVE AUDIO ELEMENT: Single continuous stream ensuring persistent lock-screen focus -->
-    <audio id="hifiAudio" preload="auto" playsinline></audio>
+    <!-- AUDIO STREAM WITH CORS PERMISSIONS FOR REAL ANALYSER -->
+    <audio id="hifiAudio" crossorigin="anonymous" preload="auto" playsinline></audio>
 
     <div class="hifi-body-wrapper">
         <div class="compact-amp-panel">
@@ -770,8 +770,8 @@
     var currentStreamUrl = null;
     var hls = null;
 
-    /* --- THE SINGLE CONTINUOUS AUDIO STREAM --- */
     var hifiAudio = document.getElementById('hifiAudio');
+    var isUserScrubbing = false;
     var loadTimeout = null;
 
     var currentTrackTitle = document.getElementById('currentTrackTitle');
@@ -794,11 +794,13 @@
 
     var canvas = document.getElementById('visualizerCanvas');
     var canvasCtx = canvas.getContext('2d');
-    var capHeights = new Array(24).fill(4);
-    var barLevels = new Array(24).fill(4);
-    var vuLevelL = 0;
-    var vuLevelR = 0;
+    var capHeights = [];
     var wakeLock = null;
+
+    // REAL WEB AUDIO PIPELINE
+    var audioCtx = null;
+    var analyser = null;
+    var audioSourceConnected = false;
 
     var currentTrackIndex = 0;
     var isShuffle = true;
@@ -867,6 +869,29 @@
     setupKnobControl(document.getElementById('bassKnob'), function() {}, -12, 12, 0);
     setupKnobControl(document.getElementById('trebleKnob'), function() {}, -12, 12, 0);
     setupKnobControl(document.getElementById('balanceKnob'), function() {}, -10, 10, 0);
+
+    // DIRECT WEB AUDIO CONNECTION FOR REAL FREQUENCY READINGS
+    function initRealAudioContext() {
+        if (!audioCtx) {
+            try {
+                var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 64;
+                analyser.smoothingTimeConstant = 0.8;
+
+                if (!audioSourceConnected) {
+                    var source = audioCtx.createMediaElementSource(hifiAudio);
+                    source.connect(analyser);
+                    analyser.connect(audioCtx.destination);
+                    audioSourceConnected = true;
+                }
+            } catch(e) {}
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(()=>{});
+        }
+    }
 
     function destroyHls() {
         if (hls) {
@@ -1012,6 +1037,7 @@
         localTrackIndex = index;
         destroyHls();
         clearLoadGuard();
+        initRealAudioContext();
         hifiAudio.src = currentLocalPlaylist[localTrackIndex].src;
         hifiAudio.play().then(() => {
             hasUserStartedPlayback = true;
@@ -1054,73 +1080,66 @@
         applyVolumeGain();
     }
 
+    // REAL FREQUENCY READINGS TO VU METERS
     function animateVUMeters() {
         requestAnimationFrame(animateVUMeters);
-        if (!hifiAudio.paused && hifiAudio.volume > 0) {
-            var vol = hifiAudio.volume;
-            var t = Date.now() / 1000;
-            var beat = Math.pow(Math.sin(t * Math.PI * 2.1), 4) * 0.75 + Math.random() * 0.25;
-            var targetL = beat * 75 * vol;
-            var targetR = (beat * 0.88 + Math.random() * 0.12) * 75 * vol;
+        if (!hifiAudio.paused && analyser) {
+            var dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(dataArray);
+            var average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
             
-            vuLevelL += (targetL - vuLevelL) * 0.28;
-            vuLevelR += (targetR - vuLevelR) * 0.28;
-            
-            vuNeedleL.style.transform = 'rotate(' + (-42 + Math.min(84, vuLevelL)) + 'deg)';
-            vuNeedleR.style.transform = 'rotate(' + (-42 + Math.min(84, vuLevelR)) + 'deg)';
+            var angleL = -42 + (average / 255) * 82;
+            var angleR = -42 + (average / 255) * 82;
+
+            vuNeedleL.style.transform = 'rotate(' + Math.min(42, Math.max(-42, angleL)) + 'deg)';
+            vuNeedleR.style.transform = 'rotate(' + Math.min(42, Math.max(-42, angleR)) + 'deg)';
         } else {
-            vuLevelL += (0 - vuLevelL) * 0.15;
-            vuLevelR += (0 - vuLevelR) * 0.15;
-            vuNeedleL.style.transform = 'rotate(' + (-42 + vuLevelL) + 'deg)';
-            vuNeedleR.style.transform = 'rotate(' + (-42 + vuLevelR) + 'deg)';
+            vuNeedleL.style.transform = 'rotate(-42deg)';
+            vuNeedleR.style.transform = 'rotate(-42deg)';
         }
     }
 
+    // REAL FREQUENCY BARS TO VISUALIZER CANVAS
     function renderVisualizer() {
         requestAnimationFrame(renderVisualizer);
         canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
         var numBars = 24, barWidth = 8, gap = 10;
         var startX = (canvas.width - (numBars * (barWidth + gap))) / 2;
-        var vol = hifiAudio.volume;
-        var t = Date.now() / 1000;
 
-        for (var i = 0; i < numBars; i++) {
-            var x = startX + i * (barWidth + gap);
-            if (!hifiAudio.paused && vol > 0) {
-                var freqFactor;
-                if (i < 7) {
-                    freqFactor = Math.pow(Math.sin(t * 7 + i * 0.25), 4) * 0.7 + 0.3;
-                } else if (i < 16) {
-                    freqFactor = (Math.sin(t * 11 + i * 0.4) * 0.3 + Math.cos(t * 13 + i * 0.7) * 0.3 + 0.4);
+        if (!hifiAudio.paused && analyser) {
+            var dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(dataArray);
+
+            for (var i = 0; i < numBars; i++) {
+                var val = dataArray[i] || 0;
+                var targetHeight = Math.max(4, (val / 255) * (canvas.height - 10));
+
+                if (!capHeights[i] || targetHeight > capHeights[i]) {
+                    capHeights[i] = targetHeight;
                 } else {
-                    freqFactor = Math.random() * 0.5 + Math.sin(t * 19 + i) * 0.2 + 0.3;
+                    capHeights[i] -= 0.8;
                 }
 
-                var targetHeight = Math.max(4, freqFactor * (canvas.height - 12) * vol);
-                barLevels[i] += (targetHeight - barLevels[i]) * 0.35;
-                var barHeight = barLevels[i];
-
-                if (!capHeights[i] || barHeight > capHeights[i]) {
-                    capHeights[i] = barHeight;
-                } else {
-                    capHeights[i] = Math.max(4, capHeights[i] - 0.7);
-                }
-
+                var x = startX + i * (barWidth + gap);
                 var gradient = canvasCtx.createLinearGradient(0, canvas.height, 0, 0);
                 gradient.addColorStop(0, '#ff4b1f');
                 gradient.addColorStop(0.6, '#ffaa00');
                 gradient.addColorStop(1, '#00e5ff');
 
                 canvasCtx.fillStyle = gradient;
-                canvasCtx.fillRect(x, canvas.height - barHeight - 2, barWidth, barHeight);
+                canvasCtx.fillRect(x, canvas.height - targetHeight - 2, barWidth, targetHeight);
 
+                // Peak Dot
                 canvasCtx.fillStyle = '#ffffff';
                 canvasCtx.beginPath();
                 canvasCtx.arc(x + barWidth / 2, canvas.height - capHeights[i] - 5, 2, 0, Math.PI * 2);
                 canvasCtx.fill();
-            } else {
+            }
+        } else {
+            for (var j = 0; j < numBars; j++) {
+                var idleX = startX + j * (barWidth + gap);
                 canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-                canvasCtx.fillRect(x, canvas.height - 6, barWidth, 3);
+                canvasCtx.fillRect(idleX, canvas.height - 6, barWidth, 3);
             }
         }
     }
@@ -1193,12 +1212,10 @@
         updateMediaSession();
     }
 
-    // PRE-FETCH NEXT SONG INTO CACHE BEFORE SLEEP CUTS THE NETWORK
     function prefetchNextTrackBytes() {
         if (isPlayingLocal || activeFmKey || playlist.length <= 1) return;
         var nextIdx = isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
         var nextUrl = playlist[nextIdx].src;
-        // Fetch next song so Service Worker writes it to local disk cache during active playback
         fetch(nextUrl, { mode: 'cors' }).catch(()=>{});
     }
 
@@ -1210,6 +1227,7 @@
         isPlayingLocal = false;
         currentTrackIndex = index;
 
+        initRealAudioContext();
         hifiAudio.src = playlist[currentTrackIndex].src;
         syncTrackUI();
 
@@ -1229,6 +1247,7 @@
     }
 
     function togglePlayPause() {
+        initRealAudioContext();
         if (isPlayingLocal && currentLocalPlaylist.length > 0 && !hasUserStartedPlayback) {
             playLocalTrack(0);
             return;
@@ -1273,7 +1292,6 @@
 
     /* --- NATIVE AUDIO CONTINUOUS CHAINING --- */
     hifiAudio.addEventListener('ended', function() {
-        // Continuous chaining inside native ended ensures Android does not terminate Audio Focus
         playNext();
     });
 
@@ -1295,6 +1313,7 @@
     hifiAudio.addEventListener('playing', () => {
         clearLoadGuard();
         syncTrackUI();
+        initRealAudioContext();
         playButton.style.display = 'none'; 
         pauseButton.style.display = 'inline-flex'; 
         tapeLeft.classList.add('spinning');
@@ -1313,7 +1332,7 @@
     });
 
     hifiAudio.addEventListener('timeupdate', () => {
-        if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
+        if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0 && !isUserScrubbing) {
             progressSlider.value = hifiAudio.currentTime;
             currentTimeSpan.textContent = formatTime(hifiAudio.currentTime);
         }
@@ -1329,10 +1348,17 @@
 
     volumeSlider.addEventListener('input', () => applyVolumeGain());
 
-    progressSlider.addEventListener('input', () => { 
-        if (!activeFmKey) {
+    // ONLY CHANGE TIME ON RELEASE, NEVER WHILE SLIDING
+    progressSlider.addEventListener('input', () => {
+        isUserScrubbing = true;
+        currentTimeSpan.textContent = formatTime(progressSlider.value);
+    });
+
+    progressSlider.addEventListener('change', () => {
+        if (!activeFmKey && !isNaN(hifiAudio.duration)) {
             hifiAudio.currentTime = progressSlider.value;
         }
+        isUserScrubbing = false;
     });
 
     window.onclick = function(event) {
@@ -1355,7 +1381,7 @@
         initPlayer();
     }
 
-    /* --- SERVICE WORKER REGISTRATION --- */
+    /* --- SERVICE WORKER --- */
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
             navigator.serviceWorker.register('sw.js').catch(function() {});
