@@ -1,19 +1,29 @@
-const CACHE_NAME = 'hifi-player-v1';
+const CACHE_NAME = 'hifi-audio-cache-v1';
 
 self.addEventListener('install', (e) => {
-  self.skipWaiting();
+    self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(clients.claim());
+    e.waitUntil(clients.claim());
 });
 
-self.addEventListener('fetch', (e) => {
-  // Let audio and live stream requests pass through directly
-  if (e.request.url.includes('.mp3') || e.request.url.includes('.m3u8')) {
-    return;
-  }
-  e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.request))
-  );
+self.addEventListener('fetch', (event) => {
+    const url = event.request.url;
+    // Cache audio files locally so Android does not block network requests in sleep mode
+    if (url.endsWith('.mp3') || url.includes('raw.githack.com')) {
+        event.respondWith(
+            caches.open(CACHE_NAME).then((cache) => {
+                return cache.match(event.request).then((response) => {
+                    if (response) return response;
+                    return fetch(event.request).then((networkResponse) => {
+                        if (networkResponse && networkResponse.status === 200) {
+                            cache.put(event.request, networkResponse.clone());
+                        }
+                        return networkResponse;
+                    }).catch(() => response);
+                });
+            })
+        );
+    }
 });
