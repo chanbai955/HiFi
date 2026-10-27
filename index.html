@@ -873,7 +873,6 @@
     setupKnobControl(document.getElementById('trebleKnob'), function() {}, -12, 12, 0);
     setupKnobControl(document.getElementById('balanceKnob'), function() {}, -10, 10, 0);
 
-    // DIRECT WEB AUDIO CONNECTION FOR REAL FREQUENCY READINGS
     function initRealAudioContext() {
         if (!audioCtx) {
             try {
@@ -1083,7 +1082,6 @@
         applyVolumeGain();
     }
 
-    // REAL FREQUENCY READINGS TO VU METERS
     function animateVUMeters() {
         requestAnimationFrame(animateVUMeters);
         if (!hifiAudio.paused && analyser) {
@@ -1102,7 +1100,6 @@
         }
     }
 
-    // REAL FREQUENCY BARS TO VISUALIZER CANVAS
     function renderVisualizer() {
         requestAnimationFrame(renderVisualizer);
         canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1132,7 +1129,6 @@
                 canvasCtx.fillStyle = gradient;
                 canvasCtx.fillRect(x, canvas.height - targetHeight - 2, barWidth, targetHeight);
 
-                // Peak Dot
                 canvasCtx.fillStyle = '#ffffff';
                 canvasCtx.beginPath();
                 canvasCtx.arc(x + barWidth / 2, canvas.height - capHeights[i] - 5, 2, 0, Math.PI * 2);
@@ -1366,13 +1362,31 @@
     function onScrubEnd() {
         if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
             var targetTime = parseFloat(progressSlider.value);
-            // Safe clamp 1.5s away from duration to prevent accidental ended trigger
             var safeTarget = Math.min(targetTime, Math.max(0, hifiAudio.duration - 1.5));
+
+            var onSeekComplete = function() {
+                hifiAudio.removeEventListener('seeked', onSeekComplete);
+                isUserScrubbing = false;
+                if (wasPlayingBeforeScrub) {
+                    hifiAudio.play().catch(function() {});
+                }
+            };
+
+            hifiAudio.addEventListener('seeked', onSeekComplete);
             hifiAudio.currentTime = Math.max(0, safeTarget);
-        }
-        isUserScrubbing = false;
-        if (wasPlayingBeforeScrub) {
-            hifiAudio.play().catch(()=>{});
+
+            // Safety timeout fallback
+            setTimeout(function() {
+                if (isUserScrubbing) {
+                    hifiAudio.removeEventListener('seeked', onSeekComplete);
+                    isUserScrubbing = false;
+                    if (wasPlayingBeforeScrub && hifiAudio.paused) {
+                        hifiAudio.play().catch(function() {});
+                    }
+                }
+            }, 600);
+        } else {
+            isUserScrubbing = false;
         }
     }
 
