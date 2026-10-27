@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chanthiran Mini HiFi System</title>
     
+    <!-- PWA & Mobile Web App Meta Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffaa00">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+    <!-- HLS Engine for Live Dynamic Streaming -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Orbitron:wght@600;800;900&display=swap');
@@ -210,7 +212,7 @@
             background: #ff3300;
             transform-origin: bottom center;
             transform: rotate(-42deg);
-            transition: transform 0.05s ease-out;
+            transition: transform 0.08s ease-out;
             box-shadow: 0 0 4px #ff3300;
             z-index: 2;
         }
@@ -402,7 +404,6 @@
             appearance: none;
             background: transparent;
             cursor: pointer;
-            touch-action: none;
         }
 
         input[type="range"]::-webkit-slider-runnable-track {
@@ -525,7 +526,7 @@
         </div>
     </div>
 
-    <!-- AUDIO STREAM WITH CORS PERMISSIONS FOR REAL ANALYSER -->
+    <!-- SINGLE PERMANENT AUDIO ELEMENT: Continuous Android Background Audio Focus -->
     <audio id="hifiAudio" crossorigin="anonymous" preload="auto" playsinline></audio>
 
     <div class="hifi-body-wrapper">
@@ -589,7 +590,7 @@
         <div class="controls-wrapper">
             <div class="control-row">
                 <span id="currentTime" class="time-display">0:00</span>
-                <input type="range" id="progressSlider" min="0" max="100" value="0" />
+                <input type="range" id="progressSlider" min="0" max="0" value="0" />
                 <span id="duration" class="time-display">0:00</span>
             </div>
 
@@ -771,10 +772,8 @@
     var currentStreamUrl = null;
     var hls = null;
 
-    /* --- THE SINGLE CONTINUOUS AUDIO STREAM --- */
+    /* --- THE SINGLE NATIVE AUDIO STREAM ENGINE --- */
     var hifiAudio = document.getElementById('hifiAudio');
-    var isUserScrubbing = false;
-    var wasPlayingBeforeScrub = false;
     var loadTimeout = null;
 
     var currentTrackTitle = document.getElementById('currentTrackTitle');
@@ -800,7 +799,7 @@
     var capHeights = [];
     var wakeLock = null;
 
-    // REAL WEB AUDIO PIPELINE
+    // WEB AUDIO INITIALIZATION
     var audioCtx = null;
     var analyser = null;
     var audioSourceConnected = false;
@@ -873,6 +872,7 @@
     setupKnobControl(document.getElementById('trebleKnob'), function() {}, -12, 12, 0);
     setupKnobControl(document.getElementById('balanceKnob'), function() {}, -10, 10, 0);
 
+    // REAL WEB AUDIO INITIALIZER FOR EQUALIZER & VU METERS
     function initRealAudioContext() {
         if (!audioCtx) {
             try {
@@ -880,7 +880,6 @@
                 audioCtx = new AudioContextClass();
                 analyser = audioCtx.createAnalyser();
                 analyser.fftSize = 64;
-                analyser.smoothingTimeConstant = 0.8;
 
                 if (!audioSourceConnected) {
                     var source = audioCtx.createMediaElementSource(hifiAudio);
@@ -1082,6 +1081,7 @@
         applyVolumeGain();
     }
 
+    // REAL FREQUENCY-DRIVEN VU METERS
     function animateVUMeters() {
         requestAnimationFrame(animateVUMeters);
         if (!hifiAudio.paused && analyser) {
@@ -1100,6 +1100,7 @@
         }
     }
 
+    // REAL FREQUENCY-DRIVEN VISUALIZER BARS
     function renderVisualizer() {
         requestAnimationFrame(renderVisualizer);
         canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1129,6 +1130,7 @@
                 canvasCtx.fillStyle = gradient;
                 canvasCtx.fillRect(x, canvas.height - targetHeight - 2, barWidth, targetHeight);
 
+                // Peak Dot
                 canvasCtx.fillStyle = '#ffffff';
                 canvasCtx.beginPath();
                 canvasCtx.arc(x + barWidth / 2, canvas.height - capHeights[i] - 5, 2, 0, Math.PI * 2);
@@ -1144,7 +1146,6 @@
     }
 
     function formatTime(seconds) {
-        if (isNaN(seconds) || seconds < 0) return "0:00";
         var min = Math.floor(seconds / 60);
         var sec = Math.floor(seconds % 60);
         return min + ':' + (sec < 10 ? '0' + sec : sec);
@@ -1212,13 +1213,7 @@
         updateMediaSession();
     }
 
-    function prefetchNextTrackBytes() {
-        if (isPlayingLocal || activeFmKey || playlist.length <= 1) return;
-        var nextIdx = isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
-        var nextUrl = playlist[nextIdx].src;
-        fetch(nextUrl, { mode: 'cors' }).catch(()=>{});
-    }
-
+    // CONTINUOUS NATIVE STREAMING: Setting .src without resetting element retains Android lock-screen Audio Focus
     function loadTrack(index, autoPlay = true) {
         if (playlist.length === 0) return;
         activeFmKey = null;
@@ -1236,10 +1231,10 @@
             if (playPromise !== undefined) {
                 playPromise.then(() => {
                     requestWakeLock();
-                    prefetchNextTrackBytes();
                 }).catch(() => {
+                    // Fail-safe quick retry if browser was momentarily settling
                     setTimeout(() => {
-                        hifiAudio.play().then(prefetchNextTrackBytes).catch(()=>{});
+                        hifiAudio.play().catch(()=>{});
                     }, 250);
                 });
             }
@@ -1290,23 +1285,24 @@
 
     function togglePlaylistDropdown() { playlistDropdown.parentElement.classList.toggle('show'); }
 
-    /* --- NATIVE AUDIO CONTINUOUS CHAINING --- */
+    /* --- NATIVE AUDIO EVENTS & BACKGROUND LOCK-SCREEN CHAINING --- */
     hifiAudio.addEventListener('ended', function() {
+        // Continuous chaining within native ended event ensures Android does not terminate Audio Focus
         playNext();
     });
 
+    // Auto-skip if remote file URL fails or drops out
     hifiAudio.addEventListener('error', function() {
-        if (hifiAudio.seeking || isUserScrubbing) return;
         clearLoadGuard();
         nowPlayingSubtitle.textContent = "SKIPPING UNAVAILABLE TRACK...";
         setTimeout(playNext, 1000);
     });
 
+    // Auto-advance if connection stalls indefinitely
     hifiAudio.addEventListener('waiting', function() {
-        if (hifiAudio.seeking || isUserScrubbing) return;
         clearLoadGuard();
         loadTimeout = setTimeout(function() {
-            if (hifiAudio.readyState < 3 && !hifiAudio.paused && !hifiAudio.seeking && !isUserScrubbing) {
+            if (hifiAudio.readyState < 3 && !hifiAudio.paused) {
                 playNext();
             }
         }, 5000);
@@ -1320,11 +1316,10 @@
         pauseButton.style.display = 'inline-flex'; 
         tapeLeft.classList.add('spinning');
         tapeRight.classList.add('spinning');
-        prefetchNextTrackBytes();
     });
 
     hifiAudio.addEventListener('pause', () => { 
-        if (hifiAudio.paused && !isUserScrubbing) {
+        if (hifiAudio.paused) {
             playButton.style.display = 'inline-flex'; 
             pauseButton.style.display = 'none'; 
             tapeLeft.classList.remove('spinning');
@@ -1333,75 +1328,28 @@
         }
     });
 
-    // ONLY UPDATE SLIDER WHEN USER IS NOT TOUCHING IT
     hifiAudio.addEventListener('timeupdate', () => {
-        if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0 && !isUserScrubbing) {
+        if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
             progressSlider.value = hifiAudio.currentTime;
             currentTimeSpan.textContent = formatTime(hifiAudio.currentTime);
         }
     });
 
-    function setSafeDuration() {
-        if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
-            progressSlider.max = Math.floor(hifiAudio.duration);
+    hifiAudio.addEventListener('loadedmetadata', () => {
+        if (!activeFmKey && !isNaN(hifiAudio.duration)) {
+            progressSlider.max = hifiAudio.duration;
             durationSpan.textContent = formatTime(hifiAudio.duration);
         }
-    }
-
-    hifiAudio.addEventListener('loadedmetadata', () => {
-        setSafeDuration();
         syncTrackUI();
     });
 
-    hifiAudio.addEventListener('durationchange', setSafeDuration);
-    hifiAudio.addEventListener('canplay', setSafeDuration);
-
     volumeSlider.addEventListener('input', () => applyVolumeGain());
 
-    /* --- BULLETPROOF SCRUBBING ENGINE --- */
-    function onScrubTouchStart() {
-        if (activeFmKey) return;
-        isUserScrubbing = true;
-        wasPlayingBeforeScrub = !hifiAudio.paused;
-    }
-
-    function onScrubTouchMove() {
-        isUserScrubbing = true;
-        currentTimeSpan.textContent = formatTime(progressSlider.value);
-    }
-
-    function onScrubTouchEnd() {
-        if (!isUserScrubbing) return;
-        
-        if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
-            var targetTime = parseFloat(progressSlider.value);
-            var safeTarget = Math.min(targetTime, Math.max(0, hifiAudio.duration - 1.5));
-            
-            try {
-                hifiAudio.currentTime = safeTarget;
-            } catch(e) {}
-
-            if (wasPlayingBeforeScrub) {
-                hifiAudio.play().catch(function() {});
-            }
+    progressSlider.addEventListener('input', () => { 
+        if (!activeFmKey) {
+            hifiAudio.currentTime = progressSlider.value;
         }
-        
-        // Small delay so next timeupdate doesn't race against browser seek
-        setTimeout(function() {
-            isUserScrubbing = false;
-        }, 200);
-    }
-
-    // Explicit touch and pointer handlers guarantee the thumb stays where dragged
-    progressSlider.addEventListener('pointerdown', onScrubTouchStart);
-    progressSlider.addEventListener('touchstart', onScrubTouchStart, { passive: true });
-
-    progressSlider.addEventListener('input', onScrubTouchMove);
-
-    progressSlider.addEventListener('change', onScrubTouchEnd);
-    progressSlider.addEventListener('pointerup', onScrubTouchEnd);
-    progressSlider.addEventListener('touchend', onScrubTouchEnd);
-    progressSlider.addEventListener('pointercancel', onScrubTouchEnd);
+    });
 
     window.onclick = function(event) {
         if (!event.target.closest('.music-button') && !event.target.matches('.pl-text')) {
