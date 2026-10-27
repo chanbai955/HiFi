@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chanthiran Mini HiFi System</title>
     
-    <!-- PWA & Mobile Web App Meta Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffaa00">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- HLS Engine for Live Dynamic Streaming -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Orbitron:wght@600;800;900&display=swap');
@@ -212,7 +210,7 @@
             background: #ff3300;
             transform-origin: bottom center;
             transform: rotate(-42deg);
-            transition: transform 0.08s ease-out;
+            transition: transform 0.06s ease-out;
             box-shadow: 0 0 4px #ff3300;
             z-index: 2;
         }
@@ -526,8 +524,9 @@
         </div>
     </div>
 
-    <!-- SINGLE PERMANENT AUDIO ELEMENT: Continuous Android Background Audio Focus -->
-    <audio id="hifiAudio" crossorigin="anonymous" preload="auto" playsinline></audio>
+    <!-- Dual Elements for Pre-buffered Background Playback -->
+    <audio id="audioA" crossorigin="anonymous" preload="auto" playsinline></audio>
+    <audio id="audioB" crossorigin="anonymous" preload="auto" playsinline></audio>
 
     <div class="hifi-body-wrapper">
         <div class="compact-amp-panel">
@@ -772,8 +771,11 @@
     var currentStreamUrl = null;
     var hls = null;
 
-    /* --- THE SINGLE NATIVE AUDIO STREAM ENGINE --- */
-    var hifiAudio = document.getElementById('hifiAudio');
+    /* --- DUAL AUDIO ELEMENTS WITH CONTINUOUS PRE-BUFFERING --- */
+    var audioA = document.getElementById('audioA');
+    var audioB = document.getElementById('audioB');
+    var activeAudio = audioA;
+    var idleAudio = audioB;
     var loadTimeout = null;
 
     var currentTrackTitle = document.getElementById('currentTrackTitle');
@@ -802,7 +804,8 @@
     // WEB AUDIO INITIALIZATION
     var audioCtx = null;
     var analyser = null;
-    var audioSourceConnected = false;
+    var srcNodeA = null;
+    var srcNodeB = null;
 
     var currentTrackIndex = 0;
     var isShuffle = true;
@@ -872,7 +875,7 @@
     setupKnobControl(document.getElementById('trebleKnob'), function() {}, -12, 12, 0);
     setupKnobControl(document.getElementById('balanceKnob'), function() {}, -10, 10, 0);
 
-    // REAL WEB AUDIO INITIALIZER FOR EQUALIZER & VU METERS
+    // AUDIO CONTEXT CONNECTED TO BOTH PRELOAD ELEMENTS
     function initRealAudioContext() {
         if (!audioCtx) {
             try {
@@ -881,12 +884,12 @@
                 analyser = audioCtx.createAnalyser();
                 analyser.fftSize = 64;
 
-                if (!audioSourceConnected) {
-                    var source = audioCtx.createMediaElementSource(hifiAudio);
-                    source.connect(analyser);
-                    analyser.connect(audioCtx.destination);
-                    audioSourceConnected = true;
-                }
+                srcNodeA = audioCtx.createMediaElementSource(audioA);
+                srcNodeB = audioCtx.createMediaElementSource(audioB);
+
+                srcNodeA.connect(analyser);
+                srcNodeB.connect(analyser);
+                analyser.connect(audioCtx.destination);
             } catch(e) {}
         }
         if (audioCtx && audioCtx.state === 'suspended') {
@@ -904,7 +907,8 @@
     function playFmStation(key, evt) {
         if (!fmStations[key]) return;
         activeFmKey = key;
-        hifiAudio.pause();
+        activeAudio.pause();
+        idleAudio.pause();
         destroyHls();
         clearLoadGuard();
 
@@ -947,18 +951,19 @@
             if (Hls.isSupported()) {
                 hls = new Hls();
                 hls.loadSource(url);
-                hls.attachMedia(hifiAudio);
+                hls.attachMedia(activeAudio);
                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
                     nowPlayingSubtitle.textContent = "LIVE FM RADIO";
-                    hifiAudio.play().catch(() => {});
+                    activeAudio.play().catch(() => {});
                 });
-            } else if (hifiAudio.canPlayType('application/vnd.apple.mpegurl')) {
-                hifiAudio.src = url;
-                hifiAudio.play().catch(() => {});
+            } else if (activeAudio.canPlayType('application/vnd.apple.mpegurl')) {
+                activeAudio.src = url;
+                nowPlayingSubtitle.textContent = "LIVE FM RADIO";
+                activeAudio.play().catch(() => {});
             }
         } else {
-            hifiAudio.src = url;
-            hifiAudio.play().catch(() => {});
+            activeAudio.src = url;
+            activeAudio.play().catch(() => {});
         }
         updateMediaSession();
     }
@@ -968,7 +973,8 @@
         currentStreamUrl = null;
         destroyHls();
         document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
-        hifiAudio.pause();
+        activeAudio.pause();
+        idleAudio.pause();
         
         if (currentLocalPlaylist.length > 0) {
             playLocalTrack(localTrackIndex);
@@ -979,7 +985,8 @@
 
     function exitApp() {
         destroyHls();
-        if (hifiAudio) hifiAudio.pause();
+        if (activeAudio) activeAudio.pause();
+        if (idleAudio) idleAudio.pause();
         if (wakeLock) wakeLock.release().catch(()=>{});
         try { window.close(); } catch(e) {}
         setTimeout(() => { window.location.href = "about:blank"; }, 300);
@@ -1039,8 +1046,8 @@
         destroyHls();
         clearLoadGuard();
         initRealAudioContext();
-        hifiAudio.src = currentLocalPlaylist[localTrackIndex].src;
-        hifiAudio.play().then(() => {
+        activeAudio.src = currentLocalPlaylist[localTrackIndex].src;
+        activeAudio.play().then(() => {
             hasUserStartedPlayback = true;
             requestWakeLock();
         }).catch(() => {});
@@ -1054,7 +1061,7 @@
                 artist: "Chanthiran Music Player",
                 album: activeFmKey ? "FM Tuner" : "BGM Player"
             });
-            navigator.mediaSession.playbackState = hifiAudio.paused ? "paused" : "playing";
+            navigator.mediaSession.playbackState = activeAudio.paused ? "paused" : "playing";
 
             navigator.mediaSession.setActionHandler('play', () => togglePlayPause());
             navigator.mediaSession.setActionHandler('pause', () => togglePlayPause());
@@ -1065,7 +1072,8 @@
 
     function applyVolumeGain() {
         var val = parseFloat(volumeSlider.value);
-        hifiAudio.volume = Math.min(1.0, Math.max(0.0, val));
+        activeAudio.volume = Math.min(1.0, Math.max(0.0, val));
+        idleAudio.volume = Math.min(1.0, Math.max(0.0, val));
         boostText.textContent = (Math.round(val * 10) / 10) + "x";
         if (typeof updateVolumeKnobAngle === 'function') {
             updateVolumeKnobAngle(val);
@@ -1084,7 +1092,7 @@
     // REAL FREQUENCY-DRIVEN VU METERS
     function animateVUMeters() {
         requestAnimationFrame(animateVUMeters);
-        if (!hifiAudio.paused && analyser) {
+        if (!activeAudio.paused && analyser) {
             var dataArray = new Uint8Array(analyser.frequencyBinCount);
             analyser.getByteFrequencyData(dataArray);
             var average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
@@ -1107,7 +1115,7 @@
         var numBars = 24, barWidth = 8, gap = 10;
         var startX = (canvas.width - (numBars * (barWidth + gap))) / 2;
 
-        if (!hifiAudio.paused && analyser) {
+        if (!activeAudio.paused && analyser) {
             var dataArray = new Uint8Array(analyser.frequencyBinCount);
             analyser.getByteFrequencyData(dataArray);
 
@@ -1195,8 +1203,8 @@
             playFmStation(activeFmKey);
             return;
         }
-        hifiAudio.currentTime = 0;
-        hifiAudio.play().catch(()=>{});
+        activeAudio.currentTime = 0;
+        activeAudio.play().catch(()=>{});
     }
 
     function syncTrackUI() {
@@ -1213,7 +1221,14 @@
         updateMediaSession();
     }
 
-    // CONTINUOUS NATIVE STREAMING: Setting .src without resetting element retains Android lock-screen Audio Focus
+    // PRE-FETCH UPCOMING SONG INTO IDLE ELEMENT BEFORE LOCK SCREEN CLOSES SOCKETS
+    function preloadUpcomingTrack() {
+        if (isPlayingLocal || activeFmKey) return;
+        var nextIdx = isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
+        idleAudio.src = playlist[nextIdx].src;
+        idleAudio.preload = "auto";
+    }
+
     function loadTrack(index, autoPlay = true) {
         if (playlist.length === 0) return;
         activeFmKey = null;
@@ -1223,18 +1238,30 @@
         currentTrackIndex = index;
 
         initRealAudioContext();
-        hifiAudio.src = playlist[currentTrackIndex].src;
+
+        // Check if idleAudio already holds the next track buffered
+        if (idleAudio.src && idleAudio.src === playlist[currentTrackIndex].src) {
+            var temp = activeAudio;
+            activeAudio = idleAudio;
+            idleAudio = temp;
+            idleAudio.pause();
+        } else {
+            activeAudio.src = playlist[currentTrackIndex].src;
+        }
+
         syncTrackUI();
 
         if (autoPlay) {
-            var playPromise = hifiAudio.play();
+            var playPromise = activeAudio.play();
             if (playPromise !== undefined) {
                 playPromise.then(() => {
                     requestWakeLock();
+                    preloadUpcomingTrack();
                 }).catch(() => {
-                    // Fail-safe quick retry if browser was momentarily settling
                     setTimeout(() => {
-                        hifiAudio.play().catch(()=>{});
+                        activeAudio.play().then(() => {
+                            preloadUpcomingTrack();
+                        }).catch(()=>{});
                     }, 250);
                 });
             }
@@ -1248,10 +1275,10 @@
             return;
         }
 
-        if (hifiAudio.paused) { 
-            hifiAudio.play().catch(()=>{});
+        if (activeAudio.paused) { 
+            activeAudio.play().catch(()=>{});
         } else { 
-            hifiAudio.pause(); 
+            activeAudio.pause(); 
         }
     }
 
@@ -1285,69 +1312,82 @@
 
     function togglePlaylistDropdown() { playlistDropdown.parentElement.classList.toggle('show'); }
 
-    /* --- NATIVE AUDIO EVENTS & BACKGROUND LOCK-SCREEN CHAINING --- */
-    hifiAudio.addEventListener('ended', function() {
-        // Continuous chaining within native ended event ensures Android does not terminate Audio Focus
-        playNext();
-    });
-
-    // Auto-skip if remote file URL fails or drops out
-    hifiAudio.addEventListener('error', function() {
-        clearLoadGuard();
-        nowPlayingSubtitle.textContent = "SKIPPING UNAVAILABLE TRACK...";
-        setTimeout(playNext, 1000);
-    });
-
-    // Auto-advance if connection stalls indefinitely
-    hifiAudio.addEventListener('waiting', function() {
-        clearLoadGuard();
-        loadTimeout = setTimeout(function() {
-            if (hifiAudio.readyState < 3 && !hifiAudio.paused) {
+    /* --- ATTACH EVENT HANDLERS TO BOTH STREAM PIPELINES --- */
+    function attachPlayerEvents(elem) {
+        elem.addEventListener('ended', function() {
+            if (elem === activeAudio) {
                 playNext();
             }
-        }, 5000);
-    });
+        });
 
-    hifiAudio.addEventListener('playing', () => {
-        clearLoadGuard();
-        syncTrackUI();
-        initRealAudioContext();
-        playButton.style.display = 'none'; 
-        pauseButton.style.display = 'inline-flex'; 
-        tapeLeft.classList.add('spinning');
-        tapeRight.classList.add('spinning');
-    });
+        elem.addEventListener('error', function() {
+            if (elem === activeAudio) {
+                clearLoadGuard();
+                nowPlayingSubtitle.textContent = "SKIPPING UNAVAILABLE TRACK...";
+                setTimeout(playNext, 1000);
+            }
+        });
 
-    hifiAudio.addEventListener('pause', () => { 
-        if (hifiAudio.paused) {
-            playButton.style.display = 'inline-flex'; 
-            pauseButton.style.display = 'none'; 
-            tapeLeft.classList.remove('spinning');
-            tapeRight.classList.remove('spinning');
-            updateMediaSession();
-        }
-    });
+        elem.addEventListener('waiting', function() {
+            if (elem === activeAudio) {
+                clearLoadGuard();
+                loadTimeout = setTimeout(function() {
+                    if (activeAudio.readyState < 3 && !activeAudio.paused) {
+                        playNext();
+                    }
+                }, 5000);
+            }
+        });
 
-    hifiAudio.addEventListener('timeupdate', () => {
-        if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
-            progressSlider.value = hifiAudio.currentTime;
-            currentTimeSpan.textContent = formatTime(hifiAudio.currentTime);
-        }
-    });
+        elem.addEventListener('playing', () => {
+            if (elem === activeAudio) {
+                clearLoadGuard();
+                syncTrackUI();
+                initRealAudioContext();
+                playButton.style.display = 'none'; 
+                pauseButton.style.display = 'inline-flex'; 
+                tapeLeft.classList.add('spinning');
+                tapeRight.classList.add('spinning');
+                preloadUpcomingTrack();
+            }
+        });
 
-    hifiAudio.addEventListener('loadedmetadata', () => {
-        if (!activeFmKey && !isNaN(hifiAudio.duration)) {
-            progressSlider.max = hifiAudio.duration;
-            durationSpan.textContent = formatTime(hifiAudio.duration);
-        }
-        syncTrackUI();
-    });
+        elem.addEventListener('pause', () => { 
+            if (activeAudio.paused && idleAudio.paused) {
+                playButton.style.display = 'inline-flex'; 
+                pauseButton.style.display = 'none'; 
+                tapeLeft.classList.remove('spinning');
+                tapeRight.classList.remove('spinning');
+                updateMediaSession();
+            }
+        });
+
+        elem.addEventListener('timeupdate', () => {
+            if (elem === activeAudio && !activeFmKey && !isNaN(activeAudio.duration) && activeAudio.duration > 0) {
+                progressSlider.value = activeAudio.currentTime;
+                currentTimeSpan.textContent = formatTime(activeAudio.currentTime);
+            }
+        });
+
+        elem.addEventListener('loadedmetadata', () => {
+            if (elem === activeAudio && !activeFmKey && !isNaN(activeAudio.duration)) {
+                progressSlider.max = activeAudio.duration;
+                durationSpan.textContent = formatTime(activeAudio.duration);
+            }
+            if (elem === activeAudio) {
+                syncTrackUI();
+            }
+        });
+    }
+
+    attachPlayerEvents(audioA);
+    attachPlayerEvents(audioB);
 
     volumeSlider.addEventListener('input', () => applyVolumeGain());
 
     progressSlider.addEventListener('input', () => { 
         if (!activeFmKey) {
-            hifiAudio.currentTime = progressSlider.value;
+            activeAudio.currentTime = progressSlider.value;
         }
     });
 
