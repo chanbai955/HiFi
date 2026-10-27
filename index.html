@@ -402,7 +402,7 @@
             appearance: none;
             background: transparent;
             cursor: pointer;
-            touch-action: manipulation;
+            touch-action: none;
         }
 
         input[type="range"]::-webkit-slider-runnable-track {
@@ -525,7 +525,7 @@
         </div>
     </div>
 
-    <!-- AUDIO ELEMENT -->
+    <!-- AUDIO STREAM WITH CORS PERMISSIONS FOR REAL ANALYSER -->
     <audio id="hifiAudio" crossorigin="anonymous" preload="auto" playsinline></audio>
 
     <div class="hifi-body-wrapper">
@@ -589,7 +589,7 @@
         <div class="controls-wrapper">
             <div class="control-row">
                 <span id="currentTime" class="time-display">0:00</span>
-                <input type="range" id="progressSlider" min="0" max="0" value="0" />
+                <input type="range" id="progressSlider" min="0" max="100" value="0" />
                 <span id="duration" class="time-display">0:00</span>
             </div>
 
@@ -774,6 +774,7 @@
     /* --- THE SINGLE CONTINUOUS AUDIO STREAM --- */
     var hifiAudio = document.getElementById('hifiAudio');
     var isUserScrubbing = false;
+    var wasPlayingBeforeScrub = false;
     var loadTimeout = null;
 
     var currentTrackTitle = document.getElementById('currentTrackTitle');
@@ -1143,6 +1144,7 @@
     }
 
     function formatTime(seconds) {
+        if (isNaN(seconds) || seconds < 0) return "0:00";
         var min = Math.floor(seconds / 60);
         var sec = Math.floor(seconds % 60);
         return min + ':' + (sec < 10 ? '0' + sec : sec);
@@ -1331,6 +1333,7 @@
         }
     });
 
+    // ONLY UPDATE SLIDER WHEN USER IS NOT TOUCHING IT
     hifiAudio.addEventListener('timeupdate', () => {
         if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0 && !isUserScrubbing) {
             progressSlider.value = hifiAudio.currentTime;
@@ -1338,42 +1341,67 @@
         }
     });
 
-    hifiAudio.addEventListener('loadedmetadata', () => {
-        if (!activeFmKey && !isNaN(hifiAudio.duration)) {
-            progressSlider.max = hifiAudio.duration;
+    function setSafeDuration() {
+        if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
+            progressSlider.max = Math.floor(hifiAudio.duration);
             durationSpan.textContent = formatTime(hifiAudio.duration);
         }
+    }
+
+    hifiAudio.addEventListener('loadedmetadata', () => {
+        setSafeDuration();
         syncTrackUI();
     });
 
+    hifiAudio.addEventListener('durationchange', setSafeDuration);
+    hifiAudio.addEventListener('canplay', setSafeDuration);
+
     volumeSlider.addEventListener('input', () => applyVolumeGain());
 
-    /* --- STABLE SCRUBBING ENGINE --- */
-    progressSlider.addEventListener('input', function() {
+    /* --- BULLETPROOF SCRUBBING ENGINE --- */
+    function onScrubTouchStart() {
+        if (activeFmKey) return;
+        isUserScrubbing = true;
+        wasPlayingBeforeScrub = !hifiAudio.paused;
+    }
+
+    function onScrubTouchMove() {
         isUserScrubbing = true;
         currentTimeSpan.textContent = formatTime(progressSlider.value);
-    });
+    }
 
-    // Execute seek only ONCE when thumb is released
-    progressSlider.addEventListener('change', function() {
+    function onScrubTouchEnd() {
+        if (!isUserScrubbing) return;
+        
         if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
             var targetTime = parseFloat(progressSlider.value);
             var safeTarget = Math.min(targetTime, Math.max(0, hifiAudio.duration - 1.5));
             
-            // Set currentTime directly
             try {
                 hifiAudio.currentTime = safeTarget;
             } catch(e) {}
 
-            // Ensure playback continues smoothly if it was playing
-            if (!hifiAudio.paused) {
+            if (wasPlayingBeforeScrub) {
                 hifiAudio.play().catch(function() {});
             }
         }
+        
+        // Small delay so next timeupdate doesn't race against browser seek
         setTimeout(function() {
             isUserScrubbing = false;
-        }, 150);
-    });
+        }, 200);
+    }
+
+    // Explicit touch and pointer handlers guarantee the thumb stays where dragged
+    progressSlider.addEventListener('pointerdown', onScrubTouchStart);
+    progressSlider.addEventListener('touchstart', onScrubTouchStart, { passive: true });
+
+    progressSlider.addEventListener('input', onScrubTouchMove);
+
+    progressSlider.addEventListener('change', onScrubTouchEnd);
+    progressSlider.addEventListener('pointerup', onScrubTouchEnd);
+    progressSlider.addEventListener('touchend', onScrubTouchEnd);
+    progressSlider.addEventListener('pointercancel', onScrubTouchEnd);
 
     window.onclick = function(event) {
         if (!event.target.closest('.music-button') && !event.target.matches('.pl-text')) {
