@@ -402,6 +402,7 @@
             appearance: none;
             background: transparent;
             cursor: pointer;
+            touch-action: manipulation;
         }
 
         input[type="range"]::-webkit-slider-runnable-track {
@@ -770,8 +771,10 @@
     var currentStreamUrl = null;
     var hls = null;
 
+    /* --- THE SINGLE CONTINUOUS AUDIO STREAM --- */
     var hifiAudio = document.getElementById('hifiAudio');
     var isUserScrubbing = false;
+    var wasPlayingBeforeScrub = false;
     var loadTimeout = null;
 
     var currentTrackTitle = document.getElementById('currentTrackTitle');
@@ -1295,16 +1298,20 @@
         playNext();
     });
 
+    // Auto-skip only if NOT actively seeking or scrubbing
     hifiAudio.addEventListener('error', function() {
+        if (hifiAudio.seeking || isUserScrubbing) return;
         clearLoadGuard();
         nowPlayingSubtitle.textContent = "SKIPPING UNAVAILABLE TRACK...";
         setTimeout(playNext, 1000);
     });
 
+    // Auto-advance if connection stalls (bypassed during scrub)
     hifiAudio.addEventListener('waiting', function() {
+        if (hifiAudio.seeking || isUserScrubbing) return;
         clearLoadGuard();
         loadTimeout = setTimeout(function() {
-            if (hifiAudio.readyState < 3 && !hifiAudio.paused) {
+            if (hifiAudio.readyState < 3 && !hifiAudio.paused && !hifiAudio.seeking && !isUserScrubbing) {
                 playNext();
             }
         }, 5000);
@@ -1322,7 +1329,7 @@
     });
 
     hifiAudio.addEventListener('pause', () => { 
-        if (hifiAudio.paused) {
+        if (hifiAudio.paused && !isUserScrubbing) {
             playButton.style.display = 'inline-flex'; 
             pauseButton.style.display = 'none'; 
             tapeLeft.classList.remove('spinning');
@@ -1348,18 +1355,38 @@
 
     volumeSlider.addEventListener('input', () => applyVolumeGain());
 
-    // ONLY CHANGE TIME ON RELEASE, NEVER WHILE SLIDING
+    /* --- SAFE SCRUBBING ENGINE --- */
+    function onScrubStart() {
+        if (activeFmKey) return;
+        isUserScrubbing = true;
+        wasPlayingBeforeScrub = !hifiAudio.paused;
+        hifiAudio.pause();
+    }
+
+    function onScrubEnd() {
+        if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
+            var targetTime = parseFloat(progressSlider.value);
+            // Safe clamp 1.5s away from duration to prevent accidental ended trigger
+            var safeTarget = Math.min(targetTime, Math.max(0, hifiAudio.duration - 1.5));
+            hifiAudio.currentTime = Math.max(0, safeTarget);
+        }
+        isUserScrubbing = false;
+        if (wasPlayingBeforeScrub) {
+            hifiAudio.play().catch(()=>{});
+        }
+    }
+
+    progressSlider.addEventListener('pointerdown', onScrubStart);
+    progressSlider.addEventListener('touchstart', onScrubStart, { passive: true });
+
     progressSlider.addEventListener('input', () => {
         isUserScrubbing = true;
         currentTimeSpan.textContent = formatTime(progressSlider.value);
     });
 
-    progressSlider.addEventListener('change', () => {
-        if (!activeFmKey && !isNaN(hifiAudio.duration)) {
-            hifiAudio.currentTime = progressSlider.value;
-        }
-        isUserScrubbing = false;
-    });
+    progressSlider.addEventListener('change', onScrubEnd);
+    progressSlider.addEventListener('pointerup', onScrubEnd);
+    progressSlider.addEventListener('touchend', onScrubEnd);
 
     window.onclick = function(event) {
         if (!event.target.closest('.music-button') && !event.target.matches('.pl-text')) {
