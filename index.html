@@ -364,6 +364,18 @@
 
         .cassette-deck-well svg.cdeck-svg { width: 100%; height: 100%; display: block; }
 
+        /* AUDIO-REACTIVE NEON BADGE STYLES */
+        .neon-badge-group {
+            filter: drop-shadow(0 0 2px rgba(0, 229, 255, 0.3));
+            transition: filter 0.05s ease-out, opacity 0.05s ease-out;
+            will-change: filter, opacity;
+        }
+
+        .neon-note, .neon-note-bottom {
+            transition: fill 0.1s ease-out;
+            will-change: fill;
+        }
+
         .spool-overlay-container {
             position: absolute;
             top: 0; left: 0;
@@ -992,13 +1004,27 @@
                 <rect width="400" height="120" fill="#1e222a"/>
                 <rect x="5" y="5" width="390" height="110" rx="6" fill="#13161c" stroke="#2e3542" stroke-width="2"/>
                 <rect x="15" y="12" width="280" height="96" rx="5" fill="#090a0d" stroke="#3d4656" stroke-width="2"/>
-                <rect x="305" y="12" width="80" height="96" rx="4" fill="#2d333f" stroke="#485265" stroke-width="1.5"/>
+                
+                <!-- Side Panel / Recessed Box -->
+                <rect x="305" y="12" width="80" height="96" rx="4" fill="#171a21" stroke="#485265" stroke-width="1.5"/>
+                <rect x="309" y="16" width="72" height="88" rx="3" fill="#0b0d11" stroke="#252a33" stroke-width="1"/>
+                
+                <!-- Center Cassette Well Window -->
                 <path d="M 25 20 L 285 20 L 280 98 L 30 98 Z" fill="#1a1e26" stroke="#2b313d" stroke-width="1"/>
                 <rect x="50" y="30" width="210" height="42" rx="4" fill="#000000" stroke="#333c4a" stroke-width="2"/>
                 <rect x="55" y="34" width="200" height="34" rx="2" fill="#251a14" opacity="0.8"/>
                 <text x="32" y="32" fill="#718096" font-family="Orbitron, sans-serif" font-size="10" font-weight="800">90</text>
                 <text x="230" y="32" fill="#e2e8f0" font-family="Orbitron, sans-serif" font-size="9" font-weight="900">TYPE I</text>
                 <text x="32" y="50" fill="#ffaa00" font-family="Orbitron, sans-serif" font-size="11" font-weight="900">A</text>
+
+                <!-- Kayu Ara Hitz Audio-Reactive Neon Badge with Music Notes -->
+                <g id="neonBadgeGroup" class="neon-badge-group" text-anchor="middle">
+                    <text class="neon-note" x="345" y="34" fill="#ffaa00" font-size="13" font-family="'Orbitron', sans-serif">♪ ♫ ♪</text>
+                    <text x="345" y="51" fill="#00e5ff" font-family="'Orbitron', sans-serif" font-size="8.5" font-weight="900" letter-spacing="1">KAYU</text>
+                    <text x="345" y="65" fill="#00e5ff" font-family="'Orbitron', sans-serif" font-size="8.5" font-weight="900" letter-spacing="1">ARA</text>
+                    <text x="345" y="79" fill="#ffaa00" font-family="'Orbitron', sans-serif" font-size="9.5" font-weight="900" letter-spacing="1.5">HITZ</text>
+                    <text class="neon-note-bottom" x="345" y="95" fill="#ffaa00" font-size="10" font-family="'Orbitron', sans-serif">♬ ♩</text>
+                </g>
             </svg>
 
             <!-- VINYL TURNTABLE & STROBE PLATTER OVERLAY -->
@@ -1286,6 +1312,8 @@
     var turntablePlatter = document.getElementById('turntablePlatter');
     var tonearmCartridge = document.getElementById('tonearmCartridge');
     var spoolOverlayContainer = document.querySelector('.spool-overlay-container');
+    var neonBadgeGroup = document.getElementById('neonBadgeGroup');
+    var badgeBassEnergy = 0;
 
     var vuNeedleL = document.getElementById('vuNeedleL');
     var vuNeedleR = document.getElementById('vuNeedleR');
@@ -2393,7 +2421,7 @@
         vuPeakR.classList.toggle('lit', peakHoldR > 0);
     }
 
-    /* --- CANVAS 24-BAND SPECTRUM VISUALIZER --- */
+    /* --- CANVAS 24-BAND SPECTRUM VISUALIZER & BEAT-REACTIVE BADGE GLOW --- */
     function renderVisualizer() {
         requestAnimationFrame(renderVisualizer);
         if (isPageHidden) return;
@@ -2405,6 +2433,32 @@
         if (!hifiAudio.paused && analyser) {
             var dataArray = new Uint8Array(analyser.frequencyBinCount);
             analyser.getByteFrequencyData(dataArray);
+
+            // --- AUDIO-REACTIVE BADGE GLOW (BASS & BEAT DETECTION) ---
+            if (neonBadgeGroup) {
+                var rawBass = (dataArray[0] + dataArray[1] + dataArray[2] + dataArray[3]) / (4 * 255);
+                
+                if (rawBass > badgeBassEnergy) {
+                    badgeBassEnergy = rawBass;
+                } else {
+                    badgeBassEnergy *= 0.88;
+                }
+
+                var cyanRadius = (2 + badgeBassEnergy * 10).toFixed(1);
+                var amberRadius = (4 + badgeBassEnergy * 18).toFixed(1);
+                var opacityVal = (0.7 + badgeBassEnergy * 0.3).toFixed(2);
+
+                neonBadgeGroup.style.filter = 
+                    'drop-shadow(0 0 ' + cyanRadius + 'px rgba(0, 229, 255, ' + (0.3 + badgeBassEnergy * 0.7).toFixed(2) + ')) ' +
+                    'drop-shadow(0 0 ' + amberRadius + 'px rgba(255, 170, 0, ' + (0.2 + badgeBassEnergy * 0.8).toFixed(2) + '))';
+                neonBadgeGroup.style.opacity = opacityVal;
+
+                var notes = neonBadgeGroup.querySelectorAll('.neon-note, .neon-note-bottom');
+                var noteColor = badgeBassEnergy > 0.65 ? '#ffffff' : (badgeBassEnergy > 0.4 ? '#00e5ff' : '#ffaa00');
+                notes.forEach(function(note) {
+                    note.setAttribute('fill', noteColor);
+                });
+            }
 
             for (var i = 0; i < numBars; i++) {
                 var val = dataArray[i] || 0;
@@ -2431,6 +2485,14 @@
                 canvasCtx.fill();
             }
         } else {
+            // Idle state: reset badge to subtle resting glow
+            if (neonBadgeGroup) {
+                neonBadgeGroup.style.filter = 'drop-shadow(0 0 2px rgba(0, 229, 255, 0.3))';
+                neonBadgeGroup.style.opacity = '0.7';
+                var idleNotes = neonBadgeGroup.querySelectorAll('.neon-note, .neon-note-bottom');
+                idleNotes.forEach(function(note) { note.setAttribute('fill', '#ffaa00'); });
+            }
+
             for (var j = 0; j < numBars; j++) {
                 var idleX = startX + j * (barWidth + gap);
                 canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.2)';
@@ -2925,7 +2987,7 @@
 
     hifiAudio.addEventListener('error', function() {
         clearLoadGuard();
-        if (hifiAudio.error && hifiAudio.error.code === 20) return; // Ignore intentional aborts
+        if (hifiAudio.error && hifiAudio.error.code === 20) return;
 
         consecutiveErrorCount++;
         if (consecutiveErrorCount > 3) {
@@ -2948,7 +3010,7 @@
                 isTransitioning = true;
                 playNext();
             }
-        }, 12000); // 12 seconds buffer allowance prevents premature multi-skips
+        }, 12000);
     });
 
     hifiAudio.addEventListener('playing', () => {
@@ -2979,7 +3041,6 @@
             progressSlider.value = hifiAudio.currentTime;
             currentTimeSpan.textContent = formatTime(hifiAudio.currentTime);
 
-            // Mid-song buffer trigger (pre-warm the next track well in advance)
             if (!preloadTriggeredForCurrentTrack && (hifiAudio.currentTime > 15 || hifiAudio.currentTime > hifiAudio.duration * 0.5)) {
                 preloadTriggeredForCurrentTrack = true;
                 scheduleNextTrackPreload();
