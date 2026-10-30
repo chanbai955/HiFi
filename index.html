@@ -34,7 +34,7 @@
             overflow-y: auto;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
         }
 
         /* VERTICAL TOWER CONTAINER */
@@ -730,7 +730,7 @@
         }
 
         #svgTonearmAssembly {
-            transform-origin: 268px 58px;
+            transform-origin: 240px 58px;
             transform: rotate(-25deg);
             transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.3, 1.2);
             filter: drop-shadow(0 6px 5px rgba(0,0,0,0.95));
@@ -1464,45 +1464,51 @@
                             <text x="32" y="55" fill="#ffaa00" font-family="'Orbitron', sans-serif" font-size="11" font-weight="900">A</text>
                         </g>
 
-                        <!-- 3D VINYL TURNTABLE VECTOR GROUP -->
+                        <!-- 3D VINYL TURNTABLE VECTOR GROUP (COMPACT SLEEK PROPORTIONS) -->
                         <g id="svgVinylGroup" style="display: none;">
                             <rect x="18" y="15" width="274" height="90" rx="4" fill="#07080b" stroke="#1b2029" stroke-width="1.5"/>
-                            <circle cx="155" cy="60" r="49" fill="url(#platterRimGrad)" stroke="#556275" stroke-width="1.5" filter="url(#recessShadow)"/>
+                            <!-- Compact Turntable Platter Outer Rim -->
+                            <circle cx="155" cy="60" r="41" fill="url(#platterRimGrad)" stroke="#556275" stroke-width="1.4" filter="url(#recessShadow)"/>
 
+                            <!-- 3D Rotating Vinyl Record (Compact radius of 38px fits phones perfectly) -->
                             <g id="svgVinylPlatter">
-                                <circle cx="155" cy="60" r="46.5" fill="url(#vinylShine3D)" stroke="#1a2029" stroke-width="1.2"/>
+                                <circle cx="155" cy="60" r="38" fill="url(#vinylShine3D)" stroke="#1a2029" stroke-width="1"/>
                                 
-                                <circle cx="155" cy="60" r="43.5" fill="none" stroke="#252b36" stroke-width="1.2" stroke-dasharray="8,2"/>
-                                <circle cx="155" cy="60" r="39" fill="none" stroke="#181c24" stroke-width="0.8"/>
-                                <circle cx="155" cy="60" r="35" fill="none" stroke="#29303d" stroke-width="1.1" stroke-dasharray="14,3"/>
-                                <circle cx="155" cy="60" r="30" fill="none" stroke="#1a1e26" stroke-width="0.8"/>
-                                <circle cx="155" cy="60" r="26" fill="none" stroke="#28313e" stroke-width="1.2" stroke-dasharray="4,2"/>
-                                <circle cx="155" cy="60" r="22" fill="none" stroke="#181c24" stroke-width="0.8"/>
+                                <!-- Realistic Concentric Grooves -->
+                                <circle cx="155" cy="60" r="35" fill="none" stroke="#252b36" stroke-width="1" stroke-dasharray="6,2"/>
+                                <circle cx="155" cy="60" r="31" fill="none" stroke="#181c24" stroke-width="0.7"/>
+                                <circle cx="155" cy="60" r="27" fill="none" stroke="#29303d" stroke-width="0.9" stroke-dasharray="10,2"/>
+                                <circle cx="155" cy="60" r="23" fill="none" stroke="#1a1e26" stroke-width="0.7"/>
+                                <circle cx="155" cy="60" r="19" fill="none" stroke="#28313e" stroke-width="0.9" stroke-dasharray="3,1.5"/>
                                 
-                                <circle cx="155" cy="60" r="45" fill="none" stroke="#00e5ff" stroke-width="0.9" stroke-dasharray="1.5,2.5" opacity="0.6"/>
+                                <!-- Strobe Rim Dots -->
+                                <circle cx="155" cy="60" r="36.5" fill="none" stroke="#00e5ff" stroke-width="0.7" stroke-dasharray="1.2,2.2" opacity="0.6"/>
                                 
-                                <circle cx="155" cy="60" r="16.5" fill="radial-gradient(circle, #ffaa00 0%, #b35900 85%)" stroke="#ffe082" stroke-width="1.2"/>
-                                <circle cx="155" cy="60" r="14.5" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
-                                <text x="155" y="62.5" fill="#111" font-family="'Orbitron', sans-serif" font-size="5" font-weight="900" text-anchor="middle">33⅓</text>
+                                <!-- Center Disc Label & Spindle -->
+                                <circle cx="155" cy="60" r="13" fill="radial-gradient(circle, #ffaa00 0%, #b35900 85%)" stroke="#ffe082" stroke-width="1"/>
+                                <circle cx="155" cy="60" r="11" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.6"/>
+                                <text x="155" y="62" fill="#111" font-family="'Orbitron', sans-serif" font-size="4.2" font-weight="900" text-anchor="middle">33⅓</text>
                                 
-                                <circle cx="155" cy="60" r="2.8" fill="#e2e8f0" stroke="#0f172a" stroke-width="1"/>
-                                <circle cx="154.2" cy="59.2" r="0.8" fill="#ffffff"/>
+                                <circle cx="155" cy="60" r="2.2" fill="#e2e8f0" stroke="#0f172a" stroke-width="0.8"/>
+                                <circle cx="154.3" cy="59.3" r="0.6" fill="#ffffff"/>
                             </g>
 
-                            <rect x="254" y="32" width="6" height="8" rx="1.5" fill="#1a202c" stroke="#334155" stroke-width="0.8"/>
+                            <!-- Tonearm Rest Cradle Base -->
+                            <rect x="228" y="35" width="5" height="7" rx="1.2" fill="#1a202c" stroke="#334155" stroke-width="0.7"/>
 
+                            <!-- 3D Metallic Tonearm Assembly Adjusted for Compact Platter -->
                             <g id="svgTonearmAssembly">
-                                <circle cx="268" cy="58" r="9" fill="#1e2430" stroke="#0d1117" stroke-width="1.5"/>
-                                <circle cx="268" cy="58" r="7.5" fill="url(#metallicArm3D)" stroke="#334155" stroke-width="1"/>
+                                <circle cx="240" cy="58" r="8" fill="#1e2430" stroke="#0d1117" stroke-width="1.3"/>
+                                <circle cx="240" cy="58" r="6.5" fill="url(#metallicArm3D)" stroke="#334155" stroke-width="0.9"/>
                                 
-                                <line x1="268" y1="58" x2="190" y2="58" stroke="url(#metallicArm3D)" stroke-width="2.6" stroke-linecap="round"/>
-                                <line x1="268" y1="57.3" x2="190" y2="57.3" stroke="rgba(255,255,255,0.7)" stroke-width="0.8"/>
+                                <line x1="240" y1="58" x2="178" y2="58" stroke="url(#metallicArm3D)" stroke-width="2.3" stroke-linecap="round"/>
+                                <line x1="240" y1="57.4" x2="178" y2="57.4" stroke="rgba(255,255,255,0.7)" stroke-width="0.7"/>
                                 
-                                <rect x="272" y="55" width="8" height="6" rx="1.5" fill="#334155" stroke="#64748b" stroke-width="0.8"/>
+                                <rect x="243" y="55.5" width="7" height="5" rx="1.2" fill="#334155" stroke="#64748b" stroke-width="0.7"/>
                                 
-                                <polygon points="190,53 177,54.5 176,61.5 189,63" fill="#ffaa00" stroke="#ffffff" stroke-width="0.9"/>
-                                <circle cx="184" cy="58" r="1.5" fill="#111"/>
-                                <rect x="175" y="56" width="3" height="4" rx="0.8" fill="#e2e8f0"/>
+                                <polygon points="178,54 167,55 166,61 177,62" fill="#ffaa00" stroke="#ffffff" stroke-width="0.8"/>
+                                <circle cx="172" cy="58" r="1.3" fill="#111"/>
+                                <rect x="165" y="56.5" width="2.5" height="3" rx="0.6" fill="#e2e8f0"/>
                             </g>
                         </g>
 
@@ -1610,14 +1616,14 @@
                 <div class="fm-buttons-grid">
                     <button class="fm-preset-btn" data-preset="1" onclick="handlePresetClick(1, event)">MINNAL</button>
                     <button class="fm-preset-btn" data-preset="2" onclick="handlePresetClick(2, event)">RAAGA</button>
-                    <button class="fm-preset-btn" data-preset="3" onclick="handlePresetClick(3, event)">SURIA</button>
+                    <button class="fm-preset-btn" data-preset="3" onclick="handlePresetClick(3, event)">CRONIQX</button>
                     <button class="fm-preset-btn" data-preset="4" onclick="handlePresetClick(4, event)">SINAR</button>
                     <button class="fm-preset-btn" data-preset="5" onclick="handlePresetClick(5, event)">LITE</button>
                     <button class="fm-preset-btn" data-preset="6" onclick="handlePresetClick(6, event)">MY FM</button>
                     <button class="fm-preset-btn" data-preset="7" onclick="handlePresetClick(7, event)">OLI 96.8</button>
                     <button class="fm-preset-btn" data-preset="8" onclick="handlePresetClick(8, event)">SOORIYAN</button>
                     <button class="fm-preset-btn" data-preset="9" onclick="handlePresetClick(9, event)">ILAYARAJA</button>
-                    <button class="fm-preset-btn off-btn" onclick="turnOffRadio()">OFF</button>
+                    <button class="fm-preset-btn off-btn" onclick="turnOffRadio()">HI-FI</button>
                 </div>
             </div>
 
@@ -1833,7 +1839,7 @@
     var fmStations = {
         minnal: { title: "Minnal FM (96.3)", freq: 96.3, query: "minnal fm", backup: "https://stream.zeno.fm/f3v48y5168uvh", useApi: true },
         raaga: { title: "THR Raaga (99.3)", freq: 99.3, query: "thr raaga", backup: "https://astro3.astro.com.my/raaga/raaga.m3u8", useApi: true },
-        suria: { title: "Suria FM (105.3)", freq: 105.3, query: "suria fm", backup: "https://stream.zeno.fm/0r0xa792kwzuv", useApi: true },
+        croniqX : { title: "CroniqX FM (105.3)", freq: 105.3, query: "croniqX FM", backup: "http://stream.zeno.fm/wrv09s4nu7uuv", useApi: true },
         sinar: { title: "Sinar FM (96.7)", freq: 96.7, query: "sinar fm", backup: "https://astro3.astro.com.my/sinar/sinar.m3u8", useApi: true },
         lite: { title: "Lite FM (105.7)", freq: 105.7, query: "lite fm", backup: "https://stream.rcs.revma.com/bn4ex8sbv4uvv/5_18oihpcuu06zk02/playlist.m3u8", useApi: true },
         my: { title: "MY FM (101.8)", freq: 101.8, query: "my fm", backup: "https://astro3.astro.com.my/my/my.m3u8", useApi: true },
@@ -1847,7 +1853,7 @@
     var defaultPresetSlots = {
         1: { name: "MINNAL", key: "minnal", freq: 96.3 },
         2: { name: "RAAGA", key: "raaga", freq: 99.3 },
-        3: { name: "SURIA", key: "suria", freq: 105.3 },
+        3: { name: "CRONIQX FM", key: "croniqX", freq: 105.3 },
         4: { name: "SINAR", key: "sinar", freq: 96.7 },
         5: { name: "LITE", key: "lite", freq: 105.7 },
         6: { name: "MY FM", key: "my", freq: 101.8 },
@@ -3169,7 +3175,7 @@
         applyVolumeGain();
     }
 
-    /* CONTINUOUS TONEARM TRACKING ON VINYL & REST CRADLE ON PAUSE */
+    /* CONTINUOUS TONEARM TRACKING ON COMPACT VINYL PLATTER */
     function syncDeckVisuals() {
         var isPlaying = !hifiAudio.paused;
 
