@@ -167,31 +167,46 @@
         .exit-btn svg { width: 12px; height: 12px; fill: currentColor; }
         .exit-btn:active { transform: scale(0.92); }
 
-        /* ROTARY AMP KNOBS PANEL */
+        /* ROTARY AMP KNOBS WITH DYNAMIC ILLUMINATED LEVEL GAUGES */
         .compact-amp-panel {
             width: 100%;
             background: transparent !important;
             border: 1px dashed #454c59;
             border-radius: 6px;
-            padding: 8px 12px;
+            padding: 6px 10px 8px 10px;
             color: #fff;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
         }
 
         .amp-knobs-row {
             display: flex;
             justify-content: space-around;
             align-items: center;
-            padding: 4px 0;
+            padding: 2px 0;
         }
 
         .amp-knob-unit {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
+            position: relative;
+        }
+
+        .knob-level-gauge {
+            width: 42px;
+            height: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .knob-level-gauge svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
         }
 
         .amp-knob-label {
@@ -394,11 +409,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            cursor: pointer;
             perspective: 900px;
         }
 
-        /* BACKSTAGE ILLUMINATION LAMP (Fires on Eject) */
+        /* BACKSTAGE ILLUMINATION LAMP */
         .eject-backlight-lamp {
             position: absolute;
             top: 0;
@@ -416,7 +430,7 @@
             opacity: 1;
         }
 
-        /* 3D TILT TRAY (Eject Door swings out toward viewer) */
+        /* 3D TILT TRAY */
         .deck-tilt-tray {
             position: absolute;
             top: 0;
@@ -435,6 +449,84 @@
         }
 
         .cassette-deck-well svg.cdeck-svg { width: 100%; height: 100%; display: block; }
+
+        /* PHYSICAL MECHANICAL EJECT BUTTON */
+        .deck-eject-btn {
+            position: absolute;
+            left: 20px;
+            bottom: 16px;
+            background: linear-gradient(145deg, #2f3542, #181c24);
+            border: 1px solid #485366;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            border-radius: 3px;
+            color: #d1d5db;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.52rem;
+            font-weight: 900;
+            padding: 3px 6px;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 3px 0 #0b0d12, 0 4px 6px rgba(0,0,0,0.8);
+            transition: all 0.1s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            letter-spacing: 0.5px;
+        }
+
+        .deck-eject-btn:hover {
+            color: #ffaa00;
+            border-color: #ffaa00;
+        }
+
+        .deck-eject-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #0b0d12, 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        /* DIGITAL ILLUMINATED TAPE REVOLUTION COUNTER */
+        .tape-counter-bay {
+            position: absolute;
+            right: 18px;
+            bottom: 15px;
+            background: #000;
+            border: 1px solid #2e3542;
+            border-radius: 4px;
+            padding: 2px 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: inset 0 0 6px rgba(0,0,0,0.9);
+            z-index: 10;
+        }
+
+        .counter-digits {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.62rem;
+            font-weight: 900;
+            color: #00e5ff;
+            text-shadow: 0 0 5px rgba(0, 229, 255, 0.7);
+            letter-spacing: 2px;
+            padding: 0 2px;
+        }
+
+        .counter-reset-btn {
+            background: #181b22;
+            border: 1px solid #444c5c;
+            color: #ffaa00;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.45rem;
+            font-weight: 800;
+            padding: 1px 4px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+        }
+
+        .counter-reset-btn:active {
+            background: #ffaa00;
+            color: #000;
+        }
 
         /* 3D ACRYLIC GLASS WITH MICRO-SCRATCHES & COUNTER GRADUATIONS */
         .acrylic-glass-pane {
@@ -624,7 +716,7 @@
         .tape-wheel.spinning { animation: spinWheel 2.5s linear infinite; }
         @keyframes spinWheel { 100% { transform: rotate(360deg); } }
 
-        /* 3D SVG TURNTABLE ROTATION & TONEARM CUE ANIMATIONS */
+        /* 3D SVG TURNTABLE ROTATION & DYNAMIC TONEARM TRACKING */
         #svgVinylPlatter {
             transform-origin: 155px 60px;
         }
@@ -639,13 +731,9 @@
 
         #svgTonearmAssembly {
             transform-origin: 268px 58px;
-            transform: rotate(-18deg);
+            transform: rotate(-25deg); /* Default off-record rest cradle */
             transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.3, 1.2);
             filter: drop-shadow(0 6px 5px rgba(0,0,0,0.95));
-        }
-
-        #svgTonearmAssembly.cued {
-            transform: rotate(14deg);
         }
 
         .fm-tuner-panel {
@@ -1063,13 +1151,61 @@
     <!-- MAIN AUDIO ELEMENT -->
     <audio id="hifiAudio" crossorigin="anonymous" preload="auto" playsinline></audio>
 
-    <!-- TOP ROTARY AMP KNOBS PANEL (Fixed to top under header) -->
+    <!-- TOP ROTARY AMP KNOBS PANEL WITH ILLUMINATED ACTIVE LEVEL GAUGES -->
     <div class="compact-amp-panel">
         <div class="amp-knobs-row">
-            <div class="amp-knob-unit"><div id="bassKnob" class="knob-3d"></div><span class="amp-knob-label">BASS</span></div>
-            <div class="amp-knob-unit"><div id="trebleKnob" class="knob-3d"></div><span class="amp-knob-label">TREBLE</span></div>
-            <div class="amp-knob-unit"><div id="balanceKnob" class="knob-3d"></div><span class="amp-knob-label">BALANCE</span></div>
-            <div class="amp-knob-unit"><div id="masterVolumeKnob" class="knob-3d large"></div><span class="amp-knob-label">VOLUME</span></div>
+            <div class="amp-knob-unit">
+                <div class="knob-level-gauge">
+                    <svg viewBox="0 0 42 10" id="gaugeBass">
+                        <line x1="4" y1="5" x2="8" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="12" y1="5" x2="16" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="20" y1="5" x2="24" y2="5" stroke="#00e5ff" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="28" y1="5" x2="32" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="36" y1="5" x2="40" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div id="bassKnob" class="knob-3d"></div>
+                <span class="amp-knob-label">BASS</span>
+            </div>
+            <div class="amp-knob-unit">
+                <div class="knob-level-gauge">
+                    <svg viewBox="0 0 42 10" id="gaugeTreble">
+                        <line x1="4" y1="5" x2="8" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="12" y1="5" x2="16" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="20" y1="5" x2="24" y2="5" stroke="#00e5ff" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="28" y1="5" x2="32" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="36" y1="5" x2="40" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div id="trebleKnob" class="knob-3d"></div>
+                <span class="amp-knob-label">TREBLE</span>
+            </div>
+            <div class="amp-knob-unit">
+                <div class="knob-level-gauge">
+                    <svg viewBox="0 0 42 10" id="gaugeBalance">
+                        <line x1="4" y1="5" x2="8" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="12" y1="5" x2="16" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="20" y1="5" x2="24" y2="5" stroke="#ffaa00" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="28" y1="5" x2="32" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="36" y1="5" x2="40" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div id="balanceKnob" class="knob-3d"></div>
+                <span class="amp-knob-label">BALANCE</span>
+            </div>
+            <div class="amp-knob-unit">
+                <div class="knob-level-gauge">
+                    <svg viewBox="0 0 42 10" id="gaugeVolume">
+                        <line x1="4" y1="5" x2="8" y2="5" stroke="#00e5ff" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="12" y1="5" x2="16" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="20" y1="5" x2="24" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="28" y1="5" x2="32" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="36" y1="5" x2="40" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div id="masterVolumeKnob" class="knob-3d large"></div>
+                <span class="amp-knob-label">VOLUME</span>
+            </div>
         </div>
     </div>
 
@@ -1100,6 +1236,17 @@
             <div class="cassette-deck-well" id="cassetteDeckWell" title="Cassette / Turntable Deck Well">
                 <!-- EJECT ILLUMINATION BACKSTAGE WARM GLOW -->
                 <div class="eject-backlight-lamp"></div>
+
+                <!-- PHYSICAL MECHANICAL EJECT PUSH BUTTON -->
+                <button class="deck-eject-btn" onclick="cycleMediaFormat(event)" title="Mechanical Eject & Format Cycle">
+                    ⏏ EJECT
+                </button>
+
+                <!-- ILLUMINATED DIGITAL TAPE COUNTER WITH RESET BUTTON -->
+                <div class="tape-counter-bay">
+                    <span id="tapeCounterDigits" class="counter-digits">000</span>
+                    <button class="counter-reset-btn" onclick="resetTapeCounter(event)" title="Reset Counter">RESET</button>
+                </div>
 
                 <!-- 3D TILTING CASSETTE/VINYL DOOR TRAY -->
                 <div class="deck-tilt-tray" id="deckTiltTray">
@@ -1223,6 +1370,9 @@
                                 <circle cx="155" cy="60" r="2.8" fill="#e2e8f0" stroke="#0f172a" stroke-width="1"/>
                                 <circle cx="154.2" cy="59.2" r="0.8" fill="#ffffff"/>
                             </g>
+
+                            <!-- Tonearm Rest Cradle Base -->
+                            <rect x="254" y="32" width="6" height="8" rx="1.5" fill="#1a202c" stroke="#334155" stroke-width="0.8"/>
 
                             <!-- 3D Metallic Tonearm Assembly with Realistic Pivot Dome & Counterweight -->
                             <g id="svgTonearmAssembly">
@@ -1550,6 +1700,7 @@
     var nowPlayingSubtitle = document.getElementById('nowPlayingSubtitle');
     var nextTrackTitle = document.getElementById('nextTrackTitle');
     var nextTrackBanner = document.getElementById('nextTrackBanner');
+    var tapeCounterDigits = document.getElementById('tapeCounterDigits');
     var playButton = document.getElementById('playButton');
     var pauseButton = document.getElementById('pauseButton');
     var shuffleButton = document.getElementById('shuffleButton');
@@ -1574,6 +1725,7 @@
     var glassSheenGlow = document.getElementById('glassSheenGlow');
     var cassetteDeckWell = document.getElementById('cassetteDeckWell');
     var badgeBassEnergy = 0;
+    var counterOffset = 0;
 
     var vuNeedleL = document.getElementById('vuNeedleL');
     var vuNeedleR = document.getElementById('vuNeedleR');
@@ -1661,6 +1813,44 @@
             clearTimeout(loadTimeout);
             loadTimeout = null;
         }
+    }
+
+    /* DIGITAL REVOLUTION COUNTER CONTROLLER */
+    function updateTapeCounter(sec) {
+        if (!tapeCounterDigits) return;
+        var revs = Math.floor((sec * 1.8) + counterOffset) % 1000;
+        var s = ("000" + revs).slice(-3);
+        tapeCounterDigits.textContent = s;
+    }
+
+    function resetTapeCounter(e) {
+        if (e) e.stopPropagation();
+        playMechanicalSwitchClick();
+        var curSec = hifiAudio.currentTime || 0;
+        counterOffset = Math.floor(-curSec * 1.8);
+        if (tapeCounterDigits) tapeCounterDigits.textContent = "000";
+    }
+
+    /* ILLUMINATED ACTIVE LEVEL TICK GAUGES FOR TOP KNOBS */
+    function updateKnobLevelGauge(gaugeId, normVal, isBipolar, colorLit) {
+        var svg = document.getElementById(gaugeId);
+        if (!svg) return;
+        var lines = svg.querySelectorAll('line');
+        var count = lines.length;
+        var litIndex = isBipolar ? Math.round(normVal * (count - 1)) : Math.round(normVal * (count - 1));
+
+        lines.forEach(function(line, idx) {
+            if (isBipolar) {
+                var center = Math.floor(count / 2);
+                var isLit = (idx >= Math.min(center, litIndex) && idx <= Math.max(center, litIndex));
+                line.setAttribute('stroke', isLit ? colorLit : '#252c38');
+                line.style.filter = isLit ? 'drop-shadow(0 0 2px ' + colorLit + ')' : 'none';
+            } else {
+                var isLitU = idx <= litIndex;
+                line.setAttribute('stroke', isLitU ? colorLit : '#252c38');
+                line.style.filter = isLitU ? 'drop-shadow(0 0 2px ' + colorLit + ')' : 'none';
+            }
+        });
     }
 
     /* --- INTERACTIVE 3D ACRYLIC GLASS SPECULAR SHEEN TRACKING --- */
@@ -2353,7 +2543,6 @@
         if (!audioCtx) return;
         var now = audioCtx.currentTime;
 
-        // 1. Heavy latch solenoid release
         var oscLatch = audioCtx.createOscillator();
         var gainLatch = audioCtx.createGain();
         oscLatch.type = 'triangle';
@@ -2368,7 +2557,6 @@
         oscLatch.start(now);
         oscLatch.stop(now + 0.08);
 
-        // 2. Door spring release resonance
         var springBuffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * 0.18), audioCtx.sampleRate);
         var springData = springBuffer.getChannelData(0);
         for (var i = 0; i < springData.length; i++) {
@@ -2546,6 +2734,7 @@
             if (bassFilter && audioCtx) {
                 bassFilter.gain.setTargetAtTime(dB, audioCtx.currentTime, 0.02);
             }
+            updateKnobLevelGauge('gaugeBass', (dB + 12) / 24, true, '#00e5ff');
         },
         -12, 12, 0
     );
@@ -2557,6 +2746,7 @@
             if (trebleFilter && audioCtx) {
                 trebleFilter.gain.setTargetAtTime(dB, audioCtx.currentTime, 0.02);
             }
+            updateKnobLevelGauge('gaugeTreble', (dB + 12) / 24, true, '#00e5ff');
         },
         -12, 12, 0
     );
@@ -2568,6 +2758,7 @@
             if (stereoPanner && audioCtx) {
                 stereoPanner.pan.setTargetAtTime(panValue, audioCtx.currentTime, 0.02);
             }
+            updateKnobLevelGauge('gaugeBalance', (panValue + 1.0) / 2.0, true, '#ffaa00');
         },
         -1.0, 1.0, 0.0
     );
@@ -2590,6 +2781,7 @@
         if (typeof updateVolumeKnobAngle === 'function') {
             updateVolumeKnobAngle(val);
         }
+        updateKnobLevelGauge('gaugeVolume', Math.min(1.0, val / 5.0), false, '#00e5ff');
     }
 
     function cycleBoostMode() {
@@ -2601,6 +2793,7 @@
         applyVolumeGain();
     }
 
+    /* CONTINUOUS TONEARM TRACKING ON VINYL & REST CRADLE ON PAUSE */
     function syncDeckVisuals() {
         var isPlaying = !hifiAudio.paused;
 
@@ -2609,13 +2802,31 @@
             tapeRight.classList.toggle('spinning', isPlaying && mediaFormat === 'tape');
         }
 
-        if (svgVinylPlatter && svgTonearmAssembly) {
+        if (svgVinylPlatter) {
             svgVinylPlatter.classList.toggle('spinning', isPlaying && mediaFormat === 'vinyl');
-            svgTonearmAssembly.classList.toggle('cued', isPlaying && mediaFormat === 'vinyl');
+        }
+
+        if (svgTonearmAssembly) {
+            if (mediaFormat === 'vinyl') {
+                if (!isPlaying) {
+                    // Swing all the way back to off-record rest cradle
+                    svgTonearmAssembly.style.transform = 'rotate(-25deg)';
+                } else {
+                    // Smooth tracking across vinyl grooves from outer rim to center spindle
+                    var dur = hifiAudio.duration;
+                    var cur = hifiAudio.currentTime;
+                    var progress = (!isNaN(dur) && dur > 0) ? Math.min(1.0, Math.max(0.0, cur / dur)) : 0;
+                    var dynamicAngle = 10 + (progress * 13); // Sweeps between 10deg (outer rim) and 23deg (lead-out groove)
+                    svgTonearmAssembly.style.transform = 'rotate(' + dynamicAngle.toFixed(1) + 'deg)';
+                }
+            } else {
+                svgTonearmAssembly.style.transform = 'rotate(-25deg)';
+            }
         }
     }
 
-    function cycleMediaFormat() {
+    function cycleMediaFormat(e) {
+        if (e) e.stopPropagation();
         initRealAudioContext();
         playMechanicalEjectSound();
 
@@ -3395,6 +3606,8 @@
         if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
             progressSlider.value = hifiAudio.currentTime;
             currentTimeSpan.textContent = formatTime(hifiAudio.currentTime);
+            updateTapeCounter(hifiAudio.currentTime);
+            syncDeckVisuals(); // Update tonearm groove tracking
 
             if (!preloadTriggeredForCurrentTrack && (hifiAudio.currentTime > 15 || hifiAudio.currentTime > hifiAudio.duration * 0.5)) {
                 preloadTriggeredForCurrentTrack = true;
@@ -3416,6 +3629,8 @@
     progressSlider.addEventListener('input', () => { 
         if (!activeFmKey) {
             hifiAudio.currentTime = progressSlider.value;
+            updateTapeCounter(hifiAudio.currentTime);
+            syncDeckVisuals();
         }
     });
 
@@ -3429,7 +3644,8 @@
 
     var cassetteWellEl = document.querySelector('.cassette-deck-well');
     if (cassetteWellEl) {
-        cassetteWellEl.addEventListener('click', function() {
+        cassetteWellEl.addEventListener('click', function(e) {
+            if (e.target.closest('.deck-eject-btn') || e.target.closest('.counter-reset-btn')) return;
             initRealAudioContext();
             playMechanicalSwitchClick();
         });
@@ -3444,6 +3660,10 @@
         applyVolumeGain();
         updateNetworkStatus();
         updateSavedCountDisplay();
+        updateKnobLevelGauge('gaugeBass', 0.5, true, '#00e5ff');
+        updateKnobLevelGauge('gaugeTreble', 0.5, true, '#00e5ff');
+        updateKnobLevelGauge('gaugeBalance', 0.5, true, '#ffaa00');
+        updateKnobLevelGauge('gaugeVolume', 0.2, false, '#00e5ff');
     }
 
     if (document.readyState === 'loading') {
