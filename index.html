@@ -167,7 +167,7 @@
         .exit-btn svg { width: 12px; height: 12px; fill: currentColor; }
         .exit-btn:active { transform: scale(0.92); }
 
-        /* ROTARY AMP KNOBS WITH DYNAMIC ILLUMINATED LEVEL GAUGES */
+        /* ROTARY AMP KNOBS PANEL */
         .compact-amp-panel {
             width: 100%;
             background: transparent !important;
@@ -731,11 +731,12 @@
 
         #svgTonearmAssembly {
             transform-origin: 268px 58px;
-            transform: rotate(-25deg); /* Default off-record rest cradle */
+            transform: rotate(-25deg);
             transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.3, 1.2);
             filter: drop-shadow(0 6px 5px rgba(0,0,0,0.95));
         }
 
+        /* FM TUNER PANEL WITH MANUAL ROTARY SELECTOR & TUNING SCALE */
         .fm-tuner-panel {
             width: 100%;
             background: linear-gradient(145deg, #14161a 0%, #0a0b0d 100%);
@@ -744,7 +745,7 @@
             padding: 6px 8px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
 
         .fm-tuner-label {
@@ -754,6 +755,89 @@
             letter-spacing: 1.5px;
             font-weight: 800;
             text-align: center;
+        }
+
+        /* MANUAL ROTARY FM TUNER DECK WITH ANALOG TUNING DIAL */
+        .fm-tuning-assembly {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background: #090b0e;
+            border: 1px solid #232933;
+            border-radius: 5px;
+            padding: 4px 8px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
+        }
+
+        .fm-scale-window {
+            flex: 1;
+            height: 38px;
+            background: #000;
+            border: 1px solid #1f2733;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.15);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 2px 4px;
+        }
+
+        .fm-scale-ticks {
+            width: 100%;
+            height: 12px;
+        }
+
+        .fm-tuning-needle {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: #ff3300;
+            box-shadow: 0 0 6px #ff3300, 0 0 2px #fff;
+            transform: translateX(-50%);
+            transition: left 0.1s linear;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .fm-scale-readout {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.58rem;
+            font-weight: 900;
+            color: #00e5ff;
+            text-shadow: 0 0 4px rgba(0, 229, 255, 0.5);
+            letter-spacing: 1px;
+        }
+
+        .fm-stereo-beacon {
+            font-size: 0.5rem;
+            font-weight: 800;
+            color: #331500;
+            border: 1px solid #441800;
+            padding: 0 3px;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .fm-stereo-beacon.tuned {
+            color: #ffaa00;
+            border-color: #ffaa00;
+            background: rgba(255, 170, 0, 0.2);
+            box-shadow: 0 0 6px rgba(255, 170, 0, 0.7);
+        }
+
+        .fm-rotary-wheel-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
         }
 
         .fm-buttons-grid {
@@ -1447,7 +1531,7 @@
             </div>
         </div>
 
-        <!-- COLUMN 2: VFD DISPLAY, TUNER & TRANSPORT -->
+        <!-- COLUMN 2: VFD DISPLAY, MANUAL ROTARY TUNER & TRANSPORT -->
         <div class="rack-col">
             <div class="vfd-display-panel">
                 <div id="vfdOfflineBanner" class="vfd-offline-alert">⚠ NO INTERNET - LOCAL / CACHE ONLY</div>
@@ -1456,7 +1540,43 @@
             </div>
 
             <div class="fm-tuner-panel">
-                <div class="fm-tuner-label">FM STEREO TUNER PRESETS</div>
+                <div class="fm-tuner-label">FM STEREO TUNER & SELECTOR</div>
+                
+                <!-- ANALOG FM FREQUENCY TUNING SCALE & ROTARY SELECTOR SWITCH -->
+                <div class="fm-tuning-assembly">
+                    <div class="fm-scale-window">
+                        <div class="fm-scale-readout">
+                            <span id="fmFreqVal">96.3 MHz</span>
+                            <span id="fmStereoBeacon" class="fm-stereo-beacon tuned">STEREO</span>
+                            <span id="fmStationCallsign">MINNAL</span>
+                        </div>
+                        <div style="position: relative; width: 100%; height: 16px;">
+                            <svg class="fm-scale-ticks" viewBox="0 0 200 12" preserveAspectRatio="none">
+                                <line x1="0" y1="12" x2="200" y2="12" stroke="#333f50" stroke-width="1"/>
+                                <!-- Calibration frequency markers 88 to 108 -->
+                                <line x1="5" y1="4" x2="5" y2="12" stroke="#ffaa00" stroke-width="1.2"/>
+                                <line x1="25" y1="8" x2="25" y2="12" stroke="#556275" stroke-width="0.8"/>
+                                <line x1="45" y1="6" x2="45" y2="12" stroke="#889ab0" stroke-width="1"/>
+                                <line x1="65" y1="8" x2="65" y2="12" stroke="#556275" stroke-width="0.8"/>
+                                <line x1="85" y1="4" x2="85" y2="12" stroke="#ffaa00" stroke-width="1.2"/>
+                                <line x1="105" y1="8" x2="105" y2="12" stroke="#556275" stroke-width="0.8"/>
+                                <line x1="125" y1="6" x2="125" y2="12" stroke="#889ab0" stroke-width="1"/>
+                                <line x1="145" y1="8" x2="145" y2="12" stroke="#556275" stroke-width="0.8"/>
+                                <line x1="165" y1="4" x2="165" y2="12" stroke="#ffaa00" stroke-width="1.2"/>
+                                <line x1="185" y1="8" x2="185" y2="12" stroke="#556275" stroke-width="0.8"/>
+                                <line x1="195" y1="4" x2="195" y2="12" stroke="#ffaa00" stroke-width="1.2"/>
+                            </svg>
+                            <div id="fmTuningNeedle" class="fm-tuning-needle" style="left: 41.5%;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Physical Rotary Tuning Wheel -->
+                    <div class="fm-rotary-wheel-unit">
+                        <div id="fmTuningKnob" class="knob-3d" title="Drag vertically to tune frequency"></div>
+                        <span class="amp-knob-label" style="font-size: 0.48rem;">TUNE</span>
+                    </div>
+                </div>
+
                 <div class="fm-buttons-grid">
                     <button class="fm-preset-btn" onclick="playFmStation('minnal', event)">MINNAL FM</button>
                     <button class="fm-preset-btn" onclick="playFmStation('raaga', event)">THR RAAGA</button>
@@ -1678,13 +1798,13 @@
     playlist.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
 
     var fmStations = {
-        minnal: { title: "Minnal FM (96.3)", query: "minnal fm", backup: "https://stream.zeno.fm/f3v48y5168uvh", useApi: true },
-        raaga: { title: "THR Raaga (99.3)", query: "thr raaga", backup: "https://astro3.astro.com.my/raaga/raaga.m3u8", useApi: true },
-        sooriyan: { title: "Sooriyan FM", query: "sooriyan fm", backup: "https://shaincast.riereta.net/listen/sooriyan_fm/radio.mp3", useApi: true },
-        oli: { title: "Oli 96.8 FM", query: "oli 96.8", backup: "https://mediacorp.coltcdn.com/oli968/live.m3u8", useApi: true },
-        airtamil80s: { title: "80's Tamil Hits - AIR Tamil", query: "80s tamil hits", backup: "https://sp4.v3http.xyz/radio/8040/radio.mp3", useApi: true },
-        ilayaraja: { title: "Ilayaraja FM Hits", query: "ilayaraja radio", backup: "https://sp4.v3http.xyz/radio/8020/radio.mp3", useApi: true },
-        arrahman: { title: "A.R. Rahman Radio", query: "ar rahman radio", backup: "https://sp4.v3http.xyz/radio/8010/radio.mp3", useApi: true }
+        minnal: { title: "Minnal FM (96.3)", freq: 96.3, query: "minnal fm", backup: "https://stream.zeno.fm/f3v48y5168uvh", useApi: true },
+        raaga: { title: "THR Raaga (99.3)", freq: 99.3, query: "thr raaga", backup: "https://astro3.astro.com.my/raaga/raaga.m3u8", useApi: true },
+        sooriyan: { title: "Sooriyan FM", freq: 103.4, query: "sooriyan fm", backup: "https://shaincast.riereta.net/listen/sooriyan_fm/radio.mp3", useApi: true },
+        oli: { title: "Oli 96.8 FM", freq: 96.8, query: "oli 96.8", backup: "https://mediacorp.coltcdn.com/oli968/live.m3u8", useApi: true },
+        airtamil80s: { title: "80's Tamil Hits - AIR Tamil", freq: 91.2, query: "80s tamil hits", backup: "https://sp4.v3http.xyz/radio/8040/radio.mp3", useApi: true },
+        ilayaraja: { title: "Ilayaraja FM Hits", freq: 105.8, query: "ilayaraja radio", backup: "https://sp4.v3http.xyz/radio/8020/radio.mp3", useApi: true },
+        arrahman: { title: "A.R. Rahman Radio", freq: 89.5, query: "ar rahman radio", backup: "https://sp4.v3http.xyz/radio/8010/radio.mp3", useApi: true }
     };
 
     var activeFmKey = null;
@@ -1701,6 +1821,11 @@
     var nextTrackTitle = document.getElementById('nextTrackTitle');
     var nextTrackBanner = document.getElementById('nextTrackBanner');
     var tapeCounterDigits = document.getElementById('tapeCounterDigits');
+    var fmFreqVal = document.getElementById('fmFreqVal');
+    var fmStereoBeacon = document.getElementById('fmStereoBeacon');
+    var fmStationCallsign = document.getElementById('fmStationCallsign');
+    var fmTuningNeedle = document.getElementById('fmTuningNeedle');
+
     var playButton = document.getElementById('playButton');
     var pauseButton = document.getElementById('pauseButton');
     var shuffleButton = document.getElementById('shuffleButton');
@@ -1777,10 +1902,15 @@
     var vinylCrackleGain = null;
     var vinylPhonoFilter = null;
 
+    // FM STATIC NOISE NODE (Synthesized white noise generator when manual tuning)
+    var fmStaticSource = null;
+    var fmStaticGain = null;
+
     // PARAMETER TRACKING
     var currentBassGain = 0;
     var currentTrebleGain = 0;
     var currentPan = 0.0;
+    var currentFmFrequency = 96.3;
 
     // MECHANICAL NEEDLE BALLISTICS SIMULATOR
     var needleL = { pos: -42, vel: 0 };
@@ -1837,7 +1967,7 @@
         if (!svg) return;
         var lines = svg.querySelectorAll('line');
         var count = lines.length;
-        var litIndex = isBipolar ? Math.round(normVal * (count - 1)) : Math.round(normVal * (count - 1));
+        var litIndex = Math.round(normVal * (count - 1));
 
         lines.forEach(function(line, idx) {
             if (isBipolar) {
@@ -1851,6 +1981,75 @@
                 line.style.filter = isLitU ? 'drop-shadow(0 0 2px ' + colorLit + ')' : 'none';
             }
         });
+    }
+
+    /* --- FM RADIO STATIC NOISE SYNTHESIS --- */
+    function setupFmStaticNode(ctx) {
+        if (fmStaticSource) return;
+        var length = ctx.sampleRate * 2;
+        var buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+        var data = buffer.getChannelData(0);
+        for (var i = 0; i < length; i++) {
+            data[i] = (Math.random() * 2 - 1) * 0.15;
+        }
+
+        fmStaticSource = ctx.createBufferSource();
+        fmStaticSource.buffer = buffer;
+        fmStaticSource.loop = true;
+
+        var filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(2200, ctx.currentTime);
+        filter.Q.setValueAtTime(1.2, ctx.currentTime);
+
+        fmStaticGain = ctx.createGain();
+        fmStaticGain.gain.setValueAtTime(0, ctx.currentTime);
+
+        fmStaticSource.connect(filter);
+        filter.connect(fmStaticGain);
+        fmStaticGain.connect(compressor || ctx.destination);
+        fmStaticSource.start(0);
+    }
+
+    /* MANUAL FM ROTARY SELECTOR & ANALOG DIAL CONTROLLER */
+    function updateFmDialFromFrequency(freq) {
+        currentFmFrequency = freq;
+        if (fmFreqVal) fmFreqVal.textContent = freq.toFixed(1) + " MHz";
+
+        // Map 88.0 MHz (0%) to 108.0 MHz (100%)
+        var percent = Math.min(100, Math.max(0, ((freq - 88.0) / 20.0) * 100));
+        if (fmTuningNeedle) fmTuningNeedle.style.left = percent.toFixed(1) + "%";
+
+        // Check station tuning tolerance (±0.25 MHz)
+        var matchedKey = null;
+        for (var k in fmStations) {
+            if (Math.abs(fmStations[k].freq - freq) <= 0.25) {
+                matchedKey = k;
+                break;
+            }
+        }
+
+        if (matchedKey) {
+            if (fmStereoBeacon) fmStereoBeacon.classList.add('tuned');
+            if (fmStationCallsign) fmStationCallsign.textContent = fmStations[matchedKey].query.toUpperCase();
+            if (fmStaticGain && audioCtx) {
+                fmStaticGain.gain.setTargetAtTime(0.002, audioCtx.currentTime, 0.08); // Clean lock
+            }
+            if (activeFmKey !== matchedKey) {
+                playFmStation(matchedKey);
+            }
+        } else {
+            if (fmStereoBeacon) fmStereoBeacon.classList.remove('tuned');
+            if (fmStationCallsign) fmStationCallsign.textContent = "SEARCHING";
+            if (activeFmKey) {
+                hifiAudio.pause();
+                activeFmKey = null;
+                document.querySelectorAll('.fm-preset-btn').forEach(b => b.classList.remove('active-fm'));
+            }
+            if (fmStaticGain && audioCtx) {
+                fmStaticGain.gain.setTargetAtTime(0.06, audioCtx.currentTime, 0.05); // Atmospheric inter-station hiss
+            }
+        }
     }
 
     /* --- INTERACTIVE 3D ACRYLIC GLASS SPECULAR SHEEN TRACKING --- */
@@ -2625,6 +2824,7 @@
                 setupWowFlutterNodes(audioCtx);
                 setupTapeHissNode(audioCtx);
                 setupVinylNodes(audioCtx);
+                setupFmStaticNode(audioCtx);
 
                 if (audioCtx.createStereoPanner) {
                     stereoPanner = audioCtx.createStereoPanner();
@@ -2763,6 +2963,15 @@
         -1.0, 1.0, 0.0
     );
 
+    /* ROTARY TUNER KNOB (88.0 MHz to 108.0 MHz) */
+    setupKnobControl(
+        document.getElementById('fmTuningKnob'),
+        function(freq) {
+            updateFmDialFromFrequency(freq);
+        },
+        88.0, 108.0, 96.3
+    );
+
     function applyVolumeGain() {
         var val = parseFloat(volumeSlider.value);
         if (isNaN(val)) val = 1.0;
@@ -2816,7 +3025,7 @@
                     var dur = hifiAudio.duration;
                     var cur = hifiAudio.currentTime;
                     var progress = (!isNaN(dur) && dur > 0) ? Math.min(1.0, Math.max(0.0, cur / dur)) : 0;
-                    var dynamicAngle = 10 + (progress * 13); // Sweeps between 10deg (outer rim) and 23deg (lead-out groove)
+                    var dynamicAngle = 10 + (progress * 13);
                     svgTonearmAssembly.style.transform = 'rotate(' + dynamicAngle.toFixed(1) + 'deg)';
                 }
             } else {
@@ -2833,7 +3042,6 @@
         var well = document.getElementById('cassetteDeckWell');
         var btn = document.getElementById('mediaFormatBtn');
 
-        // Trigger mechanical 3D Eject tilt and warm chamber backlight
         if (well) well.classList.add('ejecting');
 
         setTimeout(function() {
@@ -2871,7 +3079,6 @@
             updateFormatNoiseState();
             syncDeckVisuals();
 
-            // Close door and disengage ejection
             setTimeout(function() {
                 if (well) well.classList.remove('ejecting');
                 playTapeTransportEngage();
@@ -3059,10 +3266,21 @@
         document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
         if (evt && evt.currentTarget) {
             evt.currentTarget.classList.add('active-fm');
+        } else {
+            var matchedBtn = Array.from(document.querySelectorAll('.fm-preset-btn')).find(b => b.textContent.includes(key.toUpperCase()));
+            if (matchedBtn) matchedBtn.classList.add('active-fm');
         }
 
+        var stationInfo = fmStations[key];
+        currentFmFrequency = stationInfo.freq;
+        if (fmFreqVal) fmFreqVal.textContent = stationInfo.freq.toFixed(1) + " MHz";
+        var percent = Math.min(100, Math.max(0, ((stationInfo.freq - 88.0) / 20.0) * 100));
+        if (fmTuningNeedle) fmTuningNeedle.style.left = percent.toFixed(1) + "%";
+        if (fmStereoBeacon) fmStereoBeacon.classList.add('tuned');
+        if (fmStationCallsign) fmStationCallsign.textContent = stationInfo.query.toUpperCase();
+
         nowPlayingSubtitle.textContent = "TUNING STREAM...";
-        currentTrackTitle.textContent = fmStations[key].title;
+        currentTrackTitle.textContent = stationInfo.title;
         currentTimeSpan.textContent = "0:00";
         durationSpan.textContent = "LIVE";
         progressSlider.value = 0;
@@ -3071,7 +3289,6 @@
             nextTrackTitle.textContent = "FM LIVE BROADCAST (NO QUEUE)";
         }
 
-        var stationInfo = fmStations[key];
         if (stationInfo.useApi) {
             fetch("https://de1.api.radio-browser.info/json/stations/byname/" + encodeURIComponent(stationInfo.query))
                 .then(res => res.json())
@@ -3121,6 +3338,9 @@
         currentStreamUrl = null;
         destroyHls();
         playMechanicalSwitchClick();
+        if (fmStaticGain && audioCtx) fmStaticGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+        if (fmStereoBeacon) fmStereoBeacon.classList.remove('tuned');
+        if (fmStationCallsign) fmStationCallsign.textContent = "OFF";
         document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
         hifiAudio.pause();
         loadTrack(currentTrackIndex, true);
@@ -3607,7 +3827,7 @@
             progressSlider.value = hifiAudio.currentTime;
             currentTimeSpan.textContent = formatTime(hifiAudio.currentTime);
             updateTapeCounter(hifiAudio.currentTime);
-            syncDeckVisuals(); // Update tonearm groove tracking
+            syncDeckVisuals();
 
             if (!preloadTriggeredForCurrentTrack && (hifiAudio.currentTime > 15 || hifiAudio.currentTime > hifiAudio.duration * 0.5)) {
                 preloadTriggeredForCurrentTrack = true;
@@ -3664,6 +3884,7 @@
         updateKnobLevelGauge('gaugeTreble', 0.5, true, '#00e5ff');
         updateKnobLevelGauge('gaugeBalance', 0.5, true, '#ffaa00');
         updateKnobLevelGauge('gaugeVolume', 0.2, false, '#00e5ff');
+        updateFmDialFromFrequency(96.3);
     }
 
     if (document.readyState === 'loading') {
