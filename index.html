@@ -1274,7 +1274,7 @@
             <button id="mediaFormatBtn" class="tape-toggle-btn active-mode" onclick="cycleMediaFormat()" title="Cycle Format: TAPE / VINYL / DIGITAL">📼 TAPE</button>
             <button class="exit-btn" onclick="exitApp()" title="Exit App">
                 <svg viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg>
-                EXIT
+                OFF
             </button>
         </div>
     </div>
@@ -1844,11 +1844,22 @@
         lite: { title: "Lite FM (105.7)", freq: 105.7, query: "lite fm", backup: "https://stream.rcs.revma.com/bn4ex8sbv4uvv/5_18oihpcuu06zk02/playlist.m3u8", useApi: true },
         my: { title: "MY FM (101.8)", freq: 101.8, query: "my fm", backup: "https://astro3.astro.com.my/my/my.m3u8", useApi: true },
         oli: { title: "Oli 96.8 FM Singapore", freq: 96.8, query: "oli 96.8", backup: "https://mediacorp.coltcdn.com/oli968/live.m3u8", useApi: true },
-        sooriyan: { title: "Sooriyan FM India (103.4)", freq: 103.4, query: "sooriyan fm", backup: "https://shaincast.riereta.net/listen/sooriyan_fm/radio.mp3", useApi: true },
+        sooriyan: { title: "Sooriyan FM sri Lanka (103.4)", freq: 103.4, query: "sooriyan fm", backup: "https://shaincast.riereta.net/listen/sooriyan_fm/radio.mp3", useApi: true },
         ilayaraja: { title: "Ilayaraja FM Hits (106.5)", freq: 106.5, query: "ilayaraja radio", backup: "https://sp4.v3http.xyz/radio/8020/radio.mp3", useApi: true },
         airtamil80s: { title: "80's Tamil Hits - AIR Tamil (91.2)", freq: 91.2, query: "80s tamil hits", backup: "https://sp4.v3http.xyz/radio/8040/radio.mp3", useApi: true },
-        arrahman: { title: "A.R. Rahman Radio (89.5)", freq: 89.5, query: "ar rahman radio", backup: "https://sp4.v3http.xyz/radio/8010/radio.mp3", useApi: true }
-    };
+        arrahman: { title: "A.R. Rahman Radio (89.5)", freq: 89.5, query: "ar rahman radio", backup: "https://sp4.v3http.xyz/radio/8010/radio.mp3", useApi: true },
+        fm988:      { title: "988 FM Chinese (98.8)", freq: 98.8, query: "988 fm", backup: "https://stream.rcs.revma.com/0u982n1v0wzuv", useApi: true },
+        bigfm:      { title: "92.7 Big FM India", freq: 92.7, region: "IN", query: "92.7 big fm", backup: "https://stream.zeno.fm/f0r1uqk19vhvv", useApi: true },
+        bigfm_in: {  title: "92.7 BIG FM India",   freq: 92.7,   query: "big fm india",   backup: "http://sc-bb.1.fm:8017/",   useApi: true },
+        bbcr2:      { title: "BBC Radio 2 UK (89.1)", freq: 89.1, query: "bbc radio 2", backup: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_two", useApi: true },
+        kexp:       { title: "KEXP 90.3 FM Seattle", freq: 90.3, query: "kexp 90.3", backup: "https://kexp.streamguys1.com/kexp128.mp3", useApi: true },
+        wnyc:       { title: "WNYC 93.9 FM New York", freq: 93.9, query: "wnyc fm", backup: "https://fm939.wnyc.org/wnycfm", useApi: true },
+        suria: { title: "Suria FM (105.3)", freq: 105.3, query: "suria fm", backup: "https://stream.zeno.fm/0r0xa792kwzuv", useApi: true },
+        radiocity_in: {title: "Radio City India (91.1)",   freq: 91.1,   query: "radio city india",   backup: "https://prclive1.listenon.in/Hindi",   useApi: true },
+        vividh_bharati: {title: "AIR Vividh Bharati",   freq: 102.8,   query: "vividh bharati live",   backup: "https://air.pc.cdn.bitgravity.com/air/live/pcradio_321/playlist.m3u8",   useApi: true },
+        air_fm_gold: {  title: "AIR FM Gold (100.1 / 106.4)",   freq: 100.1,   query: "air fm gold live",  backup: "https://air.pc.cdn.bitgravity.com/air/live/pcradio_323/playlist.m3u8",   useApi: true }
+        
+     };
 
     var defaultPresetSlots = {
         1: { name: "MINNAL", key: "minnal", freq: 96.3 },
