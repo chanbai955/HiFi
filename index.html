@@ -77,7 +77,7 @@
                 width: 96%;
                 min-height: auto;
                 max-width: 940px;
-                margin: 16px auto;
+                margin: 45px auto 30px auto;
                 padding: 16px 20px;
                 border-radius: 14px;
                 box-shadow: 0 0 45px rgba(0,0,0,0.95), inset 0 1px 2px rgba(255,255,255,0.15);
@@ -232,6 +232,12 @@
             user-select: none;
             touch-action: none;
             transform: rotate(0deg);
+            transition: transform 0.08s ease, box-shadow 0.08s ease;
+        }
+
+        .knob-3d.depressed {
+            transform: scale(0.88) translateY(2px) !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.95), inset 0 2px 5px rgba(0,0,0,0.9) !important;
         }
 
         .knob-3d.large { width: 44px; height: 44px; transform: rotate(-81deg); }
@@ -484,7 +490,7 @@
             box-shadow: 0 1px 0 #0b0d12, 0 2px 4px rgba(0,0,0,0.8);
         }
 
-        /* DIGITAL ILLUMINATED TAPE REVOLUTION COUNTER */
+        /* DIGITAL RUN-TIME COUNTER (MIN:SEC) */
         .tape-counter-bay {
             position: absolute;
             right: 18px;
@@ -506,8 +512,31 @@
             font-weight: 900;
             color: #00e5ff;
             text-shadow: 0 0 5px rgba(0, 229, 255, 0.7);
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             padding: 0 2px;
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.15s ease, text-shadow 0.15s ease;
+        }
+
+        .counter-digits.remaining-mode {
+            color: #ffaa00 !important;
+            text-shadow: 0 0 6px rgba(255, 170, 0, 0.75) !important;
+        }
+
+        .counter-digits.warning-flash {
+            animation: counterWarningPulse 0.5s ease-in-out infinite alternate !important;
+        }
+
+        @keyframes counterWarningPulse {
+            0% {
+                opacity: 1;
+                filter: brightness(1.3);
+            }
+            100% {
+                opacity: 0.25;
+                filter: brightness(0.7);
+            }
         }
 
         .counter-reset-btn {
@@ -528,7 +557,7 @@
             color: #000;
         }
 
-        /* 3D ACRYLIC GLASS WITH MICRO-SCRATCHES & COUNTER GRADUATIONS */
+        /* 3D ACRYLIC GLASS WITH MICRO-SCRATCHES & GRADUATION TICKS */
         .acrylic-glass-pane {
             position: absolute;
             top: 12px;
@@ -714,7 +743,12 @@
         .spoke-bar-v { width: 4px; height: 24px; }
 
         .tape-wheel.spinning { animation: spinWheel 2.5s linear infinite; }
+        .tape-wheel.fast-winding { animation: fastWind 0.35s linear infinite !important; }
+        .tape-wheel.fast-rewinding { animation: fastRewind 0.35s linear infinite !important; }
+
         @keyframes spinWheel { 100% { transform: rotate(360deg); } }
+        @keyframes fastWind { 100% { transform: rotate(360deg); } }
+        @keyframes fastRewind { 100% { transform: rotate(-360deg); } }
 
         /* 3D SVG TURNTABLE ROTATION & DYNAMIC TONEARM TRACKING */
         #svgVinylPlatter {
@@ -746,6 +780,7 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
+            transition: opacity 0.25s ease;
         }
 
         .fm-tuner-header {
@@ -816,6 +851,10 @@
             flex-direction: column;
             justify-content: space-between;
             padding: 2px 4px;
+            transition: opacity 0.3s ease, background 0.3s ease;
+            cursor: ew-resize;
+            user-select: none;
+            touch-action: none;
         }
 
         .fm-scale-ticks {
@@ -832,7 +871,7 @@
             background: #ff3300;
             box-shadow: 0 0 6px #ff3300, 0 0 2px #fff;
             transform: translateX(-50%);
-            transition: left 0.1s linear;
+            transition: left 0.1s linear, background 0.3s ease;
             pointer-events: none;
             z-index: 2;
         }
@@ -847,6 +886,7 @@
             color: #00e5ff;
             text-shadow: 0 0 4px rgba(0, 229, 255, 0.5);
             letter-spacing: 0.8px;
+            transition: color 0.3s ease;
         }
 
         .fm-stereo-beacon {
@@ -873,7 +913,7 @@
             gap: 1px;
         }
 
-        /* 5-COLUMN SQUEEZED PRESET GRID */
+        /* SQUEEZED PRESET GRID (9 Stored Stations + OFF Button) */
         .fm-buttons-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -912,6 +952,27 @@
 
         .fm-preset-btn.active-fm { color: #111; background: linear-gradient(145deg, #ffaa00, #ff7700); border-color: #ffaa00; }
         .fm-preset-btn.off-btn { color: #ff5555; border-color: #ff3333; }
+
+        /* VISUAL POWERED-OFF STATE (DIMMED SCALE & UNLIT NEEDLE) */
+        .fm-tuner-panel.powered-off .fm-scale-window {
+            background: #050608;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.95);
+            opacity: 0.4;
+        }
+
+        .fm-tuner-panel.powered-off .fm-tuning-needle {
+            background: #3a1515;
+            box-shadow: none;
+        }
+
+        .fm-tuner-panel.powered-off .fm-scale-readout {
+            color: #4b5563;
+            text-shadow: none;
+        }
+
+        #fmTuningKnob.knob-off {
+            filter: brightness(0.68) contrast(0.9);
+        }
 
         .controls-wrapper {
             width: 100%;
@@ -1006,7 +1067,7 @@
             bottom: 100%;
             margin-bottom: 12px;
             border-radius: 8px;
-            max-height: 50vh;
+            max-height: 65vh;
             overflow-y: auto;
             border: 2px solid #ffaa00;
         }
@@ -1373,17 +1434,16 @@
                     ⏏ EJECT
                 </button>
 
-                <!-- ILLUMINATED DIGITAL TAPE COUNTER WITH RESET BUTTON -->
+                <!-- DIGITAL ILLUMINATED TAPE RUN-TIME COUNTER (MIN:SEC) WITH RESET BUTTON -->
                 <div class="tape-counter-bay">
-                    <span id="tapeCounterDigits" class="counter-digits">000</span>
-                    <button class="counter-reset-btn" onclick="resetTapeCounter(event)" title="Reset Counter">RESET</button>
+                    <span id="tapeCounterDigits" class="counter-digits" onclick="toggleCounterMode(event)" title="Click to Toggle: Elapsed / Remaining">00:00</span>
+                    <button class="counter-reset-btn" onclick="resetTapeCounter(event)" title="Reset to Start of Track">RESET</button>
                 </div>
 
                 <!-- 3D TILTING CASSETTE/VINYL DOOR TRAY -->
                 <div class="deck-tilt-tray" id="deckTiltTray">
                     <svg class="cdeck-svg" viewBox="0 0 400 120" preserveAspectRatio="none">
                         <defs>
-                            <!-- 3D SHADOW FILTERS & GRADIENTS -->
                             <radialGradient id="deckChamberGrad" cx="50%" cy="25%" r="70%">
                                 <stop offset="0%" stop-color="#1e232d"/>
                                 <stop offset="60%" stop-color="#0f1116"/>
@@ -1401,6 +1461,13 @@
                                 <stop offset="0%" stop-color="#1e2430"/>
                                 <stop offset="100%" stop-color="#0a0c10"/>
                             </linearGradient>
+
+                            <radialGradient id="ferricTapeGrad" cx="45%" cy="45%" r="55%">
+                                <stop offset="0%" stop-color="#4a2512"/>
+                                <stop offset="65%" stop-color="#2a140a"/>
+                                <stop offset="90%" stop-color="#190b05"/>
+                                <stop offset="100%" stop-color="#0d0502"/>
+                            </radialGradient>
 
                             <radialGradient id="vinylShine3D" cx="50%" cy="50%" r="50%">
                                 <stop offset="0%" stop-color="#08090c"/>
@@ -1427,17 +1494,19 @@
                                 <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000000" flood-opacity="0.9"/>
                             </filter>
 
+                            <filter id="tapePackShadow" x="-15%" y="-15%" width="130%" height="130%">
+                                <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000000" flood-opacity="0.8"/>
+                            </filter>
+
                             <filter id="recessShadow" x="-5%" y="-5%" width="110%" height="115%">
                                 <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000000" flood-opacity="0.95"/>
                             </filter>
                         </defs>
 
-                        <!-- Beveled Outer Recessed Well -->
                         <rect width="400" height="120" fill="#181b22"/>
                         <rect x="5" y="5" width="390" height="110" rx="6" fill="url(#deckChamberGrad)" stroke="#3a4250" stroke-width="1.8"/>
                         <rect x="15" y="12" width="280" height="96" rx="5" fill="#08090d" stroke="#252b36" stroke-width="2"/>
                         
-                        <!-- Side Recessed Plate (3D Chamfered Badge Housing) -->
                         <g filter="url(#recessShadow)">
                             <rect x="305" y="12" width="80" height="96" rx="4" fill="#14171f" stroke="#373f4e" stroke-width="1.5"/>
                             <rect x="309" y="16" width="72" height="88" rx="3" fill="#080a0e" stroke="#1b2029" stroke-width="1"/>
@@ -1454,6 +1523,14 @@
                             
                             <rect x="68" y="37" width="174" height="28" rx="2" fill="#2d1c13" opacity="0.95"/>
                             
+                            <!-- DYNAMIC MAGNETIC TAPE PACKS LAYER -->
+                            <g id="magneticTapeLayer" filter="url(#tapePackShadow)">
+                                <circle id="tapePackLeft" cx="94" cy="52" r="26" fill="url(#ferricTapeGrad)" stroke="#1a0b05" stroke-width="0.8"/>
+                                <circle id="tapePackLinesL" cx="94" cy="52" r="23" fill="none" stroke="rgba(255, 170, 0, 0.08)" stroke-width="0.6" stroke-dasharray="2,2"/>
+                                <circle id="tapePackRight" cx="206" cy="52" r="14" fill="url(#ferricTapeGrad)" stroke="#1a0b05" stroke-width="0.8"/>
+                                <circle id="tapePackLinesR" cx="206" cy="52" r="11" fill="none" stroke="rgba(255, 170, 0, 0.08)" stroke-width="0.6" stroke-dasharray="2,2"/>
+                            </g>
+
                             <circle cx="28" cy="24" r="2.5" fill="#94a3b8" stroke="#334155" stroke-width="0.8"/>
                             <line x1="26.5" y1="24" x2="29.5" y2="24" stroke="#1e293b" stroke-width="0.6"/>
                             <circle cx="282" cy="24" r="2.5" fill="#94a3b8" stroke="#334155" stroke-width="0.8"/>
@@ -1464,55 +1541,41 @@
                             <text x="32" y="55" fill="#ffaa00" font-family="'Orbitron', sans-serif" font-size="11" font-weight="900">A</text>
                         </g>
 
-                        <!-- 3D VINYL TURNTABLE VECTOR GROUP (COMPACT SLEEK PROPORTIONS) -->
+                        <!-- 3D VINYL TURNTABLE VECTOR GROUP -->
                         <g id="svgVinylGroup" style="display: none;">
                             <rect x="18" y="15" width="274" height="90" rx="4" fill="#07080b" stroke="#1b2029" stroke-width="1.5"/>
-                            <!-- Compact Turntable Platter Outer Rim -->
                             <circle cx="155" cy="60" r="41" fill="url(#platterRimGrad)" stroke="#556275" stroke-width="1.4" filter="url(#recessShadow)"/>
 
-                            <!-- 3D Rotating Vinyl Record (Compact radius of 38px fits phones perfectly) -->
                             <g id="svgVinylPlatter">
                                 <circle cx="155" cy="60" r="38" fill="url(#vinylShine3D)" stroke="#1a2029" stroke-width="1"/>
-                                
-                                <!-- Realistic Concentric Grooves -->
                                 <circle cx="155" cy="60" r="35" fill="none" stroke="#252b36" stroke-width="1" stroke-dasharray="6,2"/>
                                 <circle cx="155" cy="60" r="31" fill="none" stroke="#181c24" stroke-width="0.7"/>
                                 <circle cx="155" cy="60" r="27" fill="none" stroke="#29303d" stroke-width="0.9" stroke-dasharray="10,2"/>
                                 <circle cx="155" cy="60" r="23" fill="none" stroke="#1a1e26" stroke-width="0.7"/>
                                 <circle cx="155" cy="60" r="19" fill="none" stroke="#28313e" stroke-width="0.9" stroke-dasharray="3,1.5"/>
-                                
-                                <!-- Strobe Rim Dots -->
                                 <circle cx="155" cy="60" r="36.5" fill="none" stroke="#00e5ff" stroke-width="0.7" stroke-dasharray="1.2,2.2" opacity="0.6"/>
-                                
-                                <!-- Center Disc Label & Spindle -->
                                 <circle cx="155" cy="60" r="13" fill="radial-gradient(circle, #ffaa00 0%, #b35900 85%)" stroke="#ffe082" stroke-width="1"/>
                                 <circle cx="155" cy="60" r="11" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.6"/>
                                 <text x="155" y="62" fill="#111" font-family="'Orbitron', sans-serif" font-size="4.2" font-weight="900" text-anchor="middle">33⅓</text>
-                                
                                 <circle cx="155" cy="60" r="2.2" fill="#e2e8f0" stroke="#0f172a" stroke-width="0.8"/>
                                 <circle cx="154.3" cy="59.3" r="0.6" fill="#ffffff"/>
                             </g>
 
-                            <!-- Tonearm Rest Cradle Base -->
                             <rect x="228" y="35" width="5" height="7" rx="1.2" fill="#1a202c" stroke="#334155" stroke-width="0.7"/>
 
-                            <!-- 3D Metallic Tonearm Assembly Adjusted for Compact Platter -->
                             <g id="svgTonearmAssembly">
                                 <circle cx="240" cy="58" r="8" fill="#1e2430" stroke="#0d1117" stroke-width="1.3"/>
                                 <circle cx="240" cy="58" r="6.5" fill="url(#metallicArm3D)" stroke="#334155" stroke-width="0.9"/>
-                                
                                 <line x1="240" y1="58" x2="178" y2="58" stroke="url(#metallicArm3D)" stroke-width="2.3" stroke-linecap="round"/>
                                 <line x1="240" y1="57.4" x2="178" y2="57.4" stroke="rgba(255,255,255,0.7)" stroke-width="0.7"/>
-                                
                                 <rect x="243" y="55.5" width="7" height="5" rx="1.2" fill="#334155" stroke="#64748b" stroke-width="0.7"/>
-                                
                                 <polygon points="178,54 167,55 166,61 177,62" fill="#ffaa00" stroke="#ffffff" stroke-width="0.8"/>
                                 <circle cx="172" cy="58" r="1.3" fill="#111"/>
                                 <rect x="165" y="56.5" width="2.5" height="3" rx="0.6" fill="#e2e8f0"/>
                             </g>
                         </g>
 
-                        <!-- Kayu Ara Hitz Audio-Reactive Neon Badge -->
+                        <!-- Neon Badge -->
                         <g id="neonBadgeGroup" class="neon-badge-group" text-anchor="middle">
                             <text class="neon-note" x="345" y="34" fill="#ffaa00" font-size="13" font-family="'Orbitron', sans-serif">♪ ♫ ♪</text>
                             <text x="345" y="51" fill="#00e5ff" font-family="'Orbitron', sans-serif" font-size="8.5" font-weight="900" letter-spacing="1">KAYU</text>
@@ -1528,7 +1591,7 @@
                         <div class="spool-right-wrapper"><div id="tapeRight" class="tape-wheel"><div class="spoke-cross"><div class="spoke-bar-h"></div><div class="spoke-bar-v"></div></div></div></div>
                     </div>
 
-                    <!-- 3D ACRYLIC GLASS WINDOW WITH MICRO-SCRATCHES & GRADUATION TICKS -->
+                    <!-- 3D ACRYLIC GLASS WINDOW -->
                     <div class="acrylic-glass-pane">
                         <svg viewBox="0 0 280 96" preserveAspectRatio="none" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; opacity: 0.75;">
                             <line x1="140" y1="18" x2="140" y2="24" stroke="rgba(255,255,255,0.4)" stroke-width="0.8"/>
@@ -1554,7 +1617,7 @@
                 </div>
             </div>
 
-            <!-- NEXT SONG TO PLAY BANNER (DIRECTLY BELOW CASSETTE WELL) -->
+            <!-- NEXT SONG TO PLAY BANNER -->
             <div id="nextTrackBanner" class="next-track-banner" onclick="playNext()" title="Click to play next song now">
                 <span class="next-queue-tag">NEXT QUEUE ▶</span>
                 <span id="nextTrackTitle" class="next-queue-title">Loading queue...</span>
@@ -1569,7 +1632,7 @@
                 <p id="currentTrackTitle">Kayu Ara - Mix hitz</p>
             </div>
 
-            <div class="fm-tuner-panel">
+            <div class="fm-tuner-panel" id="fmTunerPanel">
                 <div class="fm-tuner-header">
                     <span class="fm-tuner-label">FM TUNER PRESETS</span>
                     <button id="fmSaveToggleBtn" class="fm-save-toggle-btn" onclick="toggleFmSaveMode(event)" title="Click to toggle preset save mode">
@@ -1577,9 +1640,9 @@
                     </button>
                 </div>
                 
-                <!-- ANALOG FM FREQUENCY TUNING SCALE & ROTARY SELECTOR SWITCH -->
+                <!-- ANALOG FM FREQUENCY TUNING SCALE -->
                 <div class="fm-tuning-assembly">
-                    <div class="fm-scale-window">
+                    <div class="fm-scale-window" id="fmScaleWindow">
                         <div class="fm-scale-readout">
                             <span id="fmFreqVal">96.3 MHz</span>
                             <span id="fmStereoBeacon" class="fm-stereo-beacon tuned">STEREO</span>
@@ -1588,7 +1651,6 @@
                         <div style="position: relative; width: 100%; height: 16px;">
                             <svg class="fm-scale-ticks" viewBox="0 0 200 12" preserveAspectRatio="none">
                                 <line x1="0" y1="12" x2="200" y2="12" stroke="#333f50" stroke-width="1"/>
-                                <!-- Calibration frequency markers 88 to 108 -->
                                 <line x1="5" y1="4" x2="5" y2="12" stroke="#ffaa00" stroke-width="1.2"/>
                                 <line x1="25" y1="8" x2="25" y2="12" stroke="#556275" stroke-width="0.8"/>
                                 <line x1="45" y1="6" x2="45" y2="12" stroke="#889ab0" stroke-width="1"/>
@@ -1607,8 +1669,8 @@
                     
                     <!-- Physical Rotary Tuning Wheel -->
                     <div class="fm-rotary-wheel-unit">
-                        <div id="fmTuningKnob" class="knob-3d" title="Drag vertically to tune frequency"></div>
-                        <span class="amp-knob-label" style="font-size: 0.48rem;">TUNE</span>
+                        <div id="fmTuningKnob" class="knob-3d" title="Click to Power ON/OFF • Drag to Tune"></div>
+                        <span id="tunerKnobStatusLabel" class="amp-knob-label" style="font-size: 0.46rem; color: #ffaa00;">PWR / TUNE</span>
                     </div>
                 </div>
 
@@ -1616,14 +1678,14 @@
                 <div class="fm-buttons-grid">
                     <button class="fm-preset-btn" data-preset="1" onclick="handlePresetClick(1, event)">MINNAL</button>
                     <button class="fm-preset-btn" data-preset="2" onclick="handlePresetClick(2, event)">RAAGA</button>
-                    <button class="fm-preset-btn" data-preset="3" onclick="handlePresetClick(3, event)">CRONIQX</button>
+                    <button class="fm-preset-btn" data-preset="3" onclick="handlePresetClick(3, event)">BIG FM</button>
                     <button class="fm-preset-btn" data-preset="4" onclick="handlePresetClick(4, event)">SINAR</button>
                     <button class="fm-preset-btn" data-preset="5" onclick="handlePresetClick(5, event)">LITE</button>
                     <button class="fm-preset-btn" data-preset="6" onclick="handlePresetClick(6, event)">MY FM</button>
                     <button class="fm-preset-btn" data-preset="7" onclick="handlePresetClick(7, event)">OLI 96.8</button>
                     <button class="fm-preset-btn" data-preset="8" onclick="handlePresetClick(8, event)">SOORIYAN</button>
                     <button class="fm-preset-btn" data-preset="9" onclick="handlePresetClick(9, event)">ILAYARAJA</button>
-                    <button class="fm-preset-btn off-btn" onclick="turnOffRadio()">HI-FI</button>
+                    <button class="fm-preset-btn off-btn" id="btnTunerOff" onclick="turnOffRadio(event)">HI-FI</button>
                 </div>
             </div>
 
@@ -1835,42 +1897,34 @@
 
     playlist.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
 
-    /* FM STATIONS (Singapore Oli 96.8, Malaysia & Indian Working Stations) */
+    /* FM STATIONS (With 92.7 BIG FM, SYOK India Beat & AIR Trichy) */
     var fmStations = {
         minnal: { title: "Minnal FM (96.3)", freq: 96.3, query: "minnal fm", backup: "https://stream.zeno.fm/f3v48y5168uvh", useApi: true },
         raaga: { title: "THR Raaga (99.3)", freq: 99.3, query: "thr raaga", backup: "https://astro3.astro.com.my/raaga/raaga.m3u8", useApi: true },
-        croniqX : { title: "CroniqX FM (105.3)", freq: 105.3, query: "croniqX FM", backup: "http://stream.zeno.fm/wrv09s4nu7uuv", useApi: true },
+        suria: { title: "92.7 BIG FM India", freq: 92.7, query: "92.7 big fm", backup: "https://stream.zeno.fm/0r0xa792kwzuv", useApi: true },
+        indiabeat: { title: "SYOK India Beat (Astro 864)", freq: 94.5, query: "india beat", backup: "https://audio1.syok.my/dvr_india.m3u8", useApi: true },
+        trichy: { title: "AIR Trichy FM Rainbow (102.1)", freq: 102.1,     query: "tiruchirappalli",     backup: "https://air.pc.cdn.bitgravity.com/air/live/pcrchannel26/playlist.m3u8",     useApi: false },
         sinar: { title: "Sinar FM (96.7)", freq: 96.7, query: "sinar fm", backup: "https://astro3.astro.com.my/sinar/sinar.m3u8", useApi: true },
         lite: { title: "Lite FM (105.7)", freq: 105.7, query: "lite fm", backup: "https://stream.rcs.revma.com/bn4ex8sbv4uvv/5_18oihpcuu06zk02/playlist.m3u8", useApi: true },
         my: { title: "MY FM (101.8)", freq: 101.8, query: "my fm", backup: "https://astro3.astro.com.my/my/my.m3u8", useApi: true },
         oli: { title: "Oli 96.8 FM Singapore", freq: 96.8, query: "oli 96.8", backup: "https://mediacorp.coltcdn.com/oli968/live.m3u8", useApi: true },
-        sooriyan: { title: "Sooriyan FM sri Lanka (103.4)", freq: 103.4, query: "sooriyan fm", backup: "https://shaincast.riereta.net/listen/sooriyan_fm/radio.mp3", useApi: true },
+        sooriyan: { title: "Sooriyan FM Sri Lanka (103.4)", freq: 103.4, query: "sooriyan fm", backup: "https://shaincast.riereta.net/listen/sooriyan_fm/radio.mp3", useApi: true },
         ilayaraja: { title: "Ilayaraja FM Hits (106.5)", freq: 106.5, query: "ilayaraja radio", backup: "https://sp4.v3http.xyz/radio/8020/radio.mp3", useApi: true },
         airtamil80s: { title: "80's Tamil Hits - AIR Tamil (91.2)", freq: 91.2, query: "80s tamil hits", backup: "https://sp4.v3http.xyz/radio/8040/radio.mp3", useApi: true },
         arrahman: { title: "A.R. Rahman Radio (89.5)", freq: 89.5, query: "ar rahman radio", backup: "https://sp4.v3http.xyz/radio/8010/radio.mp3", useApi: true },
-        fm988:      { title: "988 FM Chinese (98.8)", freq: 98.8, query: "988 fm", backup: "https://stream.rcs.revma.com/0u982n1v0wzuv", useApi: true },
-        bigfm:      { title: "92.7 Big FM India", freq: 92.7, region: "IN", query: "92.7 big fm", backup: "https://stream.zeno.fm/f0r1uqk19vhvv", useApi: true },
-        bigfm_in: {  title: "92.7 BIG FM India",   freq: 92.7,   query: "big fm india",   backup: "http://sc-bb.1.fm:8017/",   useApi: true },
-        bbcr2:      { title: "BBC Radio 2 UK (89.1)", freq: 89.1, query: "bbc radio 2", backup: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_two", useApi: true },
-        kexp:       { title: "KEXP 90.3 FM Seattle", freq: 90.3, query: "kexp 90.3", backup: "https://kexp.streamguys1.com/kexp128.mp3", useApi: true },
-        wnyc:       { title: "WNYC 93.9 FM New York", freq: 93.9, query: "wnyc fm", backup: "https://fm939.wnyc.org/wnycfm", useApi: true },
-        suria: { title: "Suria FM (105.3)", freq: 105.3, query: "suria fm", backup: "https://stream.zeno.fm/0r0xa792kwzuv", useApi: true },
-        radiocity_in: {title: "Radio City India (91.1)",   freq: 91.1,   query: "radio city india",   backup: "https://prclive1.listenon.in/Hindi",   useApi: true },
-        vividh_bharati: {title: "AIR Vividh Bharati",   freq: 102.8,   query: "vividh bharati live",   backup: "https://air.pc.cdn.bitgravity.com/air/live/pcradio_321/playlist.m3u8",   useApi: true },
-        air_fm_gold: {  title: "AIR FM Gold (100.1 / 106.4)",   freq: 100.1,   query: "air fm gold live",  backup: "https://air.pc.cdn.bitgravity.com/air/live/pcradio_323/playlist.m3u8",   useApi: true }
-        
-     };
+        wbgo: { title: "WBGO Jazz 88.3 FM (New York)", freq: 88.3, query: "wbgo", backup: "https://ais-sa8.cdnstream1.com/3629_128.mp3", useApi: true }
+    };
 
     var defaultPresetSlots = {
         1: { name: "MINNAL", key: "minnal", freq: 96.3 },
         2: { name: "RAAGA", key: "raaga", freq: 99.3 },
-        3: { name: "CRONIQX", key: "croniqX", freq: 105.3 },
-        4: { name: "SINAR", key: "sinar", freq: 96.7 },
-        5: { name: "LITE", key: "lite", freq: 105.7 },
-        6: { name: "MY FM", key: "my", freq: 101.8 },
-        7: { name: "OLI 96.8", key: "oli", freq: 96.8 },
-        8: { name: "SOORIYAN", key: "sooriyan", freq: 103.4 },
-        9: { name: "ILAYARAJA", key: "ilayaraja", freq: 106.5 }
+        3: { name: "SINAR", key: "sinar", freq: 96.7 },
+        4: { name: "ILAYARAJA", key: "ilayaraja", freq: 106.5 },
+        5: { name: "ARRAHMAN", key: "arrahman", freq: 89.5 },
+        6: { name: "LITE", key: "lite", freq: 105.7 },
+        7: { name: "MY FM", key: "my", freq: 101.8 },
+        8: { name: "OLI 96.8", key: "oli", freq: 96.8 },
+        9: { name: "SOORIYAN", key: "sooriyan", freq: 103.4 }
     };
 
     var userPresetSlots = {};
@@ -1911,6 +1965,11 @@
 
     var tapeLeft = document.getElementById('tapeLeft');
     var tapeRight = document.getElementById('tapeRight');
+    var packLeftEl = document.getElementById('tapePackLeft');
+    var packRightEl = document.getElementById('tapePackRight');
+    var linesLeftEl = document.getElementById('tapePackLinesL');
+    var linesRightEl = document.getElementById('tapePackLinesR');
+
     var svgCassetteGroup = document.getElementById('svgCassetteGroup');
     var svgVinylGroup = document.getElementById('svgVinylGroup');
     var svgVinylPlatter = document.getElementById('svgVinylPlatter');
@@ -1920,7 +1979,6 @@
     var glassSheenGlow = document.getElementById('glassSheenGlow');
     var cassetteDeckWell = document.getElementById('cassetteDeckWell');
     var badgeBassEnergy = 0;
-    var counterOffset = 0;
 
     var vuNeedleL = document.getElementById('vuNeedleL');
     var vuNeedleR = document.getElementById('vuNeedleR');
@@ -1931,6 +1989,8 @@
     var canvasCtx = canvas.getContext('2d');
     var capHeights = [];
     var wakeLock = null;
+
+    var fastWindTimer = null;
 
     // DUAL-BUFFER PRELOAD WORKER (Background audio element)
     var preloaderAudio = document.createElement('audio');
@@ -1972,7 +2032,7 @@
     var vinylCrackleGain = null;
     var vinylPhonoFilter = null;
 
-    // FM STATIC NOISE NODE (Synthesized white noise generator when manual tuning)
+    // FM STATIC NOISE NODE
     var fmStaticSource = null;
     var fmStaticGain = null;
 
@@ -1982,6 +2042,15 @@
     var currentPan = 0.0;
     var currentFmFrequency = 96.3;
     var lastTickFrequency = 96.3;
+    var isTunerPowerOn = false;
+
+    // STATE PERSISTENCE & POSITION RESUME
+    var savedTapePlaybackTime = 0;
+    var savedTapeTrackIndex = 0;
+    var wasPlayingBeforeRadio = false;
+    var counterMode = 'elapsed';
+    var STORAGE_KEY_STATE = 'chanthiran_tape_state';
+    var STORAGE_KEY_COUNTER_MODE = 'chanthiran_counter_mode';
 
     // MECHANICAL NEEDLE BALLISTICS SIMULATOR
     var needleL = { pos: -42, vel: 0 };
@@ -2016,20 +2085,154 @@
         }
     }
 
-    /* DIGITAL REVOLUTION COUNTER CONTROLLER */
+    /* DYNAMIC TAPE PACK RADIUS CALCULATOR (AREA CONSERVATION) */
+    var HUB_RADIUS = 12.0;
+    var MAX_PACK_RADIUS = 27.5;
+
+    function updateMagneticTapePacks(progressFraction) {
+        if (!packLeftEl || !packRightEl || mediaFormat !== 'tape') return;
+
+        var p = Math.max(0.0, Math.min(1.0, progressFraction || 0.0));
+        var hubArea = HUB_RADIUS * HUB_RADIUS;
+        var maxTotalTapeArea = (MAX_PACK_RADIUS * MAX_PACK_RADIUS) - hubArea;
+
+        var leftTapeArea = (1.0 - p) * maxTotalTapeArea;
+        var rLeft = Math.sqrt(hubArea + leftTapeArea);
+
+        var rightTapeArea = p * maxTotalTapeArea;
+        var rRight = Math.sqrt(hubArea + rightTapeArea);
+
+        packLeftEl.setAttribute('r', rLeft.toFixed(2));
+        packRightEl.setAttribute('r', rRight.toFixed(2));
+
+        if (linesLeftEl) {
+            var rLineL = Math.max(HUB_RADIUS + 0.5, rLeft - 3);
+            linesLeftEl.setAttribute('r', rLineL.toFixed(2));
+            linesLeftEl.style.display = (rLeft > HUB_RADIUS + 2.5) ? 'block' : 'none';
+        }
+
+        if (linesRightEl) {
+            var rLineR = Math.max(HUB_RADIUS + 0.5, rRight - 3);
+            linesRightEl.setAttribute('r', rLineR.toFixed(2));
+            linesRightEl.style.display = (rRight > HUB_RADIUS + 2.5) ? 'block' : 'none';
+        }
+    }
+
+    /* FAST-WIND & REWIND CASSETTE SPOOL CONTROLLER */
+    function triggerFastWind(direction, durationMs) {
+        if (mediaFormat !== 'tape') return;
+        
+        var leftWheel = document.getElementById('tapeLeft');
+        var rightWheel = document.getElementById('tapeRight');
+        if (!leftWheel || !rightWheel) return;
+
+        if (fastWindTimer) {
+            clearTimeout(fastWindTimer);
+        }
+
+        leftWheel.classList.remove('fast-winding', 'fast-rewinding');
+        rightWheel.classList.remove('fast-winding', 'fast-rewinding');
+
+        if (direction === 'reverse') {
+            leftWheel.classList.add('fast-rewinding');
+            rightWheel.classList.add('fast-rewinding');
+        } else {
+            leftWheel.classList.add('fast-winding');
+            rightWheel.classList.add('fast-winding');
+        }
+
+        fastWindTimer = setTimeout(function() {
+            leftWheel.classList.remove('fast-winding', 'fast-rewinding');
+            rightWheel.classList.remove('fast-winding', 'fast-rewinding');
+            syncDeckVisuals();
+            fastWindTimer = null;
+        }, durationMs || 650);
+    }
+
+    /* COUNTER DISPLAY PERSISTENCE & FORMATTER */
+    function loadPersistedCounterMode() {
+        try {
+            var savedMode = localStorage.getItem(STORAGE_KEY_COUNTER_MODE);
+            if (savedMode === 'remaining' || savedMode === 'elapsed') {
+                counterMode = savedMode;
+            }
+        } catch (e) {
+            counterMode = 'elapsed';
+        }
+    }
+
+    function saveCounterMode(mode) {
+        try {
+            localStorage.setItem(STORAGE_KEY_COUNTER_MODE, mode);
+        } catch (e) {}
+    }
+
+    function toggleCounterMode(e) {
+        if (e) e.stopPropagation();
+        playMechanicalSwitchClick();
+
+        counterMode = (counterMode === 'elapsed') ? 'remaining' : 'elapsed';
+        saveCounterMode(counterMode);
+
+        if (!activeFmKey && !isNaN(hifiAudio.duration)) {
+            updateTapeCounter(hifiAudio.currentTime);
+        }
+    }
+
     function updateTapeCounter(sec) {
         if (!tapeCounterDigits) return;
-        var revs = Math.floor((sec * 1.8) + counterOffset) % 1000;
-        var s = ("000" + revs).slice(-3);
-        tapeCounterDigits.textContent = s;
+
+        if (activeFmKey) {
+            tapeCounterDigits.textContent = "LIVE";
+            tapeCounterDigits.classList.remove('remaining-mode', 'warning-flash');
+            return;
+        }
+
+        var dur = hifiAudio.duration;
+        var currentSec = Math.max(0, sec || 0);
+        var remainingSec = (!isNaN(dur) && dur > 0) ? Math.max(0, dur - currentSec) : null;
+
+        tapeCounterDigits.classList.toggle('remaining-mode', counterMode === 'remaining');
+
+        var isWarning = (remainingSec !== null && remainingSec <= 10 && remainingSec > 0 && !hifiAudio.paused);
+        tapeCounterDigits.classList.toggle('warning-flash', isWarning);
+
+        if (counterMode === 'remaining' && remainingSec !== null) {
+            var remFloor = Math.floor(remainingSec);
+            var rMins = Math.floor(remFloor / 60);
+            var rSecs = remFloor % 60;
+            var formattedRMins = (rMins < 10 ? "0" : "") + rMins;
+            var formattedRSecs = (rSecs < 10 ? "0" : "") + rSecs;
+
+            tapeCounterDigits.textContent = "-" + formattedRMins + ":" + formattedRSecs;
+        } else {
+            var totalSec = Math.floor(currentSec);
+            var mins = Math.floor(totalSec / 60);
+            var secs = totalSec % 60;
+            var formattedMins = (mins < 10 ? "0" : "") + mins;
+            var formattedSecs = (secs < 10 ? "0" : "") + secs;
+
+            tapeCounterDigits.textContent = formattedMins + ":" + formattedSecs;
+        }
     }
 
     function resetTapeCounter(e) {
         if (e) e.stopPropagation();
         playMechanicalSwitchClick();
-        var curSec = hifiAudio.currentTime || 0;
-        counterOffset = Math.floor(-curSec * 1.8);
-        if (tapeCounterDigits) tapeCounterDigits.textContent = "000";
+
+        if (activeFmKey) {
+            restartTrack();
+            return;
+        }
+
+        triggerFastWind('reverse', 450);
+
+        hifiAudio.currentTime = 0;
+        progressSlider.value = 0;
+        currentTimeSpan.textContent = "0:00";
+        updateTapeCounter(0);
+        syncDeckVisuals();
+        persistTapeState(currentTrackIndex, 0, !hifiAudio.paused);
     }
 
     /* ILLUMINATED ACTIVE LEVEL TICK GAUGES FOR TOP KNOBS */
@@ -2054,7 +2257,47 @@
         });
     }
 
-    /* --- FM RADIO STATIC NOISE SYNTHESIS --- */
+    /* PERSISTENCE HELPER FUNCTIONS */
+    function persistTapeState(index, time, isPlaying) {
+        try {
+            localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify({
+                index: index,
+                time: Math.max(0, time || 0),
+                wasPlaying: !!isPlaying,
+                updatedAt: Date.now()
+            }));
+        } catch (e) {}
+    }
+
+    function getPersistedTapeState() {
+        try {
+            var raw = localStorage.getItem(STORAGE_KEY_STATE);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function performTapeAudioFadeIn() {
+        if (!gainNode || !audioCtx) return;
+        var targetVol = parseFloat(volumeSlider.value) || 1.0;
+        var now = audioCtx.currentTime;
+
+        gainNode.gain.cancelScheduledValues(now);
+        gainNode.gain.setValueAtTime(0.001, now);
+        gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, targetVol), now + 0.30);
+    }
+
+    function captureTapePosition() {
+        if (!activeFmKey && !isNaN(hifiAudio.currentTime) && hifiAudio.duration > 0) {
+            savedTapePlaybackTime = hifiAudio.currentTime;
+            savedTapeTrackIndex = currentTrackIndex;
+            wasPlayingBeforeRadio = !hifiAudio.paused;
+            persistTapeState(savedTapeTrackIndex, savedTapePlaybackTime, wasPlayingBeforeRadio);
+        }
+    }
+
+    /* FM STATIC NOISE SYNTHESIS */
     function setupFmStaticNode(ctx) {
         if (fmStaticSource) return;
         var length = ctx.sampleRate * 2;
@@ -2082,7 +2325,6 @@
         fmStaticSource.start(0);
     }
 
-    /* REALISTIC MECHANICAL ROTARY DIAL TICK AUDIO & HAPTIC DETENT */
     function playDialTickAudio() {
         if (!audioCtx) return;
         var now = audioCtx.currentTime;
@@ -2107,7 +2349,28 @@
         }
     }
 
-    /* FM PRESET SLOTS PERSISTENCE & ASSIGNMENT */
+    /* MAGNETIC PRESET SNAPPING ALGORITHM */
+    var SNAP_THRESHOLD_MHZ = 0.35;
+
+    function getMagneticallySnappedFrequency(rawFreq) {
+        var bestMatchFreq = rawFreq;
+        var closestDistance = Infinity;
+
+        for (var key in fmStations) {
+            if (!fmStations.hasOwnProperty(key)) continue;
+            var stFreq = fmStations[key].freq;
+            var diff = Math.abs(stFreq - rawFreq);
+
+            if (diff <= SNAP_THRESHOLD_MHZ && diff < closestDistance) {
+                closestDistance = diff;
+                bestMatchFreq = stFreq;
+            }
+        }
+
+        return bestMatchFreq;
+    }
+
+    /* FM PRESETS PERSISTENCE */
     function loadSavedPresetSlots() {
         try {
             var raw = localStorage.getItem('chanthiran_fm_presets');
@@ -2237,7 +2500,150 @@
         }
     }
 
-    /* --- INTERACTIVE 3D ACRYLIC GLASS SPECULAR SHEEN TRACKING --- */
+    /* DIRECT TUNER METER CLICK & SLIDE CONTROLLER */
+    (function setupTunerMeterDrag() {
+        var scaleWindow = document.getElementById('fmScaleWindow');
+        if (!scaleWindow) return;
+
+        var isSliding = false;
+        var minFreq = 88.0;
+        var maxFreq = 108.0;
+
+        function tuneFromPointerPosition(clientX) {
+            var rect = scaleWindow.getBoundingClientRect();
+            if (rect.width <= 0) return;
+
+            var offsetX = clientX - rect.left;
+            var fraction = Math.max(0, Math.min(1, offsetX / rect.width));
+
+            var rawTargetFreq = minFreq + (fraction * (maxFreq - minFreq));
+            rawTargetFreq = Math.round(rawTargetFreq * 10) / 10;
+
+            var finalFreq = getMagneticallySnappedFrequency(rawTargetFreq);
+
+            if (!isTunerPowerOn) {
+                turnOnRadio();
+            }
+
+            updateFmDialFromFrequency(finalFreq);
+
+            var knobEl = document.getElementById('fmTuningKnob');
+            if (knobEl) {
+                var snappedFraction = (finalFreq - minFreq) / (maxFreq - minFreq);
+                var knobAngle = Math.max(0, Math.min(720, snappedFraction * 720));
+                knobEl.style.transform = 'rotate(' + knobAngle + 'deg)';
+            }
+        }
+
+        scaleWindow.addEventListener('pointerdown', function(e) {
+            initRealAudioContext();
+            isSliding = true;
+            scaleWindow.setPointerCapture(e.pointerId);
+            tuneFromPointerPosition(e.clientX);
+            e.preventDefault();
+        });
+
+        scaleWindow.addEventListener('pointermove', function(e) {
+            if (!isSliding) return;
+            tuneFromPointerPosition(e.clientX);
+        });
+
+        scaleWindow.addEventListener('pointerup', function(e) {
+            if (!isSliding) return;
+            isSliding = false;
+            try {
+                scaleWindow.releasePointerCapture(e.pointerId);
+            } catch (err) {}
+        });
+
+        scaleWindow.addEventListener('pointercancel', function(e) {
+            isSliding = false;
+        });
+    })();
+
+    /* TUNER POWER ON / OFF CONTROLLERS */
+    function turnOffRadio(e) {
+        if (e) e.stopPropagation();
+        
+        var wasListeningToFm = (activeFmKey !== null);
+        isTunerPowerOn = false;
+        activeFmKey = null;
+        currentStreamUrl = null;
+        destroyHls();
+        playMechanicalSwitchClick();
+
+        if (fmStaticGain && audioCtx) {
+            fmStaticGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.04);
+        }
+
+        if (fmStereoBeacon) fmStereoBeacon.classList.remove('tuned');
+        if (fmStationCallsign) fmStationCallsign.textContent = "OFF";
+        if (fmFreqVal) fmFreqVal.textContent = "--.- MHz";
+
+        var panel = document.getElementById('fmTunerPanel');
+        if (panel) panel.classList.add('powered-off');
+        var knob = document.getElementById('fmTuningKnob');
+        if (knob) knob.classList.add('knob-off');
+        var statusLabel = document.getElementById('tunerKnobStatusLabel');
+        if (statusLabel) {
+            statusLabel.textContent = "OFF (CLICK)";
+            statusLabel.style.color = "#ff4d4d";
+        }
+
+        document.querySelectorAll('.fm-preset-btn').forEach(b => b.classList.remove('active-fm'));
+        var offBtn = document.getElementById('btnTunerOff');
+        if (offBtn) offBtn.classList.add('active-fm');
+
+        if (wasListeningToFm) {
+            var persisted = getPersistedTapeState();
+            var restoreIndex = (persisted && typeof persisted.index === 'number') ? persisted.index : (savedTapeTrackIndex || currentTrackIndex);
+            var restoreTime = (persisted && typeof persisted.time === 'number') ? persisted.time : (savedTapePlaybackTime || 0);
+            var shouldPlay = (persisted && typeof persisted.wasPlaying === 'boolean') ? persisted.wasPlaying : wasPlayingBeforeRadio;
+
+            loadTrack(restoreIndex, shouldPlay);
+
+            var seekOnceLoaded = function() {
+                if (restoreTime > 0 && restoreTime < hifiAudio.duration) {
+                    hifiAudio.currentTime = restoreTime;
+                    progressSlider.value = restoreTime;
+                    currentTimeSpan.textContent = formatTime(restoreTime);
+                    updateTapeCounter(restoreTime);
+                    syncDeckVisuals();
+                }
+
+                if (shouldPlay) {
+                    performTapeAudioFadeIn();
+                }
+
+                hifiAudio.removeEventListener('loadedmetadata', seekOnceLoaded);
+            };
+            hifiAudio.addEventListener('loadedmetadata', seekOnceLoaded);
+        } else {
+            syncTrackUI();
+        }
+    }
+
+    function turnOnRadio() {
+        isTunerPowerOn = true;
+        playMechanicalSwitchClick();
+
+        var panel = document.getElementById('fmTunerPanel');
+        if (panel) panel.classList.remove('powered-off');
+        var knob = document.getElementById('fmTuningKnob');
+        if (knob) knob.classList.remove('knob-off');
+        var statusLabel = document.getElementById('tunerKnobStatusLabel');
+        if (statusLabel) {
+            statusLabel.textContent = "PWR / TUNE";
+            statusLabel.style.color = "#00e5ff";
+        }
+
+        var offBtn = document.getElementById('btnTunerOff');
+        if (offBtn) offBtn.classList.remove('active-fm');
+
+        updateFmDialFromFrequency(currentFmFrequency || 96.3);
+    }
+
+    /* SPECULAR SHEEN MOUSE MOVE */
     if (cassetteDeckWell && glassSheenGlow) {
         cassetteDeckWell.addEventListener('pointermove', function(e) {
             var rect = cassetteDeckWell.getBoundingClientRect();
@@ -2362,7 +2768,7 @@
 
     function clearAllStoredTracksFromDB() {
         return openOfflineDB().then(function(db) {
-            return new Promise(function(resolve, reject) {
+            return new Promise(function(resolve) {
                 var tx = db.transaction(STORE_NAME, 'readwrite');
                 var store = tx.objectStore(STORE_NAME);
                 var req = store.clear();
@@ -3147,14 +3553,73 @@
         -1.0, 1.0, 0.0
     );
 
-    /* ROTARY TUNER KNOB (88.0 MHz to 108.0 MHz) */
-    setupKnobControl(
-        document.getElementById('fmTuningKnob'),
-        function(freq) {
-            updateFmDialFromFrequency(freq);
-        },
-        88.0, 108.0, 96.3
-    );
+    /* ROTARY TUNER KNOB (Continuous 720° Spin + Push to Toggle Power ON/OFF) */
+    (function setupRotaryTunerKnob() {
+        var knobEl = document.getElementById('fmTuningKnob');
+        if (!knobEl) return;
+
+        var isDragging = false;
+        var startY = 0;
+        var hasMoved = false;
+        var currentAngle = 0;
+
+        var minFreq = 88.0;
+        var maxFreq = 108.0;
+
+        function setInitialKnobAngle(freq) {
+            var ratio = (freq - minFreq) / (maxFreq - minFreq);
+            currentAngle = ratio * 720;
+            knobEl.style.transform = 'rotate(' + currentAngle + 'deg)';
+        }
+
+        knobEl.addEventListener('pointerdown', function(e) {
+            initRealAudioContext();
+            isDragging = true;
+            hasMoved = false;
+            startY = e.clientY;
+            knobEl.classList.add('depressed');
+            knobEl.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        });
+
+        knobEl.addEventListener('pointermove', function(e) {
+            if (!isDragging) return;
+            var deltaY = startY - e.clientY;
+
+            if (Math.abs(deltaY) > 2) {
+                hasMoved = true;
+                if (!isTunerPowerOn) {
+                    turnOnRadio();
+                }
+
+                startY = e.clientY;
+                currentAngle += deltaY * 2.5;
+                currentAngle = Math.max(0, Math.min(720, currentAngle));
+
+                knobEl.style.transform = 'rotate(' + currentAngle + 'deg)';
+
+                var rawTargetFreq = minFreq + ((currentAngle / 720) * (maxFreq - minFreq));
+                var snappedFreq = getMagneticallySnappedFrequency(rawTargetFreq);
+                updateFmDialFromFrequency(snappedFreq);
+            }
+        });
+
+        knobEl.addEventListener('pointerup', function(e) {
+            isDragging = false;
+            knobEl.classList.remove('depressed');
+            knobEl.releasePointerCapture(e.pointerId);
+
+            if (!hasMoved) {
+                if (isTunerPowerOn) {
+                    turnOffRadio(e);
+                } else {
+                    turnOnRadio();
+                }
+            }
+        });
+
+        setInitialKnobAngle(currentFmFrequency || 96.3);
+    })();
 
     function applyVolumeGain() {
         var val = parseFloat(volumeSlider.value);
@@ -3186,7 +3651,7 @@
         applyVolumeGain();
     }
 
-    /* CONTINUOUS TONEARM TRACKING ON COMPACT VINYL PLATTER */
+    /* CONTINUOUS TONEARM & TAPE PACK TRACKING */
     function syncDeckVisuals() {
         var isPlaying = !hifiAudio.paused;
 
@@ -3194,6 +3659,12 @@
             tapeLeft.classList.toggle('spinning', isPlaying && mediaFormat === 'tape');
             tapeRight.classList.toggle('spinning', isPlaying && mediaFormat === 'tape');
         }
+
+        var dur = hifiAudio.duration;
+        var cur = hifiAudio.currentTime;
+        var progress = (!isNaN(dur) && dur > 0) ? Math.min(1.0, Math.max(0.0, cur / dur)) : 0.0;
+
+        updateMagneticTapePacks(progress);
 
         if (svgVinylPlatter) {
             svgVinylPlatter.classList.toggle('spinning', isPlaying && mediaFormat === 'vinyl');
@@ -3204,9 +3675,6 @@
                 if (!isPlaying) {
                     svgTonearmAssembly.style.transform = 'rotate(-25deg)';
                 } else {
-                    var dur = hifiAudio.duration;
-                    var cur = hifiAudio.currentTime;
-                    var progress = (!isNaN(dur) && dur > 0) ? Math.min(1.0, Math.max(0.0, cur / dur)) : 0;
                     var dynamicAngle = 10 + (progress * 13);
                     svgTonearmAssembly.style.transform = 'rotate(' + dynamicAngle.toFixed(1) + 'deg)';
                 }
@@ -3256,6 +3724,11 @@
                 if (svgCassetteGroup) svgCassetteGroup.style.display = 'block';
                 if (svgVinylGroup) svgVinylGroup.style.display = 'none';
                 if (spoolOverlayContainer) spoolOverlayContainer.style.display = 'block';
+            }
+
+            var tapeLayer = document.getElementById('magneticTapeLayer');
+            if (tapeLayer) {
+                tapeLayer.style.display = (mediaFormat === 'tape') ? 'block' : 'none';
             }
 
             updateFormatNoiseState();
@@ -3439,11 +3912,18 @@
 
     function playFmStation(key, evt) {
         if (!fmStations[key]) return;
+        
+        captureTapePosition();
+
         activeFmKey = key;
         hifiAudio.pause();
         destroyHls();
         clearLoadGuard();
         playMechanicalSwitchClick();
+
+        if (!isTunerPowerOn) {
+            turnOnRadio();
+        }
 
         document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
         if (evt && evt.currentTarget) {
@@ -3513,19 +3993,6 @@
             hifiAudio.play().catch(() => {});
         }
         updateMediaSession();
-    }
-
-    function turnOffRadio() {
-        activeFmKey = null;
-        currentStreamUrl = null;
-        destroyHls();
-        playMechanicalSwitchClick();
-        if (fmStaticGain && audioCtx) fmStaticGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
-        if (fmStereoBeacon) fmStereoBeacon.classList.remove('tuned');
-        if (fmStationCallsign) fmStationCallsign.textContent = "OFF";
-        document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
-        hifiAudio.pause();
-        loadTrack(currentTrackIndex, true);
     }
 
     function exitApp() {
@@ -3925,6 +4392,9 @@
         playMechanicalSwitchClick();
 
         if (playlist.length === 0) return;
+        
+        triggerFastWind('forward', 600);
+
         var targetIndex = (nextUpcomingIndex >= 0 && nextUpcomingIndex < playlist.length) 
             ? nextUpcomingIndex 
             : determineNextIndex();
@@ -3938,6 +4408,9 @@
         playMechanicalSwitchClick();
 
         if (playlist.length === 0) return;
+
+        triggerFastWind('reverse', 600);
+
         var prevIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
         loadTrack(prevIndex, true);
     }
@@ -4011,10 +4484,20 @@
             updateTapeCounter(hifiAudio.currentTime);
             syncDeckVisuals();
 
+            if (Math.floor(hifiAudio.currentTime) % 2 === 0) {
+                persistTapeState(currentTrackIndex, hifiAudio.currentTime, !hifiAudio.paused);
+            }
+
             if (!preloadTriggeredForCurrentTrack && (hifiAudio.currentTime > 15 || hifiAudio.currentTime > hifiAudio.duration * 0.5)) {
                 preloadTriggeredForCurrentTrack = true;
                 scheduleNextTrackPreload();
             }
+        }
+    });
+
+    window.addEventListener('beforeunload', function() {
+        if (!activeFmKey && !isNaN(hifiAudio.currentTime)) {
+            persistTapeState(currentTrackIndex, hifiAudio.currentTime, !hifiAudio.paused);
         }
     });
 
@@ -4028,10 +4511,16 @@
 
     volumeSlider.addEventListener('input', () => applyVolumeGain());
 
+    var lastSeekPosition = 0;
     progressSlider.addEventListener('input', () => { 
         if (!activeFmKey) {
-            hifiAudio.currentTime = progressSlider.value;
-            updateTapeCounter(hifiAudio.currentTime);
+            var currentSeekVal = parseFloat(progressSlider.value);
+            var dir = currentSeekVal < lastSeekPosition ? 'reverse' : 'forward';
+            triggerFastWind(dir, 450);
+            lastSeekPosition = currentSeekVal;
+
+            hifiAudio.currentTime = currentSeekVal;
+            updateTapeCounter(currentSeekVal);
             syncDeckVisuals();
         }
     });
@@ -4047,7 +4536,7 @@
     var cassetteWellEl = document.querySelector('.cassette-deck-well');
     if (cassetteWellEl) {
         cassetteWellEl.addEventListener('click', function(e) {
-            if (e.target.closest('.deck-eject-btn') || e.target.closest('.counter-reset-btn')) return;
+            if (e.target.closest('.deck-eject-btn') || e.target.closest('.counter-reset-btn') || e.target.closest('#tapeCounterDigits')) return;
             initRealAudioContext();
             playMechanicalSwitchClick();
         });
@@ -4057,9 +4546,29 @@
         await restoreSavedTracksIntoPlaylist();
         populatePlaylistDropdown();
         loadSavedPresetSlots();
+        loadPersistedCounterMode();
         animateVUMeters();
         renderVisualizer();
-        loadTrack(Math.floor(Math.random() * playlist.length), false);
+
+        var savedSession = getPersistedTapeState();
+        var bootIndex = (savedSession && playlist[savedSession.index]) ? savedSession.index : Math.floor(Math.random() * playlist.length);
+        var bootTime = (savedSession && savedSession.time) ? savedSession.time : 0;
+
+        loadTrack(bootIndex, false);
+
+        if (bootTime > 0) {
+            var onInitialMeta = function() {
+                if (bootTime < hifiAudio.duration) {
+                    hifiAudio.currentTime = bootTime;
+                    progressSlider.value = bootTime;
+                    currentTimeSpan.textContent = formatTime(bootTime);
+                    updateTapeCounter(bootTime);
+                }
+                hifiAudio.removeEventListener('loadedmetadata', onInitialMeta);
+            };
+            hifiAudio.addEventListener('loadedmetadata', onInitialMeta);
+        }
+
         applyVolumeGain();
         updateNetworkStatus();
         updateSavedCountDisplay();
@@ -4067,7 +4576,8 @@
         updateKnobLevelGauge('gaugeTreble', 0.5, true, '#00e5ff');
         updateKnobLevelGauge('gaugeBalance', 0.5, true, '#ffaa00');
         updateKnobLevelGauge('gaugeVolume', 0.2, false, '#00e5ff');
-        updateFmDialFromFrequency(96.3);
+
+        turnOffRadio();
     }
 
     if (document.readyState === 'loading') {
