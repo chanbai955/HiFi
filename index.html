@@ -4306,74 +4306,50 @@
 
         preloaderAudio.load();
     }
+    
+function loadTrack(index, autoPlay = true) {
+    if (playlist.length === 0) return;
+    activeFmKey = null;
+    destroyHls();
+    clearLoadGuard();
+    currentTrackIndex = index;
+    isTransitioning = true;
+    nextUpcomingIndex = -1;
 
-    function loadTrack(index, autoPlay = true) {
-        if (playlist.length === 0) return;
-        activeFmKey = null;
-        destroyHls();
-        clearLoadGuard();
-        currentTrackIndex = index;
-        isTransitioning = true;
-        nextUpcomingIndex = -1;
+    var targetTrack = playlist[currentTrackIndex];
+    initRealAudioContext();
+    if (autoPlay && !document.hidden) triggerFormatCueSound();
 
-        var targetTrack = playlist[currentTrackIndex];
-        initRealAudioContext();
-        if (autoPlay) triggerFormatCueSound();
+    // Check if offline blob is available
+    getTrackFromDB(targetTrack.title).then(function(cachedBlob) {
+        var sourceUrl = cachedBlob ? URL.createObjectURL(cachedBlob) : targetTrack.src;
+        updateCacheButtonState(!!cachedBlob);
 
-        hifiAudio.pause();
+        // Direct swap without explicit pause keeps the audio session alive
+        hifiAudio.src = sourceUrl;
+        syncTrackUI();
 
-        if (preloadedTrackTitle === targetTrack.title && preloaderAudio.src) {
-            hifiAudio.src = preloaderAudio.src;
-            hifiAudio.load();
-            syncTrackUI();
-
-            if (autoPlay) {
-                var playPromise = hifiAudio.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        isTransitioning = false;
-                        requestWakeLock();
-                    }).catch(() => {
-                        setTimeout(() => hifiAudio.play().catch(()=>{}), 200);
-                    });
-                }
-            } else {
-                isTransitioning = false;
+        if (autoPlay) {
+            var playPromise = hifiAudio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(function() {
+                    isTransitioning = false;
+                    requestWakeLock();
+                }).catch(function(err) {
+                    console.warn("Autoplay deferred:", err);
+                    // Fallback retry for background transitions
+                    setTimeout(function() {
+                        hifiAudio.play().catch(function(){});
+                    }, 150);
+                });
             }
-
-            setTimeout(scheduleNextTrackPreload, 1000);
-            return;
+        } else {
+            isTransitioning = false;
         }
 
-        getTrackFromDB(targetTrack.title).then(function(cachedBlob) {
-            if (cachedBlob) {
-                hifiAudio.src = URL.createObjectURL(cachedBlob);
-                updateCacheButtonState(true);
-            } else {
-                hifiAudio.src = targetTrack.src;
-                updateCacheButtonState(false);
-            }
-
-            hifiAudio.load();
-            syncTrackUI();
-
-            if (autoPlay) {
-                var playPromise = hifiAudio.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        isTransitioning = false;
-                        requestWakeLock();
-                    }).catch(() => {
-                        setTimeout(() => hifiAudio.play().catch(()=>{}), 250);
-                    });
-                }
-            } else {
-                isTransitioning = false;
-            }
-
-            setTimeout(scheduleNextTrackPreload, 1500);
-        });
-    }
+        setTimeout(scheduleNextTrackPreload, 1500);
+    });
+}
 
     function togglePlayPause() {
         initRealAudioContext();
@@ -4421,11 +4397,15 @@
     }
 
     hifiAudio.addEventListener('ended', function() {
-        if (playlist.length > 0 && !isTransitioning) {
-            isTransitioning = true;
-            playNext();
+    if (playlist.length > 0 && !isTransitioning) {
+        isTransitioning = true;
+        // Resume AudioContext if the OS suspended it while locked
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(function(){});
         }
-    });
+        playNext();
+    }
+});
 
     hifiAudio.addEventListener('error', function() {
         clearLoadGuard();
