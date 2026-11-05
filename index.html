@@ -1778,7 +1778,7 @@
 </div>
 
 <script id="playerScript">
-    var playlist = [
+  var playlist = [
         { title: "Abracadabara", src: "https://raw.githack.com/chanbai955/mp3/main/abracadabra!!s.mp3" },
         { title: "AdukkuMalliYeduthu", src: "https://raw.githack.com/chanbai955/mp3/main/AdukkuMalliYeduthu%20.mp3" },
         { title: "Always On My Mind", src: "https://raw.githack.com/chanbai955/mp3/main/Willie%20Nelson%20-%20Always%20On%20My%20Mind.mp3" },
@@ -1872,7 +1872,7 @@
         { title: "Short Clips-002", src: "https://raw.githack.com/chanbai955/mp3/main/shortclips-002.mp3" },
         { title: "Smoke Is Going Down", src: "https://raw.githack.com/chanbai955/mp3/main/Scorpions%20-%20When%20The%20Smoke%20Is%20Going%20Down%20.mp3" },
         { title: "Smoke On The Water", src: "https://raw.githack.com/chanbai955/mp3/main/Deep%20Purple%20-%20Smoke%20On%20the%20Water%20.mp3" },
-        { title: "Smooth Criminal", src: "https://raw.githack.com/chanbai955/mp3/main/Smooth%20Operator%20-sade.mp3" },
+        { title: "Smooth Operator", src: "https://raw.githack.com/chanbai955/mp3/main/Smooth%20Operator%20-sade.mp3" },
         { title: "Solai Pushpangale", src: "https://raw.githack.com/chanbai955/mp3/main/Solai%20Pushpangale.mp3" },
         { title: "Soldier of Fortune", src: "https://raw.githack.com/chanbai955/mp3/main/Soldier%20of%20Fortune.mp3" },
         { title: "Sollitaley ava", src: "https://raw.githack.com/chanbai955/mp3/main/%20Sollitaley%20Ava%20Kaadhala%20.mp3" },
@@ -2078,6 +2078,77 @@
     var isShuffle = true;
     var hasUserStartedPlayback = false;
 
+    /* =======================================================================
+       CONTINUOUS SILENT AUDIO BRIDGE & MOBILE BACKGROUND SLEEP MITIGATION
+       ======================================================================= */
+    function generateSilentAudioURI(durationSec = 1) {
+        var sampleRate = 8000;
+        var numChannels = 1;
+        var bitsPerSample = 8;
+        var blockAlign = (numChannels * bitsPerSample) / 8;
+        var byteRate = sampleRate * blockAlign;
+        var numSamples = sampleRate * durationSec;
+        var dataSize = numSamples * blockAlign;
+        var buffer = new ArrayBuffer(44 + dataSize);
+        var view = new DataView(buffer);
+
+        function writeAscii(offset, str) {
+            for (var i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+        }
+
+        writeAscii(0, 'RIFF');
+        view.setUint32(4, 36 + dataSize, true);
+        writeAscii(8, 'WAVE');
+        writeAscii(12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, numChannels, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, byteRate, true);
+        view.setUint16(32, blockAlign, true);
+        view.setUint16(34, bitsPerSample, true);
+        writeAscii(36, 'data');
+        view.setUint32(40, dataSize, true);
+
+        // 8-bit PCM center midpoint (silence)
+        for (var i = 44; i < 44 + dataSize; i++) {
+            view.setUint8(i, 128);
+        }
+
+        var binary = '';
+        var bytes = new Uint8Array(buffer);
+        for (var j = 0; j < bytes.byteLength; j++) {
+            binary += String.fromCharCode(bytes[j]);
+        }
+        return 'data:audio/wav;base64,' + btoa(binary);
+    }
+
+    var SILENT_AUDIO_URI = generateSilentAudioURI(1);
+    var isBridgingSilence = false;
+    var bridgeTimeout = null;
+    var consecutiveBufferFailures = 0;
+    var MAX_CONSECUTIVE_BUFFER_FAILURES = 3;
+    var BUFFER_PROBE_TIMEOUT_MS = 8000; // 8-second probe timeout
+
+    function engageSilentAudioBridge() {
+        if (!hifiAudio || isBridgingSilence) return;
+        isBridgingSilence = true;
+        hifiAudio.loop = true;
+        hifiAudio.src = SILENT_AUDIO_URI;
+        hifiAudio.play().catch(function() {});
+    }
+
+    function disengageSilentAudioBridge() {
+        isBridgingSilence = false;
+        if (hifiAudio) {
+            hifiAudio.loop = false;
+        }
+        if (bridgeTimeout) {
+            clearTimeout(bridgeTimeout);
+            bridgeTimeout = null;
+        }
+    }
+
     function clearLoadGuard() {
         if (loadTimeout) {
             clearTimeout(loadTimeout);
@@ -2138,7 +2209,7 @@
             rightWheel.classList.add('fast-rewinding');
         } else {
             leftWheel.classList.add('fast-winding');
-            rightWheel.classList.add('fast-winding');
+            rightWheel.classList.add('fast-rewinding');
         }
 
         fastWindTimer = setTimeout(function() {
@@ -2184,6 +2255,12 @@
 
         if (activeFmKey) {
             tapeCounterDigits.textContent = "LIVE";
+            tapeCounterDigits.classList.remove('remaining-mode', 'warning-flash');
+            return;
+        }
+
+        if (isBridgingSilence) {
+            tapeCounterDigits.textContent = "WAIT";
             tapeCounterDigits.classList.remove('remaining-mode', 'warning-flash');
             return;
         }
@@ -2289,7 +2366,7 @@
     }
 
     function captureTapePosition() {
-        if (!activeFmKey && !isNaN(hifiAudio.currentTime) && hifiAudio.duration > 0) {
+        if (!activeFmKey && !isNaN(hifiAudio.currentTime) && hifiAudio.duration > 0 && !isBridgingSilence) {
             savedTapePlaybackTime = hifiAudio.currentTime;
             savedTapeTrackIndex = currentTrackIndex;
             wasPlayingBeforeRadio = !hifiAudio.paused;
@@ -2624,6 +2701,7 @@
     }
 
     function turnOnRadio() {
+        disengageSilentAudioBridge();
         isTunerPowerOn = true;
         playMechanicalSwitchClick();
 
@@ -2679,7 +2757,7 @@
                 nowPlayingSubtitle.textContent = "SIGNAL LOST - CHECK CONNECTION";
             }
         } else {
-            if (hasUserStartedPlayback) {
+            if (hasUserStartedPlayback && !isBridgingSilence) {
                 syncTrackUI();
             }
         }
@@ -2853,7 +2931,7 @@
     }
 
     function toggleSaveCurrentTrack() {
-        if (activeFmKey) return;
+        if (activeFmKey || isBridgingSilence) return;
         var currentTrack = playlist[currentTrackIndex];
         playMechanicalSwitchClick();
 
@@ -3169,7 +3247,7 @@
 
     function updateFormatNoiseState() {
         if (!audioCtx) return;
-        var isPlaying = !hifiAudio.paused && !activeFmKey;
+        var isPlaying = !hifiAudio.paused && !activeFmKey && !isBridgingSilence;
 
         if (tapeHissGain) {
             var targetTapeGain = (isPlaying && mediaFormat === 'tape') ? 0.016 : 0.0;
@@ -3653,7 +3731,7 @@
 
     /* CONTINUOUS TONEARM & TAPE PACK TRACKING */
     function syncDeckVisuals() {
-        var isPlaying = !hifiAudio.paused;
+        var isPlaying = !hifiAudio.paused && !isBridgingSilence;
 
         if (tapeLeft && tapeRight) {
             tapeLeft.classList.toggle('spinning', isPlaying && mediaFormat === 'tape');
@@ -3662,7 +3740,7 @@
 
         var dur = hifiAudio.duration;
         var cur = hifiAudio.currentTime;
-        var progress = (!isNaN(dur) && dur > 0) ? Math.min(1.0, Math.max(0.0, cur / dur)) : 0.0;
+        var progress = (!isNaN(dur) && dur > 0 && !isBridgingSilence) ? Math.min(1.0, Math.max(0.0, cur / dur)) : 0.0;
 
         updateMagneticTapePacks(progress);
 
@@ -3752,7 +3830,7 @@
         var isPeakL = false;
         var isPeakR = false;
 
-        if (!hifiAudio.paused && analyserL && analyserR) {
+        if (!hifiAudio.paused && analyserL && analyserR && !isBridgingSilence) {
             var dataL = new Uint8Array(analyserL.fftSize);
             var dataR = new Uint8Array(analyserR.fftSize);
 
@@ -3834,7 +3912,7 @@
         var numBars = 24, barWidth = 8, gap = 9;
         var startX = (canvas.width - (numBars * (barWidth + gap))) / 2;
 
-        if (!hifiAudio.paused && analyser) {
+        if (!hifiAudio.paused && analyser && !isBridgingSilence) {
             var dataArray = new Uint8Array(analyser.frequencyBinCount);
             analyser.getByteFrequencyData(dataArray);
 
@@ -3914,6 +3992,7 @@
         if (!fmStations[key]) return;
         
         captureTapePosition();
+        disengageSilentAudioBridge();
 
         activeFmKey = key;
         hifiAudio.pause();
@@ -3997,6 +4076,7 @@
 
     function exitApp() {
         destroyHls();
+        disengageSilentAudioBridge();
         if (hifiAudio) hifiAudio.pause();
         if (wakeLock) wakeLock.release().catch(()=>{});
         try { window.close(); } catch(e) {}
@@ -4306,54 +4386,170 @@
 
         preloaderAudio.load();
     }
-    
-function loadTrack(index, autoPlay = true) {
-    if (playlist.length === 0) return;
-    activeFmKey = null;
-    destroyHls();
-    clearLoadGuard();
-    currentTrackIndex = index;
-    isTransitioning = true;
-    nextUpcomingIndex = -1;
 
-    var targetTrack = playlist[currentTrackIndex];
-    initRealAudioContext();
-    if (autoPlay && !document.hidden) triggerFormatCueSound();
+    /* =======================================================================
+       CHAINED TRACK LOADER & PROBING BUFFER CONTROLLER
+       ======================================================================= */
+    async function loadTrack(index, autoPlay = true) {
+        if (playlist.length === 0) return;
+        activeFmKey = null;
+        destroyHls();
+        clearLoadGuard();
+        isTransitioning = true;
+        nextUpcomingIndex = -1;
 
-    // Check if offline blob is available
-    getTrackFromDB(targetTrack.title).then(function(cachedBlob) {
-        var sourceUrl = cachedBlob ? URL.createObjectURL(cachedBlob) : targetTrack.src;
-        updateCacheButtonState(!!cachedBlob);
-
-        // Direct swap without explicit pause keeps the audio session alive
-        hifiAudio.src = sourceUrl;
-        syncTrackUI();
-
-        if (autoPlay) {
-            var playPromise = hifiAudio.play();
-            if (playPromise !== undefined) {
-                playPromise.then(function() {
-                    isTransitioning = false;
-                    requestWakeLock();
-                }).catch(function(err) {
-                    console.warn("Autoplay deferred:", err);
-                    // Fallback retry for background transitions
-                    setTimeout(function() {
-                        hifiAudio.play().catch(function(){});
-                    }, 150);
-                });
-            }
-        } else {
+        // Circuit breaker: halt auto-skipping if 3 consecutive failures occurred
+        if (consecutiveBufferFailures >= MAX_CONSECUTIVE_BUFFER_FAILURES) {
+            disengageSilentAudioBridge();
             isTransitioning = false;
+            hifiAudio.pause();
+            nowPlayingSubtitle.textContent = "HALTED: 3 CONSECUTIVE BUFFER FAILURES";
+            playButton.style.display = 'inline-flex';
+            pauseButton.style.display = 'none';
+            syncDeckVisuals();
+            return;
         }
 
-        setTimeout(scheduleNextTrackPreload, 1500);
-    });
-}
+        currentTrackIndex = index;
+        var targetTrack = playlist[currentTrackIndex];
+        initRealAudioContext();
+
+        // Check if preloader already has this exact track buffered
+        if (preloadedTrackTitle === targetTrack.title && preloaderAudio.src && preloaderAudio.readyState >= 2) {
+            disengageSilentAudioBridge();
+            consecutiveBufferFailures = 0;
+            hifiAudio.src = preloaderAudio.src;
+            hifiAudio.load();
+            syncTrackUI();
+
+            if (autoPlay) {
+                triggerFormatCueSound();
+                hifiAudio.play().then(() => {
+                    isTransitioning = false;
+                    requestWakeLock();
+                }).catch(() => {
+                    isTransitioning = false;
+                });
+            } else {
+                isTransitioning = false;
+            }
+
+            setTimeout(scheduleNextTrackPreload, 1000);
+            return;
+        }
+
+        var cachedBlob = await getTrackFromDB(targetTrack.title);
+        var targetSrc = cachedBlob ? URL.createObjectURL(cachedBlob) : targetTrack.src;
+
+        var isTargetReady = false;
+        var probeAudio = new Audio();
+        probeAudio.preload = "auto";
+
+        // Buffer timer: if not ready within 1000ms, engage looping silence directly on hifiAudio
+        var silenceTriggerTimer = setTimeout(function() {
+            if (!isTargetReady && autoPlay) {
+                engageSilentAudioBridge();
+                nowPlayingSubtitle.textContent = "BUFFERING STREAM (HOLDING AUDIO)...";
+            }
+        }, 1000);
+
+        // Probe Timeout Guard: probe fails after 8 seconds
+        bridgeTimeout = setTimeout(function() {
+            cleanupProbe();
+            consecutiveBufferFailures++;
+            nowPlayingSubtitle.textContent = `BUFFER TIMEOUT (${consecutiveBufferFailures}/${MAX_CONSECUTIVE_BUFFER_FAILURES})`;
+
+            if (consecutiveBufferFailures < MAX_CONSECUTIVE_BUFFER_FAILURES) {
+                var nextIdx = determineNextIndex();
+                loadTrack(nextIdx, true);
+            } else {
+                disengageSilentAudioBridge();
+                isTransitioning = false;
+                hifiAudio.pause();
+                nowPlayingSubtitle.textContent = "PLAYBACK STOPPED: NETWORK TIMEOUT";
+                playButton.style.display = 'inline-flex';
+                pauseButton.style.display = 'none';
+                syncDeckVisuals();
+            }
+        }, BUFFER_PROBE_TIMEOUT_MS);
+
+        function cleanupProbe() {
+            clearTimeout(silenceTriggerTimer);
+            clearTimeout(bridgeTimeout);
+            bridgeTimeout = null;
+            probeAudio.removeEventListener('canplay', onReady);
+            probeAudio.removeEventListener('canplaythrough', onReady);
+            probeAudio.removeEventListener('error', onError);
+            probeAudio.src = "";
+            probeAudio.remove();
+        }
+
+        function onReady() {
+            cleanupProbe();
+            isTargetReady = true;
+            consecutiveBufferFailures = 0; // Reset error threshold on successful buffer
+
+            disengageSilentAudioBridge();
+
+            hifiAudio.src = targetSrc;
+            hifiAudio.load();
+            syncTrackUI();
+            updateCacheButtonState(!!cachedBlob);
+
+            if (autoPlay) {
+                triggerFormatCueSound();
+                hifiAudio.play().then(() => {
+                    isTransitioning = false;
+                    requestWakeLock();
+                }).catch(() => {
+                    isTransitioning = false;
+                });
+            } else {
+                isTransitioning = false;
+            }
+
+            setTimeout(scheduleNextTrackPreload, 1500);
+        }
+
+        function onError() {
+            cleanupProbe();
+            consecutiveBufferFailures++;
+            nowPlayingSubtitle.textContent = `STREAM FAILED (${consecutiveBufferFailures}/${MAX_CONSECUTIVE_BUFFER_FAILURES})`;
+
+            if (consecutiveBufferFailures < MAX_CONSECUTIVE_BUFFER_FAILURES) {
+                var nextIdx = determineNextIndex();
+                setTimeout(() => loadTrack(nextIdx, true), 400);
+            } else {
+                disengageSilentAudioBridge();
+                isTransitioning = false;
+                hifiAudio.pause();
+                nowPlayingSubtitle.textContent = "PLAYBACK STOPPED: MULTIPLE ERRORS";
+                playButton.style.display = 'inline-flex';
+                pauseButton.style.display = 'none';
+                syncDeckVisuals();
+            }
+        }
+
+        probeAudio.addEventListener('canplay', onReady, { once: true });
+        probeAudio.addEventListener('canplaythrough', onReady, { once: true });
+        probeAudio.addEventListener('error', onError, { once: true });
+
+        probeAudio.src = targetSrc;
+        probeAudio.load();
+    }
 
     function togglePlayPause() {
         initRealAudioContext();
+        if (isBridgingSilence) {
+            disengageSilentAudioBridge();
+            hifiAudio.pause();
+            playButton.style.display = 'inline-flex';
+            pauseButton.style.display = 'none';
+            return;
+        }
+
         if (hifiAudio.paused) { 
+            consecutiveBufferFailures = 0; // Manual play resets failure circuit
             triggerFormatCueSound();
             hifiAudio.play().catch(()=>{});
         } else { 
@@ -4397,23 +4593,20 @@ function loadTrack(index, autoPlay = true) {
     }
 
     hifiAudio.addEventListener('ended', function() {
-    if (playlist.length > 0 && !isTransitioning) {
-        isTransitioning = true;
-        // Resume AudioContext if the OS suspended it while locked
-        if (audioCtx && audioCtx.state === 'suspended') {
-            audioCtx.resume().catch(function(){});
+        if (playlist.length > 0 && !isTransitioning && !isBridgingSilence) {
+            playNext();
         }
-        playNext();
-    }
-});
+    });
 
     hifiAudio.addEventListener('error', function() {
         clearLoadGuard();
+        if (isBridgingSilence) return;
         if (hifiAudio.error && hifiAudio.error.code === 20) return;
 
-        consecutiveErrorCount++;
-        if (consecutiveErrorCount > 3) {
-            nowPlayingSubtitle.textContent = "PLAYBACK PAUSED: NETWORK UNSTABLE";
+        consecutiveBufferFailures++;
+        if (consecutiveBufferFailures >= MAX_CONSECUTIVE_BUFFER_FAILURES) {
+            disengageSilentAudioBridge();
+            nowPlayingSubtitle.textContent = "PLAYBACK STOPPED: UNSTABLE NETWORK";
             isTransitioning = false;
             return;
         }
@@ -4426,16 +4619,17 @@ function loadTrack(index, autoPlay = true) {
 
     hifiAudio.addEventListener('waiting', function() {
         clearLoadGuard();
+        if (isBridgingSilence) return;
         loadTimeout = setTimeout(function() {
             if (hifiAudio.readyState < 2 && !hifiAudio.paused && !isTransitioning) {
-                isTransitioning = true;
                 playNext();
             }
-        }, 12000);
+        }, 10000);
     });
 
     hifiAudio.addEventListener('playing', () => {
         clearLoadGuard();
+        if (isBridgingSilence) return;
         isTransitioning = false;
         consecutiveErrorCount = 0;
         preloadTriggeredForCurrentTrack = false;
@@ -4448,7 +4642,7 @@ function loadTrack(index, autoPlay = true) {
     });
 
     hifiAudio.addEventListener('pause', () => { 
-        if (hifiAudio.paused) {
+        if (hifiAudio.paused && !isBridgingSilence) {
             updateFormatNoiseState();
             playButton.style.display = 'inline-flex'; 
             pauseButton.style.display = 'none'; 
@@ -4458,7 +4652,7 @@ function loadTrack(index, autoPlay = true) {
     });
 
     hifiAudio.addEventListener('timeupdate', () => {
-        if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
+        if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0 && !isBridgingSilence) {
             progressSlider.value = hifiAudio.currentTime;
             currentTimeSpan.textContent = formatTime(hifiAudio.currentTime);
             updateTapeCounter(hifiAudio.currentTime);
@@ -4476,24 +4670,24 @@ function loadTrack(index, autoPlay = true) {
     });
 
     window.addEventListener('beforeunload', function() {
-        if (!activeFmKey && !isNaN(hifiAudio.currentTime)) {
+        if (!activeFmKey && !isNaN(hifiAudio.currentTime) && !isBridgingSilence) {
             persistTapeState(currentTrackIndex, hifiAudio.currentTime, !hifiAudio.paused);
         }
     });
 
     hifiAudio.addEventListener('loadedmetadata', () => {
-        if (!activeFmKey && !isNaN(hifiAudio.duration)) {
+        if (!activeFmKey && !isNaN(hifiAudio.duration) && !isBridgingSilence) {
             progressSlider.max = hifiAudio.duration;
             durationSpan.textContent = formatTime(hifiAudio.duration);
         }
-        syncTrackUI();
+        if (!isBridgingSilence) syncTrackUI();
     });
 
     volumeSlider.addEventListener('input', () => applyVolumeGain());
 
     var lastSeekPosition = 0;
     progressSlider.addEventListener('input', () => { 
-        if (!activeFmKey) {
+        if (!activeFmKey && !isBridgingSilence) {
             var currentSeekVal = parseFloat(progressSlider.value);
             var dir = currentSeekVal < lastSeekPosition ? 'reverse' : 'forward';
             triggerFastWind(dir, 450);
