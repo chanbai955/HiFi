@@ -4589,7 +4589,31 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
             navigator.serviceWorker.register('sw.js').catch(function() {});
-        });
+            
+            
+            
+            if ('launchQueue' in window && 'files' in LaunchParams.prototype) {
+    launchQueue.setConsumer(async (launchParams) => {
+        if (!launchParams.files.length) return;
+
+        for (const fileHandle of launchParams.files) {
+            const file = await fileHandle.getFile();
+            const cleanTitle = file.name.replace(/\.[^/.]+$/, "");
+            const objectUrl = URL.createObjectURL(file);
+
+            // Add track to playlist
+            playlist.unshift({
+                title: cleanTitle,
+                src: objectUrl,
+                isLocalImported: true
+            });
+        }
+
+        populatePlaylistDropdown();
+        loadTrack(0, true);
+    });
+}
+       
     }
 </script>
 </body>

@@ -1,5 +1,38 @@
 {
   "name": "Chanthiran Mini HiFi System",
+  "short_name": "HiFi Player",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0c",
+  "theme_color": "#ffaa00",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "./index.html",
+      "name": "Audio Tracks",
+      "icons": [
+        {
+          "src": "icon-512.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ],
+      "accept": {
+        "audio/mpeg": [".mp3"],
+        "audio/wav": [".wav"],
+        "audio/ogg": [".ogg"],
+        "audio/mp4": [".m4a"]
+      }
+    }
+  ]
+}{
+  "name": "Chanthiran Mini HiFi System",
   "short_name": "Mini HiFi",
   "start_url": "./index.html",
   "display": "standalone",
