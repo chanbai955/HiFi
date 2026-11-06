@@ -1,0 +1,4596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chanthiran Mini HiFi System</title>
+    
+    <!-- PWA & Mobile Web App Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffaa00">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- HLS Engine for Live Dynamic Streaming -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Orbitron:wght@600;800;900&display=swap');
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0c;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* VERTICAL TOWER CONTAINER */
+        .music-player-container {
+            width: 100%;
+            min-height: 100vh;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+            background: linear-gradient(145deg, #22252a 0%, #111215 100%);
+            border: 3px solid #3a3f47;
+            border-radius: 12px;
+            box-shadow: 0 0 35px rgba(0,0,0,0.9), inset 0 1px 2px rgba(255,255,255,0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            justify-content: flex-start;
+            align-items: center;
+            position: relative;
+            transition: max-width 0.3s ease, padding 0.3s ease;
+        }
+
+        .hifi-horizontal-grid {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .rack-col {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        /* DESKTOP & LANDSCAPE: HORIZONTAL DUAL RACK */
+        @media (min-width: 769px), (orientation: landscape) and (min-height: 480px) {
+            .music-player-container {
+                width: 96%;
+                min-height: auto;
+                max-width: 940px;
+                margin: 45px auto 30px auto;
+                padding: 16px 20px;
+                border-radius: 14px;
+                box-shadow: 0 0 45px rgba(0,0,0,0.95), inset 0 1px 2px rgba(255,255,255,0.15);
+                gap: 12px;
+            }
+
+            .hifi-horizontal-grid {
+                display: grid;
+                grid-template-columns: 1fr 1.05fr;
+                gap: 16px;
+                align-items: start;
+            }
+
+            .compo-model-no::after {
+                content: " DUAL RACK";
+            }
+        }
+
+        .top-deck-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 2px solid #2e333d;
+            padding-bottom: 6px;
+        }
+
+        .brand-label {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.7rem;
+            color: #ffaa00;
+            text-shadow: 0px 2px 10px rgba(255, 170, 0, 0.5);
+            letter-spacing: 0.5px;
+            user-select: none;
+        }
+
+        .top-right-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .compo-model-no {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            color: #6c757d;
+            letter-spacing: 1.2px;
+        }
+
+        .tape-toggle-btn {
+            background: linear-gradient(145deg, #2a2e38, #16181f);
+            border: 1px solid #454c59;
+            color: #ffaa00;
+            padding: 4px 7px;
+            border-radius: 4px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .tape-toggle-btn.active-mode {
+            background: linear-gradient(145deg, #ffaa00, #ff7700);
+            color: #111;
+            border-color: #ffaa00;
+        }
+
+        .exit-btn {
+            background: linear-gradient(145deg, #ff3333, #990000);
+            border: 1px solid #ff6666;
+            color: #ffffff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 6px rgba(255, 0, 0, 0.4);
+            transition: all 0.15s ease;
+        }
+
+        .exit-btn svg { width: 12px; height: 12px; fill: currentColor; }
+        .exit-btn:active { transform: scale(0.92); }
+
+        /* ROTARY AMP KNOBS PANEL */
+        .compact-amp-panel {
+            width: 100%;
+            background: transparent !important;
+            border: 1px dashed #454c59;
+            border-radius: 6px;
+            padding: 6px 10px 8px 10px;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .amp-knobs-row {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 2px 0;
+        }
+
+        .amp-knob-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            position: relative;
+        }
+
+        .knob-level-gauge {
+            width: 42px;
+            height: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .knob-level-gauge svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .amp-knob-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55rem;
+            font-weight: 800;
+            color: #00e5ff;
+            text-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
+        }
+
+        .knob-3d {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: conic-gradient(
+                #e2e8f0 0deg, #94a3b8 45deg, #cbd5e1 90deg, #64748b 135deg,
+                #f1f5f9 180deg, #94a3b8 225deg, #cbd5e1 270deg, #475569 315deg, #e2e8f0 360deg
+            );
+            border: 2px solid #1e293b;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.8), inset 0 1px 3px rgba(255,255,255,0.9);
+            position: relative;
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+            transform: rotate(0deg);
+            transition: transform 0.08s ease, box-shadow 0.08s ease;
+        }
+
+        .knob-3d.depressed {
+            transform: scale(0.88) translateY(2px) !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.95), inset 0 2px 5px rgba(0,0,0,0.9) !important;
+        }
+
+        .knob-3d.large { width: 44px; height: 44px; transform: rotate(-81deg); }
+        .knob-3d::after {
+            content: '';
+            position: absolute;
+            top: 3px; left: 50%;
+            transform: translateX(-50%);
+            width: 3px; height: 10px;
+            background: #0f172a;
+            border-radius: 2px;
+        }
+        .knob-3d.large::after { height: 14px; }
+
+        .vu-meters-wrapper {
+            width: 100%;
+            display: flex;
+            gap: 8px;
+        }
+
+        .vu-meter-unit {
+            flex: 1;
+            height: 50px;
+            background: #11160a;
+            border: 2px solid #2c3224;
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .vu-meter-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 100%, rgba(255, 204, 0, 0.25) 0%, rgba(0,0,0,0.85) 75%);
+        }
+
+        .vu-needle {
+            position: absolute;
+            bottom: -5px;
+            width: 2px;
+            height: 45px;
+            background: #ff3300;
+            transform-origin: bottom center;
+            transform: rotate(-42deg);
+            box-shadow: 0 0 4px #ff3300;
+            z-index: 2;
+        }
+
+        .vu-scale {
+            position: absolute;
+            top: 4px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55rem;
+            color: #a3b899;
+            width: 100%;
+            text-align: center;
+            letter-spacing: 2px;
+            z-index: 1;
+        }
+
+        .vu-peak-led {
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #2a0000;
+            border: 1px solid #4a0000;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
+            z-index: 3;
+            pointer-events: none;
+            transition: background 0.04s ease, box-shadow 0.04s ease;
+        }
+
+        .vu-peak-led.lit {
+            background: #ff1a1a;
+            border-color: #ff8080;
+            box-shadow: 0 0 8px #ff2200, 0 0 14px rgba(255, 34, 0, 0.8), inset 0 0 2px #ffffff;
+        }
+
+        .visualizer-container {
+            width: 100%;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            border: 1px solid #2c323d;
+            border-radius: 6px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        #visualizerCanvas {
+            background: transparent !important;
+            width: 100%;
+            max-width: 420px;
+            height: 100%;
+        }
+
+        .vfd-display-panel {
+            width: 100%;
+            background: #000;
+            border: 2px solid #1c2628;
+            border-radius: 6px;
+            padding: 6px 12px;
+            box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.15), 0 0 8px rgba(0,0,0,0.8);
+            text-align: center;
+        }
+
+        .vfd-offline-alert {
+            display: none;
+            background: rgba(255, 51, 51, 0.15);
+            border: 1px solid #ff3333;
+            color: #ff4d4d;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            padding: 3px 6px;
+            margin-bottom: 4px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 8px rgba(255, 51, 51, 0.7);
+            animation: vfdBlink 1.4s ease-in-out infinite;
+        }
+
+        .vfd-offline-alert.show { display: block; }
+
+        @keyframes vfdBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
+        }
+
+        #nowPlayingSubtitle {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            color: #ffaa00;
+            margin: 0 0 2px 0;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #currentTrackTitle {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            font-size: 1rem;
+            margin: 0;
+            color: #00e5ff;
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.7);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 3D CASSETTE DECK WELL & EJECT DOOR CHAMBER */
+        .cassette-deck-well {
+            width: 100%;
+            height: 120px;
+            background: radial-gradient(circle at 50% 20%, #151820 0%, #07080a 100%);
+            border: 2px solid #2e3542;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 6px 18px rgba(0,0,0,0.98), 0 3px 8px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 900px;
+        }
+
+        /* BACKSTAGE ILLUMINATION LAMP */
+        .eject-backlight-lamp {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 75%;
+            height: 100%;
+            pointer-events: none;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 170, 0, 0.65) 0%, rgba(255, 85, 0, 0.2) 50%, transparent 80%);
+            opacity: 0;
+            z-index: 1;
+            transition: opacity 0.25s ease-out;
+        }
+
+        .cassette-deck-well.ejecting .eject-backlight-lamp {
+            opacity: 1;
+        }
+
+        /* 3D TILT TRAY */
+        .deck-tilt-tray {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: 50% 95%;
+            transform: rotateX(0deg) translateZ(0px);
+            transition: transform 0.45s cubic-bezier(0.2, 0.85, 0.35, 1.2), filter 0.45s ease;
+            z-index: 2;
+        }
+
+        .cassette-deck-well.ejecting .deck-tilt-tray {
+            transform: rotateX(24deg) translateY(-4px) translateZ(35px);
+            filter: drop-shadow(0 15px 12px rgba(0,0,0,0.9));
+        }
+
+        .cassette-deck-well svg.cdeck-svg { width: 100%; height: 100%; display: block; }
+
+        /* PHYSICAL MECHANICAL EJECT BUTTON */
+        .deck-eject-btn {
+            position: absolute;
+            left: 20px;
+            bottom: 16px;
+            background: linear-gradient(145deg, #2f3542, #181c24);
+            border: 1px solid #485366;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            border-radius: 3px;
+            color: #d1d5db;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.52rem;
+            font-weight: 900;
+            padding: 3px 6px;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 3px 0 #0b0d12, 0 4px 6px rgba(0,0,0,0.8);
+            transition: all 0.1s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            letter-spacing: 0.5px;
+        }
+
+        .deck-eject-btn:hover {
+            color: #ffaa00;
+            border-color: #ffaa00;
+        }
+
+        .deck-eject-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #0b0d12, 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        /* DIGITAL RUN-TIME COUNTER (MIN:SEC) */
+        .tape-counter-bay {
+            position: absolute;
+            right: 18px;
+            bottom: 15px;
+            background: #000;
+            border: 1px solid #2e3542;
+            border-radius: 4px;
+            padding: 2px 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: inset 0 0 6px rgba(0,0,0,0.9);
+            z-index: 10;
+        }
+
+        .counter-digits {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.62rem;
+            font-weight: 900;
+            color: #00e5ff;
+            text-shadow: 0 0 5px rgba(0, 229, 255, 0.7);
+            letter-spacing: 1px;
+            padding: 0 2px;
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.15s ease, text-shadow 0.15s ease;
+        }
+
+        .counter-digits.remaining-mode {
+            color: #ffaa00 !important;
+            text-shadow: 0 0 6px rgba(255, 170, 0, 0.75) !important;
+        }
+
+        .counter-digits.warning-flash {
+            animation: counterWarningPulse 0.5s ease-in-out infinite alternate !important;
+        }
+
+        @keyframes counterWarningPulse {
+            0% {
+                opacity: 1;
+                filter: brightness(1.3);
+            }
+            100% {
+                opacity: 0.25;
+                filter: brightness(0.7);
+            }
+        }
+
+        .counter-reset-btn {
+            background: #181b22;
+            border: 1px solid #444c5c;
+            color: #ffaa00;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.45rem;
+            font-weight: 800;
+            padding: 1px 4px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+        }
+
+        .counter-reset-btn:active {
+            background: #ffaa00;
+            color: #000;
+        }
+
+        /* 3D ACRYLIC GLASS WITH MICRO-SCRATCHES & GRADUATION TICKS */
+        .acrylic-glass-pane {
+            position: absolute;
+            top: 12px;
+            left: 3.75%;
+            width: 70%;
+            height: 80%;
+            border-radius: 6px;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 5;
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 3px rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 40%, rgba(0, 0, 0, 0.25) 100%);
+            backdrop-filter: blur(0.2px);
+        }
+
+        .acrylic-micro-scratches {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(ellipse at 35% 20%, rgba(255,255,255,0.18) 0.5px, transparent 1.2px),
+                radial-gradient(ellipse at 75% 70%, rgba(255,255,255,0.15) 0.5px, transparent 1.5px),
+                linear-gradient(22deg, transparent 48%, rgba(255,255,255,0.12) 49%, rgba(255,255,255,0.02) 50%, transparent 52%),
+                linear-gradient(26deg, transparent 65%, rgba(255,255,255,0.08) 66%, transparent 67%),
+                linear-gradient(-35deg, transparent 20%, rgba(255,255,255,0.09) 21%, transparent 22%),
+                linear-gradient(85deg, transparent 80%, rgba(255,255,255,0.07) 80.5%, transparent 81.5%);
+            background-size: 100% 100%, 100% 100%, 180px 180px, 240px 240px, 160px 160px, 210px 210px;
+            opacity: 0.85;
+            mix-blend-mode: screen;
+            pointer-events: none;
+        }
+
+        .acrylic-static-glare {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                115deg,
+                rgba(255, 255, 255, 0.25) 0%,
+                rgba(255, 255, 255, 0.08) 18%,
+                rgba(255, 255, 255, 0.0) 24%,
+                rgba(255, 255, 255, 0.0) 65%,
+                rgba(255, 255, 255, 0.1) 75%,
+                rgba(255, 255, 255, 0.0) 80%
+            );
+            pointer-events: none;
+            animation: glassSweep 7s ease-in-out infinite alternate;
+        }
+
+        .acrylic-interactive-sheen {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.28) 0%, rgba(0, 229, 255, 0.12) 35%, rgba(255, 255, 255, 0) 65%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.25s ease-out;
+            transform: translate(0px, 0px);
+        }
+
+        .cassette-deck-well:hover .acrylic-interactive-sheen {
+            opacity: 1;
+        }
+
+        @keyframes glassSweep {
+            0% {
+                transform: translateX(-15%) skewX(-8deg);
+                opacity: 0.65;
+            }
+            50% {
+                opacity: 0.95;
+            }
+            100% {
+                transform: translateX(18%) skewX(-8deg);
+                opacity: 0.75;
+            }
+        }
+
+        /* UPCOMING TRACK QUEUE DISPLAY */
+        .next-track-banner {
+            width: 100%;
+            background: linear-gradient(145deg, #101216, #090a0d);
+            border: 1px solid #2e3542;
+            border-left: 3px solid #ffaa00;
+            border-radius: 5px;
+            padding: 5px 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.85);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .next-track-banner:hover {
+            border-color: #00e5ff;
+            box-shadow: inset 0 0 8px rgba(0, 229, 255, 0.2);
+        }
+
+        .next-queue-tag {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55rem;
+            font-weight: 900;
+            color: #ffaa00;
+            background: rgba(255, 170, 0, 0.12);
+            border: 1px solid rgba(255, 170, 0, 0.4);
+            border-radius: 3px;
+            padding: 2px 5px;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .next-queue-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #d1d5db;
+            letter-spacing: 0.8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
+        /* AUDIO-REACTIVE NEON BADGE STYLES */
+        .neon-badge-group {
+            filter: drop-shadow(0 0 2px rgba(0, 229, 255, 0.3));
+            transition: filter 0.05s ease-out, opacity 0.05s ease-out;
+            will-change: filter, opacity;
+        }
+
+        .neon-note, .neon-note-bottom {
+            transition: fill 0.1s ease-out;
+            will-change: fill;
+        }
+
+        .spool-overlay-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            perspective: 600px;
+        }
+
+        .spool-left-wrapper { position: absolute; left: 23.5%; top: 43.5%; transform: translate(-50%, -50%); }
+        .spool-right-wrapper { position: absolute; left: 51.5%; top: 43.5%; transform: translate(-50%, -50%); }
+
+        .tape-wheel {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #2a313d 0%, #0d1015 85%);
+            border: 2.5px solid #8493a8;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.9), inset 0 2px 3px rgba(255,255,255,0.4), inset 0 -2px 3px rgba(0,0,0,0.8);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spoke-cross {
+            position: absolute;
+            width: 100%; height: 100%;
+            top: 0; left: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spoke-bar-h, .spoke-bar-v { 
+            position: absolute; 
+            background: linear-gradient(145deg, #ffffff, #8893a4); 
+            border-radius: 2px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        }
+        .spoke-bar-h { width: 24px; height: 4px; }
+        .spoke-bar-v { width: 4px; height: 24px; }
+
+        .tape-wheel.spinning { animation: spinWheel 2.5s linear infinite; }
+        .tape-wheel.fast-winding { animation: fastWind 0.35s linear infinite !important; }
+        .tape-wheel.fast-rewinding { animation: fastRewind 0.35s linear infinite !important; }
+
+        @keyframes spinWheel { 100% { transform: rotate(360deg); } }
+        @keyframes fastWind { 100% { transform: rotate(360deg); } }
+        @keyframes fastRewind { 100% { transform: rotate(-360deg); } }
+
+        /* 3D SVG TURNTABLE ROTATION & DYNAMIC TONEARM TRACKING */
+        #svgVinylPlatter {
+            transform-origin: 155px 60px;
+        }
+
+        #svgVinylPlatter.spinning {
+            animation: spinVinylSvg 1.8s linear infinite;
+        }
+
+        @keyframes spinVinylSvg {
+            100% { transform: rotate(360deg); }
+        }
+
+        #svgTonearmAssembly {
+            transform-origin: 240px 58px;
+            transform: rotate(-25deg);
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.3, 1.2);
+            filter: drop-shadow(0 6px 5px rgba(0,0,0,0.95));
+        }
+
+        /* FM TUNER COMPACT SQUEEZE PANEL (5x2 Grid) */
+        .fm-tuner-panel {
+            width: 100%;
+            background: linear-gradient(145deg, #14161a 0%, #0a0b0d 100%);
+            border: 2px solid #2c323d;
+            border-radius: 6px;
+            padding: 5px 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            transition: opacity 0.25s ease;
+        }
+
+        .fm-tuner-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 0 2px;
+        }
+
+        .fm-tuner-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55rem;
+            color: #ffaa00;
+            letter-spacing: 1.2px;
+            font-weight: 800;
+        }
+
+        .fm-save-toggle-btn {
+            background: linear-gradient(145deg, #2b303a, #151820);
+            border: 1px solid #485366;
+            color: #00e5ff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.48rem;
+            font-weight: 900;
+            padding: 1px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+
+        .fm-save-toggle-btn.save-active {
+            background: linear-gradient(145deg, #ff3333, #aa0000);
+            color: #ffffff;
+            border-color: #ff6666;
+            animation: savePulse 1.1s infinite alternate;
+        }
+
+        @keyframes savePulse {
+            0% { box-shadow: 0 0 4px #ff3333; }
+            100% { box-shadow: 0 0 10px rgba(255, 51, 51, 0.9); }
+        }
+
+        /* MANUAL ROTARY FM TUNER DECK WITH ANALOG TUNING DIAL */
+        .fm-tuning-assembly {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            background: #090b0e;
+            border: 1px solid #232933;
+            border-radius: 5px;
+            padding: 3px 6px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
+        }
+
+        .fm-scale-window {
+            flex: 1;
+            height: 35px;
+            background: #000;
+            border: 1px solid #1f2733;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.15);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 2px 4px;
+            transition: opacity 0.3s ease, background 0.3s ease;
+            cursor: ew-resize;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .fm-scale-ticks {
+            width: 100%;
+            height: 12px;
+        }
+
+        .fm-tuning-needle {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: #ff3300;
+            box-shadow: 0 0 6px #ff3300, 0 0 2px #fff;
+            transform: translateX(-50%);
+            transition: left 0.1s linear, background 0.3s ease;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .fm-scale-readout {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55rem;
+            font-weight: 900;
+            color: #00e5ff;
+            text-shadow: 0 0 4px rgba(0, 229, 255, 0.5);
+            letter-spacing: 0.8px;
+            transition: color 0.3s ease;
+        }
+
+        .fm-stereo-beacon {
+            font-size: 0.48rem;
+            font-weight: 800;
+            color: #331500;
+            border: 1px solid #441800;
+            padding: 0 3px;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .fm-stereo-beacon.tuned {
+            color: #ffaa00;
+            border-color: #ffaa00;
+            background: rgba(255, 170, 0, 0.2);
+            box-shadow: 0 0 6px rgba(255, 170, 0, 0.7);
+        }
+
+        .fm-rotary-wheel-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+        }
+
+        /* SQUEEZED PRESET GRID (9 Stored Stations + OFF Button) */
+        .fm-buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 3px;
+            width: 100%;
+        }
+
+        .fm-preset-btn {
+            background: linear-gradient(145deg, #252932, #14171d);
+            border: 1px solid #3c4452;
+            color: #00e5ff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.46rem;
+            font-weight: 900;
+            padding: 5px 1px;
+            border-radius: 3px;
+            cursor: pointer;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: all 0.12s ease;
+            letter-spacing: 0.2px;
+        }
+
+        .fm-preset-btn.assign-target {
+            border: 1.5px dashed #ff3333 !important;
+            color: #ffaaaa !important;
+            animation: assignBlink 0.9s infinite alternate;
+        }
+
+        @keyframes assignBlink {
+            0% { background: #2a1515; }
+            100% { background: #551a1a; }
+        }
+
+        .fm-preset-btn.active-fm { color: #111; background: linear-gradient(145deg, #ffaa00, #ff7700); border-color: #ffaa00; }
+        .fm-preset-btn.off-btn { color: #ff5555; border-color: #ff3333; }
+
+        /* VISUAL POWERED-OFF STATE (DIMMED SCALE & UNLIT NEEDLE) */
+        .fm-tuner-panel.powered-off .fm-scale-window {
+            background: #050608;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.95);
+            opacity: 0.4;
+        }
+
+        .fm-tuner-panel.powered-off .fm-tuning-needle {
+            background: #3a1515;
+            box-shadow: none;
+        }
+
+        .fm-tuner-panel.powered-off .fm-scale-readout {
+            color: #4b5563;
+            text-shadow: none;
+        }
+
+        #fmTuningKnob.knob-off {
+            filter: brightness(0.68) contrast(0.9);
+        }
+
+        .controls-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 3px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 18px;
+            width: 18px;
+            background: linear-gradient(145deg, #e6e6e6, #888888);
+            border: 1px solid #222;
+            border-radius: 3px;
+            margin-top: -6px;
+        }
+
+        #progressSlider { flex: 1; }
+        .time-display { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: #ffaa00; min-width: 36px; font-weight: 700; }
+
+        .button-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 2px;
+        }
+
+        .music-button {
+            cursor: pointer;
+            border: 1px solid #454c59 !important;
+            outline: none !important;
+            padding: 0 !important;
+            margin: 0;
+            border-radius: 6px;
+            color: #d1d5db;
+            background: linear-gradient(145deg, #3a404d, #1f232b) !important;
+            box-shadow: 0 4px 0 #111317;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 38px;
+            transition: all 0.15s ease;
+        }
+
+        .music-button svg { width: 18px; height: 18px; fill: currentColor; }
+        .music-button.active-mode { color: #ffaa00; border-color: #ffaa00 !important; }
+        .music-button.saved-offline {
+            color: #00e5ff !important;
+            border-color: #00e5ff !important;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+        }
+        .pl-text { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 800; }
+
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #181a1f;
+            min-width: 285px;
+            max-width: 88vw;
+            box-shadow: 0px 10px 30px rgba(0,0,0,0.9);
+            z-index: 1000;
+            right: 0;
+            bottom: 100%;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            max-height: 65vh;
+            overflow-y: auto;
+            border: 2px solid #ffaa00;
+        }
+        .dropdown.show .dropdown-content { display: block; }
+        .dropdown-content a, .dropdown-content label {
+            color: #eee;
+            padding: 10px 14px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-family: 'Orbitron', sans-serif;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+        }
+        .dropdown-content a.active { background-color: #353b47; color: #ffaa00; font-weight: bold; }
+
+        /* PLAYLIST TABS, SEARCH, AND STORAGE PROGRESS BAR */
+        .playlist-tab-bar {
+            display: flex;
+            width: 100%;
+            background: #111317;
+            border-bottom: 2px solid #2a2e38;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .pl-filter-tab {
+            flex: 1;
+            padding: 8px 4px;
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.62rem;
+            font-weight: 800;
+            color: #8892a0;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s ease;
+        }
+
+        .pl-filter-tab.active-tab {
+            color: #00e5ff;
+            border-bottom-color: #00e5ff;
+            background: rgba(0, 229, 255, 0.08);
+            text-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
+        }
+
+        .playlist-search-container {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            background: #101216;
+            padding: 6px 10px;
+            border-bottom: 1px solid #282f3a;
+            gap: 6px;
+            position: sticky;
+            top: 33px;
+            z-index: 9;
+        }
+
+        .search-icon {
+            font-size: 0.65rem;
+            color: #ffaa00;
+            user-select: none;
+        }
+
+        .playlist-search-input {
+            flex: 1;
+            background: #171a21;
+            border: 1px solid #333a47;
+            border-radius: 4px;
+            color: #00e5ff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.62rem;
+            padding: 4px 8px;
+            outline: none;
+            letter-spacing: 0.8px;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .playlist-search-input:focus {
+            border-color: #00e5ff;
+            box-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
+        }
+
+        .playlist-search-input::placeholder {
+            color: #64748b;
+            font-size: 0.58rem;
+        }
+
+        .clear-search-btn {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            cursor: pointer;
+            padding: 0 4px;
+            display: none;
+        }
+
+        .clear-search-btn.show { display: block; }
+        .clear-search-btn:hover { color: #ff4d4d; }
+
+        .storage-info-row {
+            width: 100%;
+            padding: 6px 10px 8px 10px;
+            background: #111317;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            border-bottom: 1px solid #1f242d;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55rem;
+            letter-spacing: 1px;
+        }
+
+        .storage-text-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .storage-info-label {
+            color: #8892a0;
+            font-weight: 700;
+        }
+
+        .storage-usage-val {
+            color: #00e5ff;
+            font-weight: 800;
+            text-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
+        }
+
+        .storage-progress-track {
+            width: 100%;
+            height: 4px;
+            background: #1a1e26;
+            border-radius: 2px;
+            overflow: hidden;
+            border: 1px solid #2d3542;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .storage-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffaa00, #00e5ff);
+            box-shadow: 0 0 6px #00e5ff;
+            border-radius: 2px;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .bulk-download-bar {
+            width: 100%;
+            padding: 6px 8px;
+            background: #15181e;
+            border-bottom: 1px solid #282f3a;
+            display: flex;
+            gap: 6px;
+            justify-content: space-between;
+        }
+
+        .bulk-btn {
+            flex: 1;
+            background: linear-gradient(145deg, #252b36, #161a22);
+            border: 1px solid #00e5ff;
+            color: #00e5ff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55rem;
+            font-weight: 800;
+            padding: 6px 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            letter-spacing: 0.8px;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .bulk-btn:active { transform: scale(0.97); }
+
+        .bulk-btn.downloading {
+            background: linear-gradient(145deg, #ffaa00, #b37400);
+            border-color: #ffaa00;
+            color: #111;
+            animation: bulkPulse 1.2s infinite alternate;
+        }
+
+        @keyframes bulkPulse {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+
+        .bulk-btn.clear-btn {
+            flex: 0 0 70px;
+            border-color: #ff4d4d;
+            color: #ff4d4d;
+        }
+
+        .bulk-btn.clear-btn:active {
+            background: linear-gradient(145deg, #ff3333, #990000);
+            color: #fff;
+            transform: scale(0.95);
+        }
+
+        .offline-item-badge {
+            display: inline-block;
+            font-size: 0.55rem;
+            color: #00e5ff;
+            background: rgba(0, 229, 255, 0.15);
+            border: 1px solid #00e5ff;
+            border-radius: 3px;
+            padding: 1px 4px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        .empty-offline-notice {
+            padding: 14px 10px;
+            text-align: center;
+            color: #888;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            line-height: 1.5;
+        }
+
+        .volume-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+            background: #181b20;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #2a2e38;
+        }
+        #volumeIcon { color: #ffaa00; }
+        .boost-btn {
+            background: linear-gradient(145deg, #3a404d, #1f232b);
+            border: 1px solid #ffaa00;
+            color: #ffaa00;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #volumeSlider { flex: 1; }
+    </style>
+</head>
+<body>
+
+<div class="music-player-container">
+    <div class="top-deck-header">
+        <div class="brand-label">Chanthiran</div>
+        <div class="top-right-controls">
+            <span class="compo-model-no">HIFI</span>
+            <button id="mediaFormatBtn" class="tape-toggle-btn active-mode" onclick="cycleMediaFormat()" title="Cycle Format: TAPE / VINYL / DIGITAL">📼 TAPE</button>
+            <button class="exit-btn" onclick="exitApp()" title="Exit App">
+                <svg viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg>
+                OFF
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN AUDIO ELEMENT -->
+    <audio id="hifiAudio" crossorigin="anonymous" preload="auto" playsinline></audio>
+
+    <!-- TOP ROTARY AMP KNOBS PANEL WITH ILLUMINATED ACTIVE LEVEL GAUGES -->
+    <div class="compact-amp-panel">
+        <div class="amp-knobs-row">
+            <div class="amp-knob-unit">
+                <div class="knob-level-gauge">
+                    <svg viewBox="0 0 42 10" id="gaugeBass">
+                        <line x1="4" y1="5" x2="8" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="12" y1="5" x2="16" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="20" y1="5" x2="24" y2="5" stroke="#00e5ff" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="28" y1="5" x2="32" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="36" y1="5" x2="40" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div id="bassKnob" class="knob-3d"></div>
+                <span class="amp-knob-label">BASS</span>
+            </div>
+            <div class="amp-knob-unit">
+                <div class="knob-level-gauge">
+                    <svg viewBox="0 0 42 10" id="gaugeTreble">
+                        <line x1="4" y1="5" x2="8" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="12" y1="5" x2="16" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="20" y1="5" x2="24" y2="5" stroke="#00e5ff" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="28" y1="5" x2="32" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="36" y1="5" x2="40" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div id="trebleKnob" class="knob-3d"></div>
+                <span class="amp-knob-label">TREBLE</span>
+            </div>
+            <div class="amp-knob-unit">
+                <div class="knob-level-gauge">
+                    <svg viewBox="0 0 42 10" id="gaugeBalance">
+                        <line x1="4" y1="5" x2="8" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="12" y1="5" x2="16" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="20" y1="5" x2="24" y2="5" stroke="#ffaa00" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="28" y1="5" x2="32" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="36" y1="5" x2="40" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div id="balanceKnob" class="knob-3d"></div>
+                <span class="amp-knob-label">BALANCE</span>
+            </div>
+            <div class="amp-knob-unit">
+                <div class="knob-level-gauge">
+                    <svg viewBox="0 0 42 10" id="gaugeVolume">
+                        <line x1="4" y1="5" x2="8" y2="5" stroke="#00e5ff" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="12" y1="5" x2="16" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="20" y1="5" x2="24" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="28" y1="5" x2="32" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="36" y1="5" x2="40" y2="5" stroke="#252c38" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div id="masterVolumeKnob" class="knob-3d large"></div>
+                <span class="amp-knob-label">VOLUME</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESPONSIVE COMPONENT GRID (Vertical on Mobile / Dual-Rack on Desktop & Landscape) -->
+    <div class="hifi-horizontal-grid">
+        
+        <!-- COLUMN 1: METERS, SPECTRUM, 3D DECK WELL & NEXT QUEUE -->
+        <div class="rack-col">
+            <div class="vu-meters-wrapper">
+                <div class="vu-meter-unit">
+                    <div class="vu-scale">VU L</div>
+                    <div class="vu-peak-led" id="vuPeakL" title="Left Channel Peak Clip"></div>
+                    <div class="vu-meter-bg"></div>
+                    <div id="vuNeedleL" class="vu-needle"></div>
+                </div>
+                <div class="vu-meter-unit">
+                    <div class="vu-scale">VU R</div>
+                    <div class="vu-peak-led" id="vuPeakR" title="Right Channel Peak Clip"></div>
+                    <div class="vu-meter-bg"></div>
+                    <div id="vuNeedleR" class="vu-needle"></div>
+                </div>
+            </div>
+
+            <div class="visualizer-container">
+                <canvas id="visualizerCanvas" width="420" height="52"></canvas>
+            </div>
+
+            <div class="cassette-deck-well" id="cassetteDeckWell" title="Cassette / Turntable Deck Well">
+                <!-- EJECT ILLUMINATION BACKSTAGE WARM GLOW -->
+                <div class="eject-backlight-lamp"></div>
+
+                <!-- PHYSICAL MECHANICAL EJECT PUSH BUTTON -->
+                <button class="deck-eject-btn" onclick="cycleMediaFormat(event)" title="Mechanical Eject & Format Cycle">
+                    ⏏ EJECT
+                </button>
+
+                <!-- DIGITAL ILLUMINATED TAPE RUN-TIME COUNTER (MIN:SEC) WITH RESET BUTTON -->
+                <div class="tape-counter-bay">
+                    <span id="tapeCounterDigits" class="counter-digits" onclick="toggleCounterMode(event)" title="Click to Toggle: Elapsed / Remaining">00:00</span>
+                    <button class="counter-reset-btn" onclick="resetTapeCounter(event)" title="Reset to Start of Track">RESET</button>
+                </div>
+
+                <!-- 3D TILTING CASSETTE/VINYL DOOR TRAY -->
+                <div class="deck-tilt-tray" id="deckTiltTray">
+                    <svg class="cdeck-svg" viewBox="0 0 400 120" preserveAspectRatio="none">
+                        <defs>
+                            <radialGradient id="deckChamberGrad" cx="50%" cy="25%" r="70%">
+                                <stop offset="0%" stop-color="#1e232d"/>
+                                <stop offset="60%" stop-color="#0f1116"/>
+                                <stop offset="100%" stop-color="#050608"/>
+                            </radialGradient>
+
+                            <linearGradient id="tapeBody3D" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#3d4452"/>
+                                <stop offset="8%" stop-color="#282d37"/>
+                                <stop offset="88%" stop-color="#14171d"/>
+                                <stop offset="100%" stop-color="#0b0d11"/>
+                            </linearGradient>
+
+                            <linearGradient id="tapeLabelBevel" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#1e2430"/>
+                                <stop offset="100%" stop-color="#0a0c10"/>
+                            </linearGradient>
+
+                            <radialGradient id="ferricTapeGrad" cx="45%" cy="45%" r="55%">
+                                <stop offset="0%" stop-color="#4a2512"/>
+                                <stop offset="65%" stop-color="#2a140a"/>
+                                <stop offset="90%" stop-color="#190b05"/>
+                                <stop offset="100%" stop-color="#0d0502"/>
+                            </radialGradient>
+
+                            <radialGradient id="vinylShine3D" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#08090c"/>
+                                <stop offset="55%" stop-color="#1c2028"/>
+                                <stop offset="75%" stop-color="#0d0f14"/>
+                                <stop offset="92%" stop-color="#222833"/>
+                                <stop offset="100%" stop-color="#07080b"/>
+                            </radialGradient>
+
+                            <linearGradient id="metallicArm3D" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#f8fafc"/>
+                                <stop offset="30%" stop-color="#cbd5e1"/>
+                                <stop offset="70%" stop-color="#475569"/>
+                                <stop offset="100%" stop-color="#1e293b"/>
+                            </linearGradient>
+
+                            <radialGradient id="platterRimGrad" cx="40%" cy="40%" r="60%">
+                                <stop offset="0%" stop-color="#4a5568"/>
+                                <stop offset="70%" stop-color="#1a202c"/>
+                                <stop offset="100%" stop-color="#0b0e14"/>
+                            </radialGradient>
+
+                            <filter id="cassetteDropShadow" x="-5%" y="-5%" width="120%" height="125%">
+                                <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000000" flood-opacity="0.9"/>
+                            </filter>
+
+                            <filter id="tapePackShadow" x="-15%" y="-15%" width="130%" height="130%">
+                                <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000000" flood-opacity="0.8"/>
+                            </filter>
+
+                            <filter id="recessShadow" x="-5%" y="-5%" width="110%" height="115%">
+                                <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000000" flood-opacity="0.95"/>
+                            </filter>
+                        </defs>
+
+                        <rect width="400" height="120" fill="#181b22"/>
+                        <rect x="5" y="5" width="390" height="110" rx="6" fill="url(#deckChamberGrad)" stroke="#3a4250" stroke-width="1.8"/>
+                        <rect x="15" y="12" width="280" height="96" rx="5" fill="#08090d" stroke="#252b36" stroke-width="2"/>
+                        
+                        <g filter="url(#recessShadow)">
+                            <rect x="305" y="12" width="80" height="96" rx="4" fill="#14171f" stroke="#373f4e" stroke-width="1.5"/>
+                            <rect x="309" y="16" width="72" height="88" rx="3" fill="#080a0e" stroke="#1b2029" stroke-width="1"/>
+                            <line x1="310" y1="16" x2="380" y2="16" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+                        </g>
+                        
+                        <!-- 3D CASSETTE GRAPHICS GROUP -->
+                        <g id="svgCassetteGroup" filter="url(#cassetteDropShadow)">
+                            <path d="M 23 18 L 287 18 L 281 100 L 29 100 Z" fill="url(#tapeBody3D)" stroke="#454f60" stroke-width="1.5"/>
+                            <path d="M 24 19 L 286 19" stroke="rgba(255,255,255,0.3)" stroke-width="1.2"/>
+                            
+                            <rect x="48" y="28" width="214" height="46" rx="4" fill="url(#tapeLabelBevel)" stroke="#2b3340" stroke-width="1.8"/>
+                            <rect x="54" y="33" width="202" height="36" rx="3" fill="#120c08" stroke="#1f1813" stroke-width="1"/>
+                            
+                            <rect x="68" y="37" width="174" height="28" rx="2" fill="#2d1c13" opacity="0.95"/>
+                            
+                            <!-- DYNAMIC MAGNETIC TAPE PACKS LAYER -->
+                            <g id="magneticTapeLayer" filter="url(#tapePackShadow)">
+                                <circle id="tapePackLeft" cx="94" cy="52" r="26" fill="url(#ferricTapeGrad)" stroke="#1a0b05" stroke-width="0.8"/>
+                                <circle id="tapePackLinesL" cx="94" cy="52" r="23" fill="none" stroke="rgba(255, 170, 0, 0.08)" stroke-width="0.6" stroke-dasharray="2,2"/>
+                                <circle id="tapePackRight" cx="206" cy="52" r="14" fill="url(#ferricTapeGrad)" stroke="#1a0b05" stroke-width="0.8"/>
+                                <circle id="tapePackLinesR" cx="206" cy="52" r="11" fill="none" stroke="rgba(255, 170, 0, 0.08)" stroke-width="0.6" stroke-dasharray="2,2"/>
+                            </g>
+
+                            <circle cx="28" cy="24" r="2.5" fill="#94a3b8" stroke="#334155" stroke-width="0.8"/>
+                            <line x1="26.5" y1="24" x2="29.5" y2="24" stroke="#1e293b" stroke-width="0.6"/>
+                            <circle cx="282" cy="24" r="2.5" fill="#94a3b8" stroke="#334155" stroke-width="0.8"/>
+                            <line x1="280.5" y1="24" x2="283.5" y2="24" stroke="#1e293b" stroke-width="0.6"/>
+
+                            <text x="32" y="36" fill="#8c9cb0" font-family="'Orbitron', sans-serif" font-size="9" font-weight="900">90</text>
+                            <text x="228" y="36" fill="#e2e8f0" font-family="'Orbitron', sans-serif" font-size="8.5" font-weight="900" letter-spacing="0.5">TYPE I</text>
+                            <text x="32" y="55" fill="#ffaa00" font-family="'Orbitron', sans-serif" font-size="11" font-weight="900">A</text>
+                        </g>
+
+                        <!-- 3D VINYL TURNTABLE VECTOR GROUP -->
+                        <g id="svgVinylGroup" style="display: none;">
+                            <rect x="18" y="15" width="274" height="90" rx="4" fill="#07080b" stroke="#1b2029" stroke-width="1.5"/>
+                            <circle cx="155" cy="60" r="41" fill="url(#platterRimGrad)" stroke="#556275" stroke-width="1.4" filter="url(#recessShadow)"/>
+
+                            <g id="svgVinylPlatter">
+                                <circle cx="155" cy="60" r="38" fill="url(#vinylShine3D)" stroke="#1a2029" stroke-width="1"/>
+                                <circle cx="155" cy="60" r="35" fill="none" stroke="#252b36" stroke-width="1" stroke-dasharray="6,2"/>
+                                <circle cx="155" cy="60" r="31" fill="none" stroke="#181c24" stroke-width="0.7"/>
+                                <circle cx="155" cy="60" r="27" fill="none" stroke="#29303d" stroke-width="0.9" stroke-dasharray="10,2"/>
+                                <circle cx="155" cy="60" r="23" fill="none" stroke="#1a1e26" stroke-width="0.7"/>
+                                <circle cx="155" cy="60" r="19" fill="none" stroke="#28313e" stroke-width="0.9" stroke-dasharray="3,1.5"/>
+                                <circle cx="155" cy="60" r="36.5" fill="none" stroke="#00e5ff" stroke-width="0.7" stroke-dasharray="1.2,2.2" opacity="0.6"/>
+                                <circle cx="155" cy="60" r="13" fill="radial-gradient(circle, #ffaa00 0%, #b35900 85%)" stroke="#ffe082" stroke-width="1"/>
+                                <circle cx="155" cy="60" r="11" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.6"/>
+                                <text x="155" y="62" fill="#111" font-family="'Orbitron', sans-serif" font-size="4.2" font-weight="900" text-anchor="middle">33⅓</text>
+                                <circle cx="155" cy="60" r="2.2" fill="#e2e8f0" stroke="#0f172a" stroke-width="0.8"/>
+                                <circle cx="154.3" cy="59.3" r="0.6" fill="#ffffff"/>
+                            </g>
+
+                            <rect x="228" y="35" width="5" height="7" rx="1.2" fill="#1a202c" stroke="#334155" stroke-width="0.7"/>
+
+                            <g id="svgTonearmAssembly">
+                                <circle cx="240" cy="58" r="8" fill="#1e2430" stroke="#0d1117" stroke-width="1.3"/>
+                                <circle cx="240" cy="58" r="6.5" fill="url(#metallicArm3D)" stroke="#334155" stroke-width="0.9"/>
+                                <line x1="240" y1="58" x2="178" y2="58" stroke="url(#metallicArm3D)" stroke-width="2.3" stroke-linecap="round"/>
+                                <line x1="240" y1="57.4" x2="178" y2="57.4" stroke="rgba(255,255,255,0.7)" stroke-width="0.7"/>
+                                <rect x="243" y="55.5" width="7" height="5" rx="1.2" fill="#334155" stroke="#64748b" stroke-width="0.7"/>
+                                <polygon points="178,54 167,55 166,61 177,62" fill="#ffaa00" stroke="#ffffff" stroke-width="0.8"/>
+                                <circle cx="172" cy="58" r="1.3" fill="#111"/>
+                                <rect x="165" y="56.5" width="2.5" height="3" rx="0.6" fill="#e2e8f0"/>
+                            </g>
+                        </g>
+
+                        <!-- Neon Badge -->
+                        <g id="neonBadgeGroup" class="neon-badge-group" text-anchor="middle">
+                            <text class="neon-note" x="345" y="34" fill="#ffaa00" font-size="13" font-family="'Orbitron', sans-serif">♪ ♫ ♪</text>
+                            <text x="345" y="51" fill="#00e5ff" font-family="'Orbitron', sans-serif" font-size="8.5" font-weight="900" letter-spacing="1">KAYU</text>
+                            <text x="345" y="65" fill="#00e5ff" font-family="'Orbitron', sans-serif" font-size="8.5" font-weight="900" letter-spacing="1">ARA</text>
+                            <text x="345" y="79" fill="#ffaa00" font-family="'Orbitron', sans-serif" font-size="9.5" font-weight="900" letter-spacing="1.5">HITZ</text>
+                            <text class="neon-note-bottom" x="345" y="95" fill="#ffaa00" font-size="10" font-family="'Orbitron', sans-serif">♬ ♩</text>
+                        </g>
+                    </svg>
+
+                    <!-- 3D CASSETTE SPOOL HUBS OVERLAY -->
+                    <div class="spool-overlay-container">
+                        <div class="spool-left-wrapper"><div id="tapeLeft" class="tape-wheel"><div class="spoke-cross"><div class="spoke-bar-h"></div><div class="spoke-bar-v"></div></div></div></div>
+                        <div class="spool-right-wrapper"><div id="tapeRight" class="tape-wheel"><div class="spoke-cross"><div class="spoke-bar-h"></div><div class="spoke-bar-v"></div></div></div></div>
+                    </div>
+
+                    <!-- 3D ACRYLIC GLASS WINDOW -->
+                    <div class="acrylic-glass-pane">
+                        <svg viewBox="0 0 280 96" preserveAspectRatio="none" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; opacity: 0.75;">
+                            <line x1="140" y1="18" x2="140" y2="24" stroke="rgba(255,255,255,0.4)" stroke-width="0.8"/>
+                            <line x1="135" y1="21" x2="145" y2="21" stroke="rgba(255,255,255,0.4)" stroke-width="0.8"/>
+                            <line x1="72" y1="78" x2="72" y2="84" stroke="rgba(255,170,0,0.7)" stroke-width="1"/>
+                            <line x1="89" y1="80" x2="89" y2="84" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+                            <line x1="106" y1="80" x2="106" y2="84" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+                            <line x1="123" y1="80" x2="123" y2="84" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+                            <line x1="140" y1="77" x2="140" y2="84" stroke="rgba(0,229,255,0.85)" stroke-width="1.2"/>
+                            <line x1="157" y1="80" x2="157" y2="84" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+                            <line x1="174" y1="80" x2="174" y2="84" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+                            <line x1="191" y1="80" x2="191" y2="84" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+                            <line x1="208" y1="78" x2="208" y2="84" stroke="rgba(255,170,0,0.7)" stroke-width="1"/>
+                            <text x="72" y="75" fill="rgba(255,170,0,0.6)" font-family="'Orbitron', sans-serif" font-size="4.5" font-weight="800" text-anchor="middle">0</text>
+                            <text x="140" y="74" fill="rgba(0,229,255,0.75)" font-family="'Orbitron', sans-serif" font-size="4.5" font-weight="900" text-anchor="middle">50</text>
+                            <text x="208" y="75" fill="rgba(255,170,0,0.6)" font-family="'Orbitron', sans-serif" font-size="4.5" font-weight="800" text-anchor="middle">100</text>
+                        </svg>
+
+                        <div class="acrylic-micro-scratches"></div>
+                        <div class="acrylic-static-glare"></div>
+                        <div class="acrylic-interactive-sheen" id="glassSheenGlow"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEXT SONG TO PLAY BANNER -->
+            <div id="nextTrackBanner" class="next-track-banner" onclick="playNext()" title="Click to play next song now">
+                <span class="next-queue-tag">NEXT QUEUE ▶</span>
+                <span id="nextTrackTitle" class="next-queue-title">Loading queue...</span>
+            </div>
+        </div>
+
+        <!-- COLUMN 2: VFD DISPLAY, MANUAL ROTARY TUNER & TRANSPORT -->
+        <div class="rack-col">
+            <div class="vfd-display-panel">
+                <div id="vfdOfflineBanner" class="vfd-offline-alert">⚠ NO INTERNET - LOCAL / CACHE ONLY</div>
+                <p id="nowPlayingSubtitle">🎵 ♪ ♫ 🎶</p>
+                <p id="currentTrackTitle">Kayu Ara - Mix hitz</p>
+            </div>
+
+            <div class="fm-tuner-panel" id="fmTunerPanel">
+                <div class="fm-tuner-header">
+                    <span class="fm-tuner-label">FM TUNER PRESETS</span>
+                    <button id="fmSaveToggleBtn" class="fm-save-toggle-btn" onclick="toggleFmSaveMode(event)" title="Click to toggle preset save mode">
+                        💾 SET PRESET
+                    </button>
+                </div>
+                
+                <!-- ANALOG FM FREQUENCY TUNING SCALE -->
+                <div class="fm-tuning-assembly">
+                    <div class="fm-scale-window" id="fmScaleWindow">
+                        <div class="fm-scale-readout">
+                            <span id="fmFreqVal">96.3 MHz</span>
+                            <span id="fmStereoBeacon" class="fm-stereo-beacon tuned">STEREO</span>
+                            <span id="fmStationCallsign">MINNAL</span>
+                        </div>
+                        <div style="position: relative; width: 100%; height: 16px;">
+                            <svg class="fm-scale-ticks" viewBox="0 0 200 12" preserveAspectRatio="none">
+                                <line x1="0" y1="12" x2="200" y2="12" stroke="#333f50" stroke-width="1"/>
+                                <line x1="5" y1="4" x2="5" y2="12" stroke="#ffaa00" stroke-width="1.2"/>
+                                <line x1="25" y1="8" x2="25" y2="12" stroke="#556275" stroke-width="0.8"/>
+                                <line x1="45" y1="6" x2="45" y2="12" stroke="#889ab0" stroke-width="1"/>
+                                <line x1="65" y1="8" x2="65" y2="12" stroke="#556275" stroke-width="0.8"/>
+                                <line x1="85" y1="4" x2="85" y2="12" stroke="#ffaa00" stroke-width="1.2"/>
+                                <line x1="105" y1="8" x2="105" y2="12" stroke="#556275" stroke-width="0.8"/>
+                                <line x1="125" y1="6" x2="125" y2="12" stroke="#889ab0" stroke-width="1"/>
+                                <line x1="145" y1="8" x2="145" y2="12" stroke="#556275" stroke-width="0.8"/>
+                                <line x1="165" y1="4" x2="165" y2="12" stroke="#ffaa00" stroke-width="1.2"/>
+                                <line x1="185" y1="8" x2="185" y2="12" stroke="#556275" stroke-width="0.8"/>
+                                <line x1="195" y1="4" x2="195" y2="12" stroke="#ffaa00" stroke-width="1.2"/>
+                            </svg>
+                            <div id="fmTuningNeedle" class="fm-tuning-needle" style="left: 41.5%;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Physical Rotary Tuning Wheel -->
+                    <div class="fm-rotary-wheel-unit">
+                        <div id="fmTuningKnob" class="knob-3d" title="Click to Power ON/OFF • Drag to Tune"></div>
+                        <span id="tunerKnobStatusLabel" class="amp-knob-label" style="font-size: 0.46rem; color: #ffaa00;">PWR / TUNE</span>
+                    </div>
+                </div>
+
+                <!-- 5x2 SQUEEZED PRESET GRID (9 Stored Stations + OFF Button) -->
+                <div class="fm-buttons-grid">
+                    <button class="fm-preset-btn" data-preset="1" onclick="handlePresetClick(1, event)">MINNAL</button>
+                    <button class="fm-preset-btn" data-preset="2" onclick="handlePresetClick(2, event)">RAAGA</button>
+                    <button class="fm-preset-btn" data-preset="3" onclick="handlePresetClick(3, event)">BIG FM</button>
+                    <button class="fm-preset-btn" data-preset="4" onclick="handlePresetClick(4, event)">SINAR</button>
+                    <button class="fm-preset-btn" data-preset="5" onclick="handlePresetClick(5, event)">LITE</button>
+                    <button class="fm-preset-btn" data-preset="6" onclick="handlePresetClick(6, event)">MY FM</button>
+                    <button class="fm-preset-btn" data-preset="7" onclick="handlePresetClick(7, event)">OLI 96.8</button>
+                    <button class="fm-preset-btn" data-preset="8" onclick="handlePresetClick(8, event)">SOORIYAN</button>
+                    <button class="fm-preset-btn" data-preset="9" onclick="handlePresetClick(9, event)">ILAYARAJA</button>
+                    <button class="fm-preset-btn off-btn" id="btnTunerOff" onclick="turnOffRadio(event)">HI-FI</button>
+                </div>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-row">
+                    <span id="currentTime" class="time-display">0:00</span>
+                    <input type="range" id="progressSlider" min="0" max="0" value="0" />
+                    <span id="duration" class="time-display">0:00</span>
+                </div>
+
+                <div class="button-row">
+                    <button id="restartButton" class="music-button" onclick="restartTrack()" title="Reconnect / Start Again">
+                        <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+                    </button>
+                    <button id="prevButton" class="music-button" onclick="playPrevious()" title="Previous Song">
+                        <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                    </button>
+                    <button id="playButton" class="music-button" onclick="togglePlayPause()" title="Play">
+                        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </button>
+                    <button id="pauseButton" class="music-button" onclick="togglePlayPause()" style="display:none;" title="Pause">
+                        <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    </button>
+                    <button id="nextButton" class="music-button" onclick="playNext()" title="Next Song">
+                        <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                    </button>
+                    <button id="shuffleButton" class="music-button active-mode" onclick="toggleShuffle()" title="Shuffle">
+                        <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.45 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+                    </button>
+                    <button id="cacheTrackBtn" class="music-button" onclick="toggleSaveCurrentTrack()" title="Download & Save for Offline Playback">
+                        <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+                    </button>
+                    <div class="dropdown">
+                        <button onclick="togglePlaylistDropdown()" class="music-button" title="Playlist"><span class="pl-text">PL</span></button>
+                        <div id="playlistDropdown" class="dropdown-content">
+                            <!-- TABS: ALL vs OFFLINE ONLY -->
+                            <div class="playlist-tab-bar">
+                                <button class="pl-filter-tab active-tab" id="tabAllSongs" onclick="switchPlaylistTab('all', event)">ALL SONGS</button>
+                                <button class="pl-filter-tab" id="tabOfflineSongs" onclick="switchPlaylistTab('offline', event)">💾 OFFLINE ONLY</button>
+                            </div>
+
+                            <!-- LIVE SEARCH BAR -->
+                            <div class="playlist-search-container">
+                                <span class="search-icon">🔍</span>
+                                <input type="text" id="playlistSearchInput" class="playlist-search-input" placeholder="SEARCH SONGS..." oninput="handlePlaylistSearch(event)" />
+                                <button id="clearSearchBtn" class="clear-search-btn" onclick="clearPlaylistSearch(event)" title="Clear Search">✕</button>
+                            </div>
+
+                            <!-- BULK ACTIONS + STORAGE QUOTA & PERCENTAGE BAR -->
+                            <div class="storage-info-row">
+                                <div class="storage-text-line">
+                                    <span class="storage-info-label">OFFLINE USAGE:</span>
+                                    <span id="storageUsageLabel" class="storage-usage-val">0.0 MB (0%)</span>
+                                </div>
+                                <div class="storage-progress-track">
+                                    <div id="storageProgressBar" class="storage-progress-fill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div class="bulk-download-bar">
+                                <button id="bulkDownloadBtn" class="bulk-btn" onclick="toggleBulkDownload(event)">
+                                    ⬇ SAVE ALL (<span id="savedCountLabel">0</span>/<span id="totalCountLabel">0</span>)
+                                </button>
+                                <button id="clearStorageBtn" class="bulk-btn clear-btn" onclick="clearAllOfflineStorage(event)" title="Wipe all offline tracks from device">
+                                    🗑 CLEAR
+                                </button>
+                            </div>
+
+                            <label for="localFileInput">📄 Pick Songs / Files...</label>
+                            <input type="file" id="localFileInput" multiple accept="audio/*" style="display:none;" onchange="handleLocalFiles(event)" />
+                            <label for="folderInput">📂 Pick Folder / Subfolder...</label>
+                            <input type="file" id="folderInput" webkitdirectory directory accept="audio/*" style="display:none;" onchange="handleLocalFiles(event)" />
+                            <div id="dropdownTrackList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="volume-container">
+                    <span id="volumeIcon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                        </svg>
+                    </span>
+                    <input type="range" id="volumeSlider" min="0" max="5.0" step="0.1" value="1.0" />
+                    <button id="boostButton" class="boost-btn" onclick="cycleBoostMode()"><span id="boostText">1.0x</span></button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script id="playerScript">
+    var playlist = [
+        { title: "Abracadabara", src: "https://raw.githack.com/chanbai955/mp3/main/abracadabra!!s.mp3" },
+        { title: "AdukkuMalliYeduthu", src: "https://raw.githack.com/chanbai955/mp3/main/AdukkuMalliYeduthu%20.mp3" },
+        { title: "Always On My Mind", src: "https://raw.githack.com/chanbai955/mp3/main/Willie%20Nelson%20-%20Always%20On%20My%20Mind.mp3" },
+        { title: "Always SomeWhere", src: "https://raw.githack.com/chanbai955/mp3/main/Always%20Somewhere%20-%20Scorpions%20.mp3" },
+        { title: "Ammadi UN Azhagu", src: "https://raw.githack.com/chanbai955/mp3/main/Ammadi%20Un%20Azhagu%20.mp3" },
+        { title: "Anbae Peranbae", src: "https://raw.githack.com/chanbai955/mp3/main/%20Anbae%20Peranbae%20.mp3" },
+        { title: "Andainya Ku Pergi Dulu", src: "https://raw.githack.com/chanbai955/mp3/main/Andainya%20Aku%20Pergi%20Dulu.mp3" },
+        { title: "Apo nak Dikato", src: "https://raw.githack.com/chanbai955/mp3/main/Blues%20Gang%20Apo%20-%20Nak%20Dikato.mp3" },
+        { title: "Aarengum Thaan Uranga", src: "https://raw.githack.com/chanbai955/mp3/main/Aarengumthan%20Urange.mp3" },
+        { title: "Ayyayyo", src: "https://raw.githack.com/chanbai955/mp3/main/Ayyayyo.mp3" },
+        { title: "Beat It", src: "https://raw.githack.com/chanbai955/mp3/main/Micheal%20Jackson%20-%20Beat%20It.mp3" },
+        { title: "Because I Got High", src: "https://raw.githack.com/chanbai955/mp3/main/Afroman%20-%20Because%20I%20Got%20High.mp3" },
+        { title: "Billie Jean", src: "https://raw.githack.com/chanbai955/mp3/main/Michael%20Jackson%20-%20Billie%20Jean.mp3" },
+        { title: "Black Magic Women", src: "https://raw.githack.com/chanbai955/mp3/main/Santana_Black-Magic-Woman-Gypsy-Queen.mp3" },
+        { title: "Cheri Cheri Lady", src: "https://raw.githack.com/chanbai955/mp3/main/ModernTalking-CheriCheriLady98.mp3" },
+        { title: "DilLagaLiya", src: "https://raw.githack.com/chanbai955/mp3/main/DilLagaLiya%20.mp3" },
+        { title: "Dont forget to remember me", src: "https://raw.githack.com/chanbai955/mp3/main/Don't%20Forget%20To%20Remember%20Me%20%E2%80%93%20Bee%20Gees%20.mp3" },
+        { title: "Ellarum Cholanum", src: "https://raw.githack.com/chanbai955/mp3/main/Ellarum%20chollanu%20.mp3" },
+        { title: "Ellu Vaya Pookalaye", src: "https://raw.githack.com/chanbai955/mp3/main/%20Ellu%20Vaya%20Pookalaye%20.mp3" },
+        { title: "EnKanmani", src: "https://raw.githack.com/chanbai955/mp3/main/EnKanmani.mp3" },
+        { title: "Enge antha venila", src: "https://raw.githack.com/chanbai955/mp3/main/Enge%20Andha%20Vennila%20.mp3" },
+        { title: "Eppadi Vandhaayo", src: "https://raw.githack.com/chanbai955/mp3/main/Eppadi%20Vandhaayo%20.mp3" },
+        { title: "Every Breath You Take", src: "https://raw.githack.com/chanbai955/mp3/main/Police%20-%20Every%20Breath%20You%20Take.mp3" },
+        { title: "Get Up Stand UP", src: "https://raw.githack.com/chanbai955/mp3/main/Bob%20Marley%20-%20Get%20Up%20Stand%20Up.mp3" },
+        { title: "Hanya Satu Persinggahan", src: "https://raw.githack.com/chanbai955/mp3/main/%20HanyaSatuPersinggahan.mp3" },
+        { title: "Hello", src: "https://raw.githack.com/chanbai955/mp3/main/HELLO%20-%20%20LIONEL%20RICHIE%20.mp3" },
+        { title: "Highway Star", src: "https://raw.githack.com/chanbai955/mp3/main/Deep%20Purple%20-%20Highway%20Star%20.mp3" },
+        { title: "Highway to Hell", src: "https://raw.githack.com/chanbai955/mp3/main/AC%E2%A7%B8DC%20-%20Highway%20to%20Hell%20.mp3" },
+        { title: "Hingga Akhir Nanti", src: "https://raw.githack.com/chanbai955/mp3/main/Hingga%20Akhir%20Nanti.mp3" },
+        { title: "Holy Diver", src: "https://raw.githack.com/chanbai955/mp3/main/Dio%20-%20Holy%20Diver.mp3" },
+        { title: "Hotel california", src: "https://raw.githack.com/chanbai955/mp3/main/Eagles%20-%20Hotel%20California%20(Original).mp3" },
+        { title: "I Love You", src: "https://raw.githack.com/chanbai955/mp3/main/C%C3%A9line%20Dion%20-%20I%20Love%20You.mp3" },
+        { title: "Islands in the stream", src: "https://raw.githack.com/chanbai955/mp3/main/Islands%20In%20the%20Stream.mp3" },
+        { title: "Kaanakarunguyile Kathal", src: "https://raw.githack.com/chanbai955/mp3/main/Kaanakarunguyile%20Kathal.mp3" },
+        { title: "KaalangalilVasantham", src: "https://raw.githack.com/chanbai955/mp3/main/KaalangalilVasantham%20.mp3" },
+        { title: "Kallelaam Maanikka", src: "https://raw.githack.com/chanbai955/mp3/main/Kallelaam%20Maanikka.mp3" },
+        { title: "Kanna Kaattu Podhum", src: "https://raw.githack.com/chanbai955/mp3/main/%20Kanna%20Kaattu%20Podhum.mp3" },
+        { title: "Kannukullae Unnai Vaithen", src: "https://raw.githack.com/chanbai955/mp3/main/Kannukullae%20Unnai%20Vaithen%20.mp3" },
+        { title: "Karma Chameleon", src: "https://raw.githack.com/chanbai955/mp3/main/Culture%20Club%20-%20Karma%20Chameleon.mp3" },
+        { title: "Kerana", src: "https://raw.githack.com/chanbai955/mp3/main/Kerana.mp3" },
+        { title: "Keralanaadu", src: "https://raw.githack.com/chanbai955/mp3/main/Keralanaadu.mp3" },
+        { title: "Knockin Heavens Door", src: "https://raw.githack.com/chanbai955/mp3/main/%20Knockin'%20On%20Heaven's%20Door%20.mp3" },
+        { title: "Konjam Nearam", src: "https://raw.githack.com/chanbai955/mp3/main/%20Innum%20Konjam%20Naeram%20.mp3" },
+        { title: "Koodamela", src: "https://raw.githack.com/chanbai955/mp3/main/%20Koodamela%20Koodavechi.mp3" },
+        { title: "Kudagu Malai", src: "https://raw.githack.com/chanbai955/mp3/main/Kudagu%20Malai%20.mp3" },
+        { title: "Kuruku Sirithavale", src: "https://raw.githack.com/chanbai955/mp3/main/Kurukku%20siruthavale%20.mp3" },
+        { title: "Kuzhal Oothum Kannanukku", src: "https://raw.githack.com/chanbai955/mp3/main/Kuzhal%20Oothum%20Kannanukku%20Song%20.mp3" },
+        { title: "Layang-layang", src: "https://raw.githack.com/chanbai955/mp3/main/Layang%20Layang%20Terputus%20talinya.mp3" },
+        { title: "Like A Virgin", src: "https://raw.githack.com/chanbai955/mp3/main/Madonna-Like%20a%20virg%C3%ADn.mp3" },
+        { title: "MaalaiSooda", src: "https://raw.githack.com/chanbai955/mp3/main/MaalaiSooda%20.mp3" },
+        { title: "Maalaiyil Yaaro Manathodu Pesa", src: "https://raw.githack.com/chanbai955/mp3/main/Maalaiyil%20Yaaro%20Manathodu%20Pesa%20.MP3" },
+        { title: "Malai Kaatru", src: "https://raw.githack.com/chanbai955/mp3/main/Malai%20Kaatru%20.mp3" },
+        { title: "Malarea Mounama", src: "https://raw.githack.com/chanbai955/mp3/main/Malare%20Mounama.mp3" },
+        { title: "MalarnthumMalaradha", src: "https://raw.githack.com/chanbai955/mp3/main/MalarnthumMalaradha.mp3" },
+        { title: "Mallipoo", src: "https://raw.githack.com/chanbai955/mp3/main/Mallipoo%20.mp3" },
+        { title: "Maonamana Neraam", src: "https://raw.githack.com/chanbai955/mp3/main/Maonamana%20neraam.mp3" },
+        { title: "Mun Paniya", src: "https://raw.githack.com/chanbai955/mp3/main/Mun%20Paniya.mp3" },
+        { title: "MuthukkuMuthaga", src: "https://raw.githack.com/chanbai955/mp3/main/MuthukkuMuthaga.mp3" },
+        { title: "Muzhumathi", src: "https://raw.githack.com/chanbai955/mp3/main/Muzhumathi.mp3" },
+        { title: "My Heart Will Go On", src: "https://raw.githack.com/chanbai955/mp3/main/My%20Heart%20Will%20Go%20On.mp3" },
+        { title: "Naam", src: "https://raw.githack.com/chanbai955/mp3/main/Naam%20.mp3" },
+        { title: "Naan Erikkarai", src: "https://raw.githack.com/chanbai955/mp3/main/Naan%20Erikkarai.mp3" },
+        { title: "Naan Malarodu", src: "https://raw.githack.com/chanbai955/mp3/main/Naan%20Malarodu.mp3" },
+        { title: "Nannaga Nanaeruthan", src: "https://raw.githack.com/chanbai955/mp3/main/Nannaga%20Nanaeruthan.mp3" },
+        { title: "NeeKattumSelai", src: "https://raw.githack.com/chanbai955/mp3/main/NeeKattumSelai.mp3" },
+        { title: "Neethanae", src: "https://raw.githack.com/chanbai955/mp3/main/%20Neethanae.mp3" },
+        { title: "Neeyam Naanum", src: "https://raw.githack.com/chanbai955/mp3/main/%20Neeyum%20Naanum.mp3" },
+        { title: "Nejil Maamazhai", src: "https://raw.githack.com/chanbai955/mp3/main/Nejil%20Maamazhai%20.mp3" },
+        { title: "Nota Terakhir", src: "https://raw.githack.com/chanbai955/mp3/main/Alleycats%20-%20Nota%20Terakhir%20.mp3" },
+        { title: "Odugira", src: "https://raw.githack.com/chanbai955/mp3/main/Odugira.mp3" },
+        { title: "Oru Sanam", src: "https://raw.githack.com/chanbai955/mp3/main/Oru%20Sanam.MP3" },
+        { title: "Paakatha", src: "https://raw.githack.com/chanbai955/mp3/main/Paakatha%20.mp3" },
+        { title: "Paattukku Patteduthu", src: "https://raw.githack.com/chanbai955/mp3/main/Paattukku%20Patteduthu%20.mp3" },
+        { title: "Pattu Vanna Rosava", src: "https://raw.githack.com/chanbai955/mp3/main/Pattu%20Vanna%20Rosava.mp3" },
+        { title: "Perfect Strangers", src: "https://raw.githack.com/chanbai955/mp3/main/Deep%20Purple%20%20-%20Perfect%20Strangers%20.mp3" },
+        { title: "PongatruThirumbuma", src: "https://raw.githack.com/chanbai955/mp3/main/PongatruThirumbuma%20.mp3" },
+        { title: "Poongaathe Poongaathe", src: "https://raw.githack.com/chanbai955/mp3/main/Poongaathe%20Poongaathe.mp3" },
+        { title: "Poravale Ponnuthaiyee", src: "https://raw.githack.com/chanbai955/mp3/main/Poravale%20Ponnuthaiyee.mp3" },
+        { title: "PuthamPudhuKaalai", src: "https://raw.githack.com/chanbai955/mp3/main/PuthamPudhuKaalai%20.mp3" },
+        { title: "Raasathi Unna", src: "https://raw.githack.com/chanbai955/mp3/main/Raasathi%20Unna.mp3" },
+        { title: "Raasave", src: "https://raw.githack.com/chanbai955/mp3/main/Raasave.mp3" },
+        { title: "Rhythm of the Rain", src: "https://raw.githack.com/chanbai955/mp3/main/%20Rhythm%20Of%20The%20Rain!s.mp3" },
+        { title: "Right Here waiting for You", src: "https://raw.githack.com/chanbai955/mp3/main/Richard%20Marx%20-%20Right%20Here%20Waiting%20For%20You.mp3" },
+        { title: "Rojamalare", src: "https://raw.githack.com/chanbai955/mp3/main/rojamalare.mp3" },
+        { title: "SaamiKittaSolli", src: "https://raw.githack.com/chanbai955/mp3/main/SaamiKittaSolli.mp3" },
+        { title: "Sampaikan Salam Cintaku", src: "https://raw.githack.com/chanbai955/mp3/main/Sampaikan%20Salam%20Cintaku.mp3" },
+        { title: "Sekuntum Mawar Merah", src: "https://raw.githack.com/chanbai955/mp3/main/Sekuntum%20Mawar%20Merah%20Sebuah%20Puisi.mp3" },
+        { title: "Send me An Angel", src: "https://raw.githack.com/chanbai955/mp3/main/Scorpions%20-%20Send%20me%20an%20angel%20.mp3" },
+        { title: "SenthazhamPoovil", src: "https://raw.githack.com/chanbai955/mp3/main/SenthazhamPoovil%20.mp3" },
+        { title: "Setahun Sudah Berlalu", src: "https://raw.githack.com/chanbai955/mp3/main/Setahun%20Sudah%20Berlalu.mp3" },
+        { title: "Short Clips-002", src: "https://raw.githack.com/chanbai955/mp3/main/shortclips-002.mp3" },
+        { title: "Smoke Is Going Down", src: "https://raw.githack.com/chanbai955/mp3/main/Scorpions%20-%20When%20The%20Smoke%20Is%20Going%20Down%20.mp3" },
+        { title: "Smoke On The Water", src: "https://raw.githack.com/chanbai955/mp3/main/Deep%20Purple%20-%20Smoke%20On%20the%20Water%20.mp3" },
+        { title: "Smooth Criminal", src: "https://raw.githack.com/chanbai955/mp3/main/Smooth%20Operator%20-sade.mp3" },
+        { title: "Solai Pushpangale", src: "https://raw.githack.com/chanbai955/mp3/main/Solai%20Pushpangale.mp3" },
+        { title: "Soldier of Fortune", src: "https://raw.githack.com/chanbai955/mp3/main/Soldier%20of%20Fortune.mp3" },
+        { title: "Sollitaley ava", src: "https://raw.githack.com/chanbai955/mp3/main/%20Sollitaley%20Ava%20Kaadhala%20.mp3" },
+        { title: "Still Loving You", src: "https://raw.githack.com/chanbai955/mp3/main/Scorpions%20-%20Still%20Loving%20You.mp3" },
+        { title: "Suara Kekasih", src: "https://raw.githack.com/chanbai955/mp3/main/Suara%20Kekasih.mp3" },
+        { title: "SuciDalamDebu", src: "https://raw.githack.com/chanbai955/mp3/main/SuciDalamDebu.mp3" },
+        { title: "Suratan", src: "https://raw.githack.com/chanbai955/mp3/main/Suratan.mp3" },
+        { title: "ThalattumPoongatru", src: "https://raw.githack.com/chanbai955/mp3/main/ThalattumPoongatru%20.mp3" },
+        { title: "To Love Somebody", src: "https://raw.githack.com/chanbai955/mp3/main/Bee%20Gees%20-%20To%20Love%20Somebody.mp3" },
+        { title: "Unnai Thaane", src: "https://raw.githack.com/chanbai955/mp3/main/%E0%AE%89%E0%AE%A9%E0%AF%8D%E0%AE%A9%E0%AF%88%20%E0%AE%A4%E0%AE%BE%E0%AE%A9%E0%AF%87%20.MP3" },
+        { title: "UrugutheyMaruguthey", src: "https://raw.githack.com/chanbai955/mp3/main/UrugutheyMaruguthey%20.mp3" },
+        { title: "ValarnthaKalai", src: "https://raw.githack.com/chanbai955/mp3/main/ValarnthaKalai%20.mp3" },
+        { title: "Vella Manam", src: "https://raw.githack.com/chanbai955/mp3/main/Vella%20Marnam%20Ulla%20Macha.MP3" },
+        { title: "Vennilave", src: "https://raw.githack.com/chanbai955/mp3/main/Vennilave%20Vennilave%20.mp3" },
+        { title: "Wind Of Change", src: "https://raw.githack.com/chanbai955/mp3/main/51.Scorpions%20-%20Wind%20Of%20Change.mp3" },
+        { title: "Wonderful World", src: "https://raw.githack.com/chanbai955/mp3/main/Sam%20Cooke%20-%20Wonderful%20World.mp3" },
+        { title: "Wonderful World tonight", src: "https://raw.githack.com/chanbai955/mp3/main/Eric%20Clapton_Wonderful%20Tonight.mp3" },
+        { title: "Yenna Marenthe Poluthe", src: "https://raw.githack.com/chanbai955/mp3/main/Yenna%20Marenthe%20Poluthe.MP3" },
+        { title: "You Send Me", src: "https://raw.githack.com/chanbai955/mp3/main/Kenny%20G%20&%20Micheal%20Bolton%20-%20You%20Send%20Me.mp3" },
+        { title: "Your Man", src: "https://raw.githack.com/chanbai955/mp3/main/Josh%20Turner%20-%20Your%20Man.mp3" }
+    ];
+
+    playlist.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+
+    /* FM STATIONS (With 92.7 BIG FM, SYOK India Beat & AIR Trichy) */
+    var fmStations = {
+        minnal: { title: "Minnal FM (96.3)", freq: 96.3, query: "minnal fm", backup: "https://stream.zeno.fm/f3v48y5168uvh", useApi: true },
+        raaga: { title: "THR Raaga (99.3)", freq: 99.3, query: "thr raaga", backup: "https://astro3.astro.com.my/raaga/raaga.m3u8", useApi: true },
+        suria: { title: "92.7 BIG FM India", freq: 92.7, query: "92.7 big fm", backup: "https://stream.zeno.fm/0r0xa792kwzuv", useApi: true },
+        indiabeat: { title: "SYOK India Beat (Astro 864)", freq: 94.5, query: "india beat", backup: "https://audio1.syok.my/dvr_india.m3u8", useApi: true },
+        trichy: { title: "AIR Trichy FM Rainbow (102.1)", freq: 102.1,     query: "tiruchirappalli",     backup: "https://air.pc.cdn.bitgravity.com/air/live/pcrchannel26/playlist.m3u8",     useApi: false },
+        sinar: { title: "Sinar FM (96.7)", freq: 96.7, query: "sinar fm", backup: "https://astro3.astro.com.my/sinar/sinar.m3u8", useApi: true },
+        lite: { title: "Lite FM (105.7)", freq: 105.7, query: "lite fm", backup: "https://stream.rcs.revma.com/bn4ex8sbv4uvv/5_18oihpcuu06zk02/playlist.m3u8", useApi: true },
+        my: { title: "MY FM (101.8)", freq: 101.8, query: "my fm", backup: "https://astro3.astro.com.my/my/my.m3u8", useApi: true },
+        oli: { title: "Oli 96.8 FM Singapore", freq: 96.8, query: "oli 96.8", backup: "https://mediacorp.coltcdn.com/oli968/live.m3u8", useApi: true },
+        sooriyan: { title: "Sooriyan FM Sri Lanka (103.4)", freq: 103.4, query: "sooriyan fm", backup: "https://shaincast.riereta.net/listen/sooriyan_fm/radio.mp3", useApi: true },
+        ilayaraja: { title: "Ilayaraja FM Hits (106.5)", freq: 106.5, query: "ilayaraja radio", backup: "https://sp4.v3http.xyz/radio/8020/radio.mp3", useApi: true },
+        airtamil80s: { title: "80's Tamil Hits - AIR Tamil (91.2)", freq: 91.2, query: "80s tamil hits", backup: "https://sp4.v3http.xyz/radio/8040/radio.mp3", useApi: true },
+        arrahman: { title: "A.R. Rahman Radio (89.5)", freq: 89.5, query: "ar rahman radio", backup: "https://sp4.v3http.xyz/radio/8010/radio.mp3", useApi: true },
+        wbgo: { title: "WBGO Jazz 88.3 FM (New York)", freq: 88.3, query: "wbgo", backup: "https://ais-sa8.cdnstream1.com/3629_128.mp3", useApi: true }
+    };
+
+    var defaultPresetSlots = {
+        1: { name: "MINNAL", key: "minnal", freq: 96.3 },
+        2: { name: "RAAGA", key: "raaga", freq: 99.3 },
+        3: { name: "SINAR", key: "sinar", freq: 96.7 },
+        4: { name: "ILAYARAJA", key: "ilayaraja", freq: 106.5 },
+        5: { name: "ARRAHMAN", key: "arrahman", freq: 89.5 },
+        6: { name: "LITE", key: "lite", freq: 105.7 },
+        7: { name: "MY FM", key: "my", freq: 101.8 },
+        8: { name: "OLI 96.8", key: "oli", freq: 96.8 },
+        9: { name: "SOORIYAN", key: "sooriyan", freq: 103.4 }
+    };
+
+    var userPresetSlots = {};
+    var isFmSaveModeActive = false;
+
+    var activeFmKey = null;
+    var currentStreamUrl = null;
+    var hls = null;
+
+    /* --- NATIVE AUDIO & ENGINE REFERENCES --- */
+    var hifiAudio = document.getElementById('hifiAudio');
+    var loadTimeout = null;
+    var isPageHidden = false;
+
+    var currentTrackTitle = document.getElementById('currentTrackTitle');
+    var nowPlayingSubtitle = document.getElementById('nowPlayingSubtitle');
+    var nextTrackTitle = document.getElementById('nextTrackTitle');
+    var nextTrackBanner = document.getElementById('nextTrackBanner');
+    var tapeCounterDigits = document.getElementById('tapeCounterDigits');
+    var fmFreqVal = document.getElementById('fmFreqVal');
+    var fmStereoBeacon = document.getElementById('fmStereoBeacon');
+    var fmStationCallsign = document.getElementById('fmStationCallsign');
+    var fmTuningNeedle = document.getElementById('fmTuningNeedle');
+    var fmSaveToggleBtn = document.getElementById('fmSaveToggleBtn');
+
+    var playButton = document.getElementById('playButton');
+    var pauseButton = document.getElementById('pauseButton');
+    var shuffleButton = document.getElementById('shuffleButton');
+    var playlistDropdown = document.getElementById('playlistDropdown');
+    var dropdownTrackList = document.getElementById('dropdownTrackList');
+    var volumeSlider = document.getElementById('volumeSlider');
+    var boostText = document.getElementById('boostText');
+    var progressSlider = document.getElementById('progressSlider');
+    var currentTimeSpan = document.getElementById('currentTime');
+    var durationSpan = document.getElementById('duration');
+    var cacheTrackBtn = document.getElementById('cacheTrackBtn');
+    var vfdOfflineBanner = document.getElementById('vfdOfflineBanner');
+
+    var tapeLeft = document.getElementById('tapeLeft');
+    var tapeRight = document.getElementById('tapeRight');
+    var packLeftEl = document.getElementById('tapePackLeft');
+    var packRightEl = document.getElementById('tapePackRight');
+    var linesLeftEl = document.getElementById('tapePackLinesL');
+    var linesRightEl = document.getElementById('tapePackLinesR');
+
+    var svgCassetteGroup = document.getElementById('svgCassetteGroup');
+    var svgVinylGroup = document.getElementById('svgVinylGroup');
+    var svgVinylPlatter = document.getElementById('svgVinylPlatter');
+    var svgTonearmAssembly = document.getElementById('svgTonearmAssembly');
+    var spoolOverlayContainer = document.querySelector('.spool-overlay-container');
+    var neonBadgeGroup = document.getElementById('neonBadgeGroup');
+    var glassSheenGlow = document.getElementById('glassSheenGlow');
+    var cassetteDeckWell = document.getElementById('cassetteDeckWell');
+    var badgeBassEnergy = 0;
+
+    var vuNeedleL = document.getElementById('vuNeedleL');
+    var vuNeedleR = document.getElementById('vuNeedleR');
+    var vuPeakL = document.getElementById('vuPeakL');
+    var vuPeakR = document.getElementById('vuPeakR');
+
+    var canvas = document.getElementById('visualizerCanvas');
+    var canvasCtx = canvas.getContext('2d');
+    var capHeights = [];
+    var wakeLock = null;
+
+    var fastWindTimer = null;
+
+    // DUAL-BUFFER PRELOAD WORKER (Background audio element)
+    var preloaderAudio = document.createElement('audio');
+    preloaderAudio.preload = 'auto';
+    preloaderAudio.volume = 0;
+    var preloadedBlobUrl = null;
+    var preloadedTrackTitle = "";
+    var isTransitioning = false;
+    var consecutiveErrorCount = 0;
+    var preloadTriggeredForCurrentTrack = false;
+    var nextUpcomingIndex = -1;
+
+    // WEB AUDIO GRAPH NODES
+    var audioCtx = null;
+    var analyser = null;
+    var analyserL = null;
+    var analyserR = null;
+    var channelSplitter = null;
+    var bassFilter = null;
+    var trebleFilter = null;
+    var stereoPanner = null;
+    var compressor = null;
+    var gainNode = null;
+    var audioSourceConnected = false;
+
+    // MULTI-FORMAT AUDIO EMULATION NODES
+    var mediaFormat = 'tape';
+    var tapeSaturationNode = null;
+    var tapeDelayNode = null;
+    var wowOsc = null;
+    var flutterOsc = null;
+    var wowGain = null;
+    var flutterGain = null;
+    var wowFlutterMasterGain = null;
+    var tapeHissSource = null;
+    var tapeHissGain = null;
+
+    var vinylCrackleSource = null;
+    var vinylCrackleGain = null;
+    var vinylPhonoFilter = null;
+
+    // FM STATIC NOISE NODE
+    var fmStaticSource = null;
+    var fmStaticGain = null;
+
+    // PARAMETER TRACKING
+    var currentBassGain = 0;
+    var currentTrebleGain = 0;
+    var currentPan = 0.0;
+    var currentFmFrequency = 96.3;
+    var lastTickFrequency = 96.3;
+    var isTunerPowerOn = false;
+
+    // STATE PERSISTENCE & POSITION RESUME
+    var savedTapePlaybackTime = 0;
+    var savedTapeTrackIndex = 0;
+    var wasPlayingBeforeRadio = false;
+    var counterMode = 'elapsed';
+    var STORAGE_KEY_STATE = 'chanthiran_tape_state';
+    var STORAGE_KEY_COUNTER_MODE = 'chanthiran_counter_mode';
+
+    // MECHANICAL NEEDLE BALLISTICS SIMULATOR
+    var needleL = { pos: -42, vel: 0 };
+    var needleR = { pos: -42, vel: 0 };
+    var VU_SPRING = 0.28;
+    var VU_DAMPING = 0.72;
+    var REST_ANGLE = -42;
+    var MAX_ANGLE = 42;
+
+    var peakHoldL = 0;
+    var peakHoldR = 0;
+    var PEAK_HOLD_FRAMES = 8;
+
+    // INDEXEDDB STORAGE STATE & SEARCH FILTER
+    var DB_NAME = 'ChanthiranHiFiDB';
+    var DB_VERSION = 1;
+    var STORE_NAME = 'offline_audio_tracks';
+    var dbInstance = null;
+    var currentPlaylistTab = 'all';
+    var searchFilterText = '';
+    var isBulkDownloading = false;
+    var cancelBulkDownload = false;
+
+    var currentTrackIndex = 0;
+    var isShuffle = true;
+    var hasUserStartedPlayback = false;
+
+    function clearLoadGuard() {
+        if (loadTimeout) {
+            clearTimeout(loadTimeout);
+            loadTimeout = null;
+        }
+    }
+
+    /* DYNAMIC TAPE PACK RADIUS CALCULATOR (AREA CONSERVATION) */
+    var HUB_RADIUS = 12.0;
+    var MAX_PACK_RADIUS = 27.5;
+
+    function updateMagneticTapePacks(progressFraction) {
+        if (!packLeftEl || !packRightEl || mediaFormat !== 'tape') return;
+
+        var p = Math.max(0.0, Math.min(1.0, progressFraction || 0.0));
+        var hubArea = HUB_RADIUS * HUB_RADIUS;
+        var maxTotalTapeArea = (MAX_PACK_RADIUS * MAX_PACK_RADIUS) - hubArea;
+
+        var leftTapeArea = (1.0 - p) * maxTotalTapeArea;
+        var rLeft = Math.sqrt(hubArea + leftTapeArea);
+
+        var rightTapeArea = p * maxTotalTapeArea;
+        var rRight = Math.sqrt(hubArea + rightTapeArea);
+
+        packLeftEl.setAttribute('r', rLeft.toFixed(2));
+        packRightEl.setAttribute('r', rRight.toFixed(2));
+
+        if (linesLeftEl) {
+            var rLineL = Math.max(HUB_RADIUS + 0.5, rLeft - 3);
+            linesLeftEl.setAttribute('r', rLineL.toFixed(2));
+            linesLeftEl.style.display = (rLeft > HUB_RADIUS + 2.5) ? 'block' : 'none';
+        }
+
+        if (linesRightEl) {
+            var rLineR = Math.max(HUB_RADIUS + 0.5, rRight - 3);
+            linesRightEl.setAttribute('r', rLineR.toFixed(2));
+            linesRightEl.style.display = (rRight > HUB_RADIUS + 2.5) ? 'block' : 'none';
+        }
+    }
+
+    /* FAST-WIND & REWIND CASSETTE SPOOL CONTROLLER */
+    function triggerFastWind(direction, durationMs) {
+        if (mediaFormat !== 'tape') return;
+        
+        var leftWheel = document.getElementById('tapeLeft');
+        var rightWheel = document.getElementById('tapeRight');
+        if (!leftWheel || !rightWheel) return;
+
+        if (fastWindTimer) {
+            clearTimeout(fastWindTimer);
+        }
+
+        leftWheel.classList.remove('fast-winding', 'fast-rewinding');
+        rightWheel.classList.remove('fast-winding', 'fast-rewinding');
+
+        if (direction === 'reverse') {
+            leftWheel.classList.add('fast-rewinding');
+            rightWheel.classList.add('fast-rewinding');
+        } else {
+            leftWheel.classList.add('fast-winding');
+            rightWheel.classList.add('fast-winding');
+        }
+
+        fastWindTimer = setTimeout(function() {
+            leftWheel.classList.remove('fast-winding', 'fast-rewinding');
+            rightWheel.classList.remove('fast-winding', 'fast-rewinding');
+            syncDeckVisuals();
+            fastWindTimer = null;
+        }, durationMs || 650);
+    }
+
+    /* COUNTER DISPLAY PERSISTENCE & FORMATTER */
+    function loadPersistedCounterMode() {
+        try {
+            var savedMode = localStorage.getItem(STORAGE_KEY_COUNTER_MODE);
+            if (savedMode === 'remaining' || savedMode === 'elapsed') {
+                counterMode = savedMode;
+            }
+        } catch (e) {
+            counterMode = 'elapsed';
+        }
+    }
+
+    function saveCounterMode(mode) {
+        try {
+            localStorage.setItem(STORAGE_KEY_COUNTER_MODE, mode);
+        } catch (e) {}
+    }
+
+    function toggleCounterMode(e) {
+        if (e) e.stopPropagation();
+        playMechanicalSwitchClick();
+
+        counterMode = (counterMode === 'elapsed') ? 'remaining' : 'elapsed';
+        saveCounterMode(counterMode);
+
+        if (!activeFmKey && !isNaN(hifiAudio.duration)) {
+            updateTapeCounter(hifiAudio.currentTime);
+        }
+    }
+
+    function updateTapeCounter(sec) {
+        if (!tapeCounterDigits) return;
+
+        if (activeFmKey) {
+            tapeCounterDigits.textContent = "LIVE";
+            tapeCounterDigits.classList.remove('remaining-mode', 'warning-flash');
+            return;
+        }
+
+        var dur = hifiAudio.duration;
+        var currentSec = Math.max(0, sec || 0);
+        var remainingSec = (!isNaN(dur) && dur > 0) ? Math.max(0, dur - currentSec) : null;
+
+        tapeCounterDigits.classList.toggle('remaining-mode', counterMode === 'remaining');
+
+        var isWarning = (remainingSec !== null && remainingSec <= 10 && remainingSec > 0 && !hifiAudio.paused);
+        tapeCounterDigits.classList.toggle('warning-flash', isWarning);
+
+        if (counterMode === 'remaining' && remainingSec !== null) {
+            var remFloor = Math.floor(remainingSec);
+            var rMins = Math.floor(remFloor / 60);
+            var rSecs = remFloor % 60;
+            var formattedRMins = (rMins < 10 ? "0" : "") + rMins;
+            var formattedRSecs = (rSecs < 10 ? "0" : "") + rSecs;
+
+            tapeCounterDigits.textContent = "-" + formattedRMins + ":" + formattedRSecs;
+        } else {
+            var totalSec = Math.floor(currentSec);
+            var mins = Math.floor(totalSec / 60);
+            var secs = totalSec % 60;
+            var formattedMins = (mins < 10 ? "0" : "") + mins;
+            var formattedSecs = (secs < 10 ? "0" : "") + secs;
+
+            tapeCounterDigits.textContent = formattedMins + ":" + formattedSecs;
+        }
+    }
+
+    function resetTapeCounter(e) {
+        if (e) e.stopPropagation();
+        playMechanicalSwitchClick();
+
+        if (activeFmKey) {
+            restartTrack();
+            return;
+        }
+
+        triggerFastWind('reverse', 450);
+
+        hifiAudio.currentTime = 0;
+        progressSlider.value = 0;
+        currentTimeSpan.textContent = "0:00";
+        updateTapeCounter(0);
+        syncDeckVisuals();
+        persistTapeState(currentTrackIndex, 0, !hifiAudio.paused);
+    }
+
+    /* ILLUMINATED ACTIVE LEVEL TICK GAUGES FOR TOP KNOBS */
+    function updateKnobLevelGauge(gaugeId, normVal, isBipolar, colorLit) {
+        var svg = document.getElementById(gaugeId);
+        if (!svg) return;
+        var lines = svg.querySelectorAll('line');
+        var count = lines.length;
+        var litIndex = Math.round(normVal * (count - 1));
+
+        lines.forEach(function(line, idx) {
+            if (isBipolar) {
+                var center = Math.floor(count / 2);
+                var isLit = (idx >= Math.min(center, litIndex) && idx <= Math.max(center, litIndex));
+                line.setAttribute('stroke', isLit ? colorLit : '#252c38');
+                line.style.filter = isLit ? 'drop-shadow(0 0 2px ' + colorLit + ')' : 'none';
+            } else {
+                var isLitU = idx <= litIndex;
+                line.setAttribute('stroke', isLitU ? colorLit : '#252c38');
+                line.style.filter = isLitU ? 'drop-shadow(0 0 2px ' + colorLit + ')' : 'none';
+            }
+        });
+    }
+
+    /* PERSISTENCE HELPER FUNCTIONS */
+    function persistTapeState(index, time, isPlaying) {
+        try {
+            localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify({
+                index: index,
+                time: Math.max(0, time || 0),
+                wasPlaying: !!isPlaying,
+                updatedAt: Date.now()
+            }));
+        } catch (e) {}
+    }
+
+    function getPersistedTapeState() {
+        try {
+            var raw = localStorage.getItem(STORAGE_KEY_STATE);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function performTapeAudioFadeIn() {
+        if (!gainNode || !audioCtx) return;
+        var targetVol = parseFloat(volumeSlider.value) || 1.0;
+        var now = audioCtx.currentTime;
+
+        gainNode.gain.cancelScheduledValues(now);
+        gainNode.gain.setValueAtTime(0.001, now);
+        gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, targetVol), now + 0.30);
+    }
+
+    function captureTapePosition() {
+        if (!activeFmKey && !isNaN(hifiAudio.currentTime) && hifiAudio.duration > 0) {
+            savedTapePlaybackTime = hifiAudio.currentTime;
+            savedTapeTrackIndex = currentTrackIndex;
+            wasPlayingBeforeRadio = !hifiAudio.paused;
+            persistTapeState(savedTapeTrackIndex, savedTapePlaybackTime, wasPlayingBeforeRadio);
+        }
+    }
+
+    /* FM STATIC NOISE SYNTHESIS */
+    function setupFmStaticNode(ctx) {
+        if (fmStaticSource) return;
+        var length = ctx.sampleRate * 2;
+        var buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+        var data = buffer.getChannelData(0);
+        for (var i = 0; i < length; i++) {
+            data[i] = (Math.random() * 2 - 1) * 0.15;
+        }
+
+        fmStaticSource = ctx.createBufferSource();
+        fmStaticSource.buffer = buffer;
+        fmStaticSource.loop = true;
+
+        var filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(2200, ctx.currentTime);
+        filter.Q.setValueAtTime(1.2, ctx.currentTime);
+
+        fmStaticGain = ctx.createGain();
+        fmStaticGain.gain.setValueAtTime(0, ctx.currentTime);
+
+        fmStaticSource.connect(filter);
+        filter.connect(fmStaticGain);
+        fmStaticGain.connect(compressor || ctx.destination);
+        fmStaticSource.start(0);
+    }
+
+    function playDialTickAudio() {
+        if (!audioCtx) return;
+        var now = audioCtx.currentTime;
+
+        var oscTick = audioCtx.createOscillator();
+        var gainTick = audioCtx.createGain();
+
+        oscTick.type = 'triangle';
+        oscTick.frequency.setValueAtTime(4200, now);
+        oscTick.frequency.exponentialRampToValueAtTime(1200, now + 0.007);
+
+        gainTick.gain.setValueAtTime(0.28, now);
+        gainTick.gain.exponentialRampToValueAtTime(0.001, now + 0.008);
+
+        oscTick.connect(gainTick);
+        gainTick.connect(audioCtx.destination);
+        oscTick.start(now);
+        oscTick.stop(now + 0.009);
+
+        if (navigator.vibrate) {
+            try { navigator.vibrate(8); } catch(e) {}
+        }
+    }
+
+    /* MAGNETIC PRESET SNAPPING ALGORITHM */
+    var SNAP_THRESHOLD_MHZ = 0.35;
+
+    function getMagneticallySnappedFrequency(rawFreq) {
+        var bestMatchFreq = rawFreq;
+        var closestDistance = Infinity;
+
+        for (var key in fmStations) {
+            if (!fmStations.hasOwnProperty(key)) continue;
+            var stFreq = fmStations[key].freq;
+            var diff = Math.abs(stFreq - rawFreq);
+
+            if (diff <= SNAP_THRESHOLD_MHZ && diff < closestDistance) {
+                closestDistance = diff;
+                bestMatchFreq = stFreq;
+            }
+        }
+
+        return bestMatchFreq;
+    }
+
+    /* FM PRESETS PERSISTENCE */
+    function loadSavedPresetSlots() {
+        try {
+            var raw = localStorage.getItem('chanthiran_fm_presets');
+            if (raw) {
+                userPresetSlots = JSON.parse(raw);
+            } else {
+                userPresetSlots = JSON.parse(JSON.stringify(defaultPresetSlots));
+            }
+        } catch(e) {
+            userPresetSlots = JSON.parse(JSON.stringify(defaultPresetSlots));
+        }
+        renderPresetButtons();
+    }
+
+    function renderPresetButtons() {
+        for (var slot = 1; slot <= 9; slot++) {
+            var btn = document.querySelector(`.fm-preset-btn[data-preset="${slot}"]`);
+            if (btn && userPresetSlots[slot]) {
+                btn.textContent = userPresetSlots[slot].name;
+            }
+        }
+    }
+
+    function toggleFmSaveMode(e) {
+        if (e) e.stopPropagation();
+        playMechanicalSwitchClick();
+        isFmSaveModeActive = !isFmSaveModeActive;
+        if (fmSaveToggleBtn) {
+            fmSaveToggleBtn.classList.toggle('save-active', isFmSaveModeActive);
+            fmSaveToggleBtn.textContent = isFmSaveModeActive ? "SELECT SLOT" : "💾 SET PRESET";
+        }
+        document.querySelectorAll('.fm-preset-btn[data-preset]').forEach(b => {
+            b.classList.toggle('assign-target', isFmSaveModeActive);
+        });
+        if (isFmSaveModeActive) {
+            nowPlayingSubtitle.textContent = "SELECT A PRESET BUTTON (1-9) TO SAVE " + currentFmFrequency.toFixed(1) + " MHz";
+        } else {
+            syncTrackUI();
+        }
+    }
+
+    function handlePresetClick(slot, evt) {
+        if (isFmSaveModeActive) {
+            if (evt) evt.stopPropagation();
+            playMechanicalSwitchClick();
+            
+            var matchedKey = null;
+            var assignedName = currentFmFrequency.toFixed(1) + " MHz";
+            for (var k in fmStations) {
+                if (Math.abs(fmStations[k].freq - currentFmFrequency) <= 0.25) {
+                    matchedKey = k;
+                    assignedName = fmStations[k].query.toUpperCase();
+                    break;
+                }
+            }
+
+            userPresetSlots[slot] = {
+                name: assignedName,
+                key: matchedKey,
+                freq: parseFloat(currentFmFrequency.toFixed(1))
+            };
+
+            try {
+                localStorage.setItem('chanthiran_fm_presets', JSON.stringify(userPresetSlots));
+            } catch(e) {}
+
+            renderPresetButtons();
+            toggleFmSaveMode();
+            nowPlayingSubtitle.textContent = `SAVED TO PRESET ${slot}: ${assignedName}`;
+            setTimeout(syncTrackUI, 2200);
+            return;
+        }
+
+        if (userPresetSlots[slot]) {
+            var slotData = userPresetSlots[slot];
+            if (slotData.key && fmStations[slotData.key]) {
+                playFmStation(slotData.key, evt);
+            } else {
+                updateFmDialFromFrequency(slotData.freq);
+                document.querySelectorAll('.fm-preset-btn').forEach(b => b.classList.remove('active-fm'));
+                if (evt && evt.currentTarget) evt.currentTarget.classList.add('active-fm');
+            }
+        }
+    }
+
+    /* MANUAL FM ROTARY SELECTOR & ANALOG DIAL CONTROLLER */
+    function updateFmDialFromFrequency(freq) {
+        currentFmFrequency = freq;
+        if (fmFreqVal) fmFreqVal.textContent = freq.toFixed(1) + " MHz";
+
+        if (Math.abs(freq - lastTickFrequency) >= 0.2) {
+            playDialTickAudio();
+            lastTickFrequency = freq;
+        }
+
+        var percent = Math.min(100, Math.max(0, ((freq - 88.0) / 20.0) * 100));
+        if (fmTuningNeedle) fmTuningNeedle.style.left = percent.toFixed(1) + "%";
+
+        var matchedKey = null;
+        for (var k in fmStations) {
+            if (Math.abs(fmStations[k].freq - freq) <= 0.25) {
+                matchedKey = k;
+                break;
+            }
+        }
+
+        if (matchedKey) {
+            if (fmStereoBeacon) fmStereoBeacon.classList.add('tuned');
+            if (fmStationCallsign) fmStationCallsign.textContent = fmStations[matchedKey].query.toUpperCase();
+            if (fmStaticGain && audioCtx) {
+                fmStaticGain.gain.setTargetAtTime(0.002, audioCtx.currentTime, 0.08);
+            }
+            if (activeFmKey !== matchedKey) {
+                playFmStation(matchedKey);
+            }
+        } else {
+            if (fmStereoBeacon) fmStereoBeacon.classList.remove('tuned');
+            if (fmStationCallsign) fmStationCallsign.textContent = "SEARCHING";
+            if (activeFmKey) {
+                hifiAudio.pause();
+                activeFmKey = null;
+                document.querySelectorAll('.fm-preset-btn').forEach(b => b.classList.remove('active-fm'));
+            }
+            if (fmStaticGain && audioCtx) {
+                fmStaticGain.gain.setTargetAtTime(0.06, audioCtx.currentTime, 0.05);
+            }
+        }
+    }
+
+    /* DIRECT TUNER METER CLICK & SLIDE CONTROLLER */
+    (function setupTunerMeterDrag() {
+        var scaleWindow = document.getElementById('fmScaleWindow');
+        if (!scaleWindow) return;
+
+        var isSliding = false;
+        var minFreq = 88.0;
+        var maxFreq = 108.0;
+
+        function tuneFromPointerPosition(clientX) {
+            var rect = scaleWindow.getBoundingClientRect();
+            if (rect.width <= 0) return;
+
+            var offsetX = clientX - rect.left;
+            var fraction = Math.max(0, Math.min(1, offsetX / rect.width));
+
+            var rawTargetFreq = minFreq + (fraction * (maxFreq - minFreq));
+            rawTargetFreq = Math.round(rawTargetFreq * 10) / 10;
+
+            var finalFreq = getMagneticallySnappedFrequency(rawTargetFreq);
+
+            if (!isTunerPowerOn) {
+                turnOnRadio();
+            }
+
+            updateFmDialFromFrequency(finalFreq);
+
+            var knobEl = document.getElementById('fmTuningKnob');
+            if (knobEl) {
+                var snappedFraction = (finalFreq - minFreq) / (maxFreq - minFreq);
+                var knobAngle = Math.max(0, Math.min(720, snappedFraction * 720));
+                knobEl.style.transform = 'rotate(' + knobAngle + 'deg)';
+            }
+        }
+
+        scaleWindow.addEventListener('pointerdown', function(e) {
+            initRealAudioContext();
+            isSliding = true;
+            scaleWindow.setPointerCapture(e.pointerId);
+            tuneFromPointerPosition(e.clientX);
+            e.preventDefault();
+        });
+
+        scaleWindow.addEventListener('pointermove', function(e) {
+            if (!isSliding) return;
+            tuneFromPointerPosition(e.clientX);
+        });
+
+        scaleWindow.addEventListener('pointerup', function(e) {
+            if (!isSliding) return;
+            isSliding = false;
+            try {
+                scaleWindow.releasePointerCapture(e.pointerId);
+            } catch (err) {}
+        });
+
+        scaleWindow.addEventListener('pointercancel', function(e) {
+            isSliding = false;
+        });
+    })();
+
+    /* TUNER POWER ON / OFF CONTROLLERS */
+    function turnOffRadio(e) {
+        if (e) e.stopPropagation();
+        
+        var wasListeningToFm = (activeFmKey !== null);
+        isTunerPowerOn = false;
+        activeFmKey = null;
+        currentStreamUrl = null;
+        destroyHls();
+        playMechanicalSwitchClick();
+
+        if (fmStaticGain && audioCtx) {
+            fmStaticGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.04);
+        }
+
+        if (fmStereoBeacon) fmStereoBeacon.classList.remove('tuned');
+        if (fmStationCallsign) fmStationCallsign.textContent = "OFF";
+        if (fmFreqVal) fmFreqVal.textContent = "--.- MHz";
+
+        var panel = document.getElementById('fmTunerPanel');
+        if (panel) panel.classList.add('powered-off');
+        var knob = document.getElementById('fmTuningKnob');
+        if (knob) knob.classList.add('knob-off');
+        var statusLabel = document.getElementById('tunerKnobStatusLabel');
+        if (statusLabel) {
+            statusLabel.textContent = "OFF (CLICK)";
+            statusLabel.style.color = "#ff4d4d";
+        }
+
+        document.querySelectorAll('.fm-preset-btn').forEach(b => b.classList.remove('active-fm'));
+        var offBtn = document.getElementById('btnTunerOff');
+        if (offBtn) offBtn.classList.add('active-fm');
+
+        if (wasListeningToFm) {
+            var persisted = getPersistedTapeState();
+            var restoreIndex = (persisted && typeof persisted.index === 'number') ? persisted.index : (savedTapeTrackIndex || currentTrackIndex);
+            var restoreTime = (persisted && typeof persisted.time === 'number') ? persisted.time : (savedTapePlaybackTime || 0);
+            var shouldPlay = (persisted && typeof persisted.wasPlaying === 'boolean') ? persisted.wasPlaying : wasPlayingBeforeRadio;
+
+            loadTrack(restoreIndex, shouldPlay);
+
+            var seekOnceLoaded = function() {
+                if (restoreTime > 0 && restoreTime < hifiAudio.duration) {
+                    hifiAudio.currentTime = restoreTime;
+                    progressSlider.value = restoreTime;
+                    currentTimeSpan.textContent = formatTime(restoreTime);
+                    updateTapeCounter(restoreTime);
+                    syncDeckVisuals();
+                }
+
+                if (shouldPlay) {
+                    performTapeAudioFadeIn();
+                }
+
+                hifiAudio.removeEventListener('loadedmetadata', seekOnceLoaded);
+            };
+            hifiAudio.addEventListener('loadedmetadata', seekOnceLoaded);
+        } else {
+            syncTrackUI();
+        }
+    }
+
+    function turnOnRadio() {
+        isTunerPowerOn = true;
+        playMechanicalSwitchClick();
+
+        var panel = document.getElementById('fmTunerPanel');
+        if (panel) panel.classList.remove('powered-off');
+        var knob = document.getElementById('fmTuningKnob');
+        if (knob) knob.classList.remove('knob-off');
+        var statusLabel = document.getElementById('tunerKnobStatusLabel');
+        if (statusLabel) {
+            statusLabel.textContent = "PWR / TUNE";
+            statusLabel.style.color = "#00e5ff";
+        }
+
+        var offBtn = document.getElementById('btnTunerOff');
+        if (offBtn) offBtn.classList.remove('active-fm');
+
+        updateFmDialFromFrequency(currentFmFrequency || 96.3);
+    }
+
+    /* SPECULAR SHEEN MOUSE MOVE */
+    if (cassetteDeckWell && glassSheenGlow) {
+        cassetteDeckWell.addEventListener('pointermove', function(e) {
+            var rect = cassetteDeckWell.getBoundingClientRect();
+            var x = e.clientX - rect.left;
+            var y = e.clientY - rect.top;
+            var pctX = (x / rect.width) * 100;
+            var pctY = (y / rect.height) * 100;
+            glassSheenGlow.style.background = 'radial-gradient(circle at ' + pctX + '% ' + pctY + '%, rgba(255, 255, 255, 0.35) 0%, rgba(0, 229, 255, 0.14) 28%, rgba(255, 255, 255, 0) 65%)';
+        });
+
+        cassetteDeckWell.addEventListener('pointerleave', function() {
+            glassSheenGlow.style.background = 'radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.28) 0%, rgba(0, 229, 255, 0.12) 35%, rgba(255, 255, 255, 0) 65%)';
+        });
+    }
+
+    document.addEventListener('visibilitychange', function() {
+        isPageHidden = document.hidden;
+        if (!isPageHidden) {
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(()=>{});
+            }
+            requestWakeLock();
+        }
+    });
+
+    function updateNetworkStatus() {
+        var isOffline = !navigator.onLine;
+        if (vfdOfflineBanner) {
+            vfdOfflineBanner.classList.toggle('show', isOffline);
+        }
+        if (isOffline) {
+            if (activeFmKey) {
+                nowPlayingSubtitle.textContent = "SIGNAL LOST - CHECK CONNECTION";
+            }
+        } else {
+            if (hasUserStartedPlayback) {
+                syncTrackUI();
+            }
+        }
+    }
+
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
+
+    /* --- INDEXEDDB AUDIO CACHE ENGINE --- */
+    function openOfflineDB() {
+        return new Promise(function(resolve, reject) {
+            if (dbInstance) return resolve(dbInstance);
+            var request = indexedDB.open(DB_NAME, DB_VERSION);
+
+            request.onupgradeneeded = function(e) {
+                var db = e.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME, { keyPath: 'title' });
+                }
+            };
+
+            request.onsuccess = function(e) {
+                dbInstance = e.target.result;
+                resolve(dbInstance);
+            };
+
+            request.onerror = function(e) {
+                reject(e);
+            };
+        });
+    }
+
+    function saveTrackToDB(trackTitle, audioBlob) {
+        return openOfflineDB().then(function(db) {
+            return new Promise(function(resolve, reject) {
+                var tx = db.transaction(STORE_NAME, 'readwrite');
+                var store = tx.objectStore(STORE_NAME);
+                store.put({ title: trackTitle, blob: audioBlob, timestamp: Date.now() });
+                tx.oncomplete = function() { resolve(true); };
+                tx.onerror = function(e) { reject(e); };
+            });
+        });
+    }
+
+    function getTrackFromDB(trackTitle) {
+        return openOfflineDB().then(function(db) {
+            return new Promise(function(resolve) {
+                var tx = db.transaction(STORE_NAME, 'readonly');
+                var store = tx.objectStore(STORE_NAME);
+                var req = store.get(trackTitle);
+                req.onsuccess = function() {
+                    resolve(req.result ? req.result.blob : null);
+                };
+                req.onerror = function() { resolve(null); };
+            });
+        });
+    }
+
+    function removeTrackFromDB(trackTitle) {
+        return openOfflineDB().then(function(db) {
+            return new Promise(function(resolve, reject) {
+                var tx = db.transaction(STORE_NAME, 'readwrite');
+                var store = tx.objectStore(STORE_NAME);
+                store.delete(trackTitle);
+                tx.oncomplete = function() { resolve(true); };
+                tx.onerror = function(e) { reject(e); };
+            });
+        });
+    }
+
+    function getAllSavedTrackTitles() {
+        return openOfflineDB().then(function(db) {
+            return new Promise(function(resolve) {
+                var tx = db.transaction(STORE_NAME, 'readonly');
+                var store = tx.objectStore(STORE_NAME);
+                var req = store.getAllKeys();
+                req.onsuccess = function() {
+                    resolve(req.result || []);
+                };
+                req.onerror = function() {
+                    resolve([]);
+                };
+            });
+        });
+    }
+
+    function clearAllStoredTracksFromDB() {
+        return openOfflineDB().then(function(db) {
+            return new Promise(function(resolve) {
+                var tx = db.transaction(STORE_NAME, 'readwrite');
+                var store = tx.objectStore(STORE_NAME);
+                var req = store.clear();
+                tx.oncomplete = function() { resolve(true); };
+                tx.onerror = function(e) { reject(e); };
+            });
+        });
+    }
+
+    function calculateOfflineStorageSize() {
+        return openOfflineDB().then(function(db) {
+            return new Promise(function(resolve) {
+                var tx = db.transaction(STORE_NAME, 'readonly');
+                var store = tx.objectStore(STORE_NAME);
+                var req = store.openCursor();
+                var totalBytes = 0;
+
+                req.onsuccess = function(e) {
+                    var cursor = e.target.result;
+                    if (cursor) {
+                        if (cursor.value && cursor.value.blob) {
+                            totalBytes += cursor.value.blob.size || 0;
+                        }
+                        cursor.continue();
+                    } else {
+                        resolve(totalBytes);
+                    }
+                };
+
+                req.onerror = function() {
+                    resolve(0);
+                };
+            });
+        });
+    }
+
+    function formatBytes(bytes) {
+        if (!bytes || bytes === 0) return "0.0 MB";
+        var mb = bytes / (1024 * 1024);
+        if (mb < 0.1) {
+            var kb = bytes / 1024;
+            return kb.toFixed(1) + " KB";
+        }
+        return mb.toFixed(1) + " MB";
+    }
+
+    function updateSavedCountDisplay() {
+        var savedLabel = document.getElementById('savedCountLabel');
+        var totalLabel = document.getElementById('totalCountLabel');
+        var storageUsageLabel = document.getElementById('storageUsageLabel');
+        var storageProgressBar = document.getElementById('storageProgressBar');
+
+        var totalTracks = playlist.length;
+        if (totalLabel) totalLabel.textContent = totalTracks;
+
+        Promise.all([
+            getAllSavedTrackTitles(),
+            calculateOfflineStorageSize()
+        ]).then(function(results) {
+            var savedTitles = results[0];
+            var totalBytes = results[1];
+            var savedCount = savedTitles.length;
+
+            if (savedLabel) savedLabel.textContent = savedCount;
+
+            var percent = totalTracks > 0 ? Math.round((savedCount / totalTracks) * 100) : 0;
+
+            if (storageUsageLabel) {
+                storageUsageLabel.textContent = formatBytes(totalBytes) + " (" + percent + "%)";
+            }
+
+            if (storageProgressBar) {
+                storageProgressBar.style.width = Math.min(100, Math.max(0, percent)) + "%";
+            }
+        });
+    }
+
+    function updateCacheButtonState(isSaved) {
+        if (!cacheTrackBtn) return;
+        cacheTrackBtn.classList.toggle('saved-offline', isSaved);
+        cacheTrackBtn.title = isSaved ? "Saved Offline (Click to remove)" : "Save for Offline Playback";
+    }
+
+    function toggleSaveCurrentTrack() {
+        if (activeFmKey) return;
+        var currentTrack = playlist[currentTrackIndex];
+        playMechanicalSwitchClick();
+
+        getTrackFromDB(currentTrack.title).then(function(existingBlob) {
+            if (existingBlob) {
+                removeTrackFromDB(currentTrack.title).then(function() {
+                    updateCacheButtonState(false);
+                    nowPlayingSubtitle.textContent = "REMOVED FROM OFFLINE CACHE";
+                    updateSavedCountDisplay();
+                    populatePlaylistDropdown();
+                    setTimeout(syncTrackUI, 2000);
+                });
+            } else {
+                nowPlayingSubtitle.textContent = "DOWNLOADING TRACK FOR OFFLINE...";
+                fetch(currentTrack.src)
+                    .then(function(res) {
+                        if (!res.ok) throw new Error("Download failed");
+                        return res.blob();
+                    })
+                    .then(function(blob) {
+                        return saveTrackToDB(currentTrack.title, blob);
+                    })
+                    .then(function() {
+                        updateCacheButtonState(true);
+                        nowPlayingSubtitle.textContent = "SAVED TO OFFLINE CACHE (INDEXEDDB)";
+                        updateSavedCountDisplay();
+                        populatePlaylistDropdown();
+                        setTimeout(syncTrackUI, 2500);
+                    })
+                    .catch(function() {
+                        nowPlayingSubtitle.textContent = "DOWNLOAD FAILED - CHECK NETWORK";
+                        setTimeout(syncTrackUI, 2500);
+                    });
+            }
+        });
+    }
+
+    async function toggleBulkDownload(event) {
+        if (event) event.stopPropagation();
+        playMechanicalSwitchClick();
+
+        var bulkBtn = document.getElementById('bulkDownloadBtn');
+
+        if (isBulkDownloading) {
+            cancelBulkDownload = true;
+            nowPlayingSubtitle.textContent = "STOPPING BULK DOWNLOAD...";
+            return;
+        }
+
+        if (!navigator.onLine) {
+            nowPlayingSubtitle.textContent = "CANNOT DOWNLOAD: DEVICE IS OFFLINE";
+            setTimeout(syncTrackUI, 2500);
+            return;
+        }
+
+        isBulkDownloading = true;
+        cancelBulkDownload = false;
+        bulkBtn.classList.add('downloading');
+
+        var savedTitles = await getAllSavedTrackTitles();
+        var savedSet = new Set(savedTitles);
+
+        var queue = playlist.filter(function(track) {
+            return !savedSet.has(track.title);
+        });
+
+        if (queue.length === 0) {
+            nowPlayingSubtitle.textContent = "ALL TRACKS ARE ALREADY SAVED!";
+            bulkBtn.classList.remove('downloading');
+            isBulkDownloading = false;
+            setTimeout(syncTrackUI, 2500);
+            return;
+        }
+
+        var totalToDownload = queue.length;
+        var downloaded = 0;
+
+        for (var i = 0; i < queue.length; i++) {
+            if (cancelBulkDownload) {
+                nowPlayingSubtitle.textContent = "BULK DOWNLOAD CANCELLED";
+                break;
+            }
+
+            var track = queue[i];
+            bulkBtn.textContent = `⏸ STOP (${i + 1}/${totalToDownload})`;
+            nowPlayingSubtitle.textContent = `DOWNLOADING (${i + 1}/${totalToDownload}): ${track.title}`;
+
+            try {
+                var response = await fetch(track.src);
+                if (!response.ok) throw new Error("HTTP error " + response.status);
+                var blob = await response.blob();
+                await saveTrackToDB(track.title, blob);
+                downloaded++;
+                updateSavedCountDisplay();
+            } catch (err) {
+                console.warn("Failed caching:", track.title, err);
+            }
+        }
+
+        isBulkDownloading = false;
+        bulkBtn.classList.remove('downloading');
+        bulkBtn.innerHTML = `⬇ SAVE ALL (<span id="savedCountLabel">0</span>/<span id="totalCountLabel">0</span>)`;
+        updateSavedCountDisplay();
+        populatePlaylistDropdown();
+
+        if (playlist[currentTrackIndex]) {
+            var isCurrentSaved = await getTrackFromDB(playlist[currentTrackIndex].title);
+            updateCacheButtonState(!!isCurrentSaved);
+        }
+
+        nowPlayingSubtitle.textContent = cancelBulkDownload 
+            ? "DOWNLOAD STOPPED" 
+            : `SAVED ${downloaded} NEW TRACKS OFFLINE!`;
+
+        setTimeout(syncTrackUI, 3000);
+    }
+
+    async function clearAllOfflineStorage(event) {
+        if (event) event.stopPropagation();
+        playMechanicalSwitchClick();
+
+        if (isBulkDownloading) {
+            cancelBulkDownload = true;
+        }
+
+        var savedTitles = await getAllSavedTrackTitles();
+        if (savedTitles.length === 0) {
+            nowPlayingSubtitle.textContent = "OFFLINE STORAGE IS ALREADY EMPTY";
+            setTimeout(syncTrackUI, 2000);
+            return;
+        }
+
+        var confirmed = confirm(`Delete all ${savedTitles.length} cached songs from device storage?`);
+        if (!confirmed) return;
+
+        try {
+            await clearAllStoredTracksFromDB();
+            updateCacheButtonState(false);
+            updateSavedCountDisplay();
+            populatePlaylistDropdown();
+
+            if (!activeFmKey && playlist[currentTrackIndex]) {
+                var currentPos = hifiAudio.currentTime;
+                var wasPaused = hifiAudio.paused;
+                hifiAudio.src = playlist[currentTrackIndex].src;
+                hifiAudio.currentTime = currentPos;
+                if (!wasPaused) {
+                    hifiAudio.play().catch(function(){});
+                }
+            }
+
+            nowPlayingSubtitle.textContent = "CLEARED ALL OFFLINE CACHE (STORAGE FREED)";
+            setTimeout(syncTrackUI, 2500);
+        } catch (err) {
+            nowPlayingSubtitle.textContent = "FAILED TO CLEAR STORAGE";
+            setTimeout(syncTrackUI, 2000);
+        }
+    }
+
+    function switchPlaylistTab(tabName, event) {
+        if (event) event.stopPropagation();
+        currentPlaylistTab = tabName;
+        playMechanicalSwitchClick();
+
+        document.getElementById('tabAllSongs').classList.toggle('active-tab', tabName === 'all');
+        document.getElementById('tabOfflineSongs').classList.toggle('active-tab', tabName === 'offline');
+        populatePlaylistDropdown();
+    }
+
+    function handlePlaylistSearch(e) {
+        searchFilterText = (e.target.value || '').trim().toLowerCase();
+        var clearBtn = document.getElementById('clearSearchBtn');
+        if (clearBtn) {
+            clearBtn.classList.toggle('show', searchFilterText.length > 0);
+        }
+        populatePlaylistDropdown();
+    }
+
+    function clearPlaylistSearch(e) {
+        if (e) e.stopPropagation();
+        var searchInput = document.getElementById('playlistSearchInput');
+        if (searchInput) {
+            searchInput.value = '';
+            searchFilterText = '';
+            document.getElementById('clearSearchBtn').classList.remove('show');
+            searchInput.focus();
+        }
+        populatePlaylistDropdown();
+    }
+
+    function makeTapeSaturationCurve(amount) {
+        var k = typeof amount === 'number' ? amount : 25;
+        var n_samples = 44100;
+        var curve = new Float32Array(n_samples);
+        var deg = Math.PI / 180;
+        for (var i = 0; i < n_samples; ++i) {
+            var x = (i * 2) / n_samples - 1;
+            curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
+            curve[i] = Math.tanh(curve[i] * 0.9);
+        }
+        return curve;
+    }
+
+    function createTapeHissBuffer(ctx) {
+        var bufferSize = ctx.sampleRate * 3;
+        var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        var data = buffer.getChannelData(0);
+        var lastOut = 0.0;
+        for (var i = 0; i < bufferSize; i++) {
+            var white = Math.random() * 2 - 1;
+            lastOut = (lastOut * 0.92) + (white * 0.08);
+            data[i] = lastOut;
+        }
+        return buffer;
+    }
+
+    function setupTapeHissNode(ctx) {
+        if (tapeHissSource) return;
+        var hissBuffer = createTapeHissBuffer(ctx);
+        tapeHissSource = ctx.createBufferSource();
+        tapeHissSource.buffer = hissBuffer;
+        tapeHissSource.loop = true;
+
+        var hissHp = ctx.createBiquadFilter();
+        hissHp.type = "highpass";
+        hissHp.frequency.setValueAtTime(650, ctx.currentTime);
+
+        var hissLp = ctx.createBiquadFilter();
+        hissLp.type = "lowpass";
+        hissLp.frequency.setValueAtTime(8500, ctx.currentTime);
+
+        tapeHissGain = ctx.createGain();
+        tapeHissGain.gain.setValueAtTime(0, ctx.currentTime);
+
+        tapeHissSource.connect(hissHp);
+        hissHp.connect(hissLp);
+        hissLp.connect(tapeHissGain);
+        tapeHissSource.start(0);
+    }
+
+    function setupWowFlutterNodes(ctx) {
+        if (tapeDelayNode) return;
+        tapeDelayNode = ctx.createDelay(0.1);
+        tapeDelayNode.delayTime.setValueAtTime(0.020, ctx.currentTime);
+
+        wowOsc = ctx.createOscillator();
+        wowOsc.type = 'sine';
+        wowOsc.frequency.setValueAtTime(0.75, ctx.currentTime);
+
+        wowGain = ctx.createGain();
+        wowGain.gain.setValueAtTime(0.00045, ctx.currentTime);
+
+        flutterOsc = ctx.createOscillator();
+        flutterOsc.type = 'triangle';
+        flutterOsc.frequency.setValueAtTime(6.5, ctx.currentTime);
+
+        flutterGain = ctx.createGain();
+        flutterGain.gain.setValueAtTime(0.00015, ctx.currentTime);
+
+        wowFlutterMasterGain = ctx.createGain();
+        wowFlutterMasterGain.gain.setValueAtTime(mediaFormat === 'tape' ? 1.0 : 0.0, ctx.currentTime);
+
+        wowOsc.connect(wowGain);
+        flutterOsc.connect(flutterGain);
+        wowGain.connect(wowFlutterMasterGain);
+        flutterGain.connect(wowFlutterMasterGain);
+        wowFlutterMasterGain.connect(tapeDelayNode.delayTime);
+
+        wowOsc.start(0);
+        flutterOsc.start(0);
+    }
+
+    function createVinylCrackleBuffer(ctx) {
+        var length = ctx.sampleRate * 4;
+        var buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+        var data = buffer.getChannelData(0);
+        var lastOut = 0.0;
+
+        for (var i = 0; i < length; i++) {
+            var white = Math.random() * 2 - 1;
+            lastOut = (lastOut * 0.96) + (white * 0.04);
+            var sample = lastOut * 0.4;
+
+            if (Math.random() < 0.00035) {
+                sample += (Math.random() * 2 - 1) * 0.75;
+            }
+            if (Math.random() < 0.00004) {
+                sample += (Math.random() > 0.5 ? 1 : -1) * 0.95;
+            }
+            data[i] = sample;
+        }
+        return buffer;
+    }
+
+    function setupVinylNodes(ctx) {
+        if (vinylCrackleSource) return;
+        var buffer = createVinylCrackleBuffer(ctx);
+        vinylCrackleSource = ctx.createBufferSource();
+        vinylCrackleSource.buffer = buffer;
+        vinylCrackleSource.loop = true;
+
+        vinylPhonoFilter = ctx.createBiquadFilter();
+        vinylPhonoFilter.type = "lowpass";
+        vinylPhonoFilter.frequency.setValueAtTime(10500, ctx.currentTime);
+
+        vinylCrackleGain = ctx.createGain();
+        vinylCrackleGain.gain.setValueAtTime(0, ctx.currentTime);
+
+        vinylCrackleSource.connect(vinylPhonoFilter);
+        vinylPhonoFilter.connect(vinylCrackleGain);
+        vinylCrackleSource.start(0);
+    }
+
+    function updateFormatNoiseState() {
+        if (!audioCtx) return;
+        var isPlaying = !hifiAudio.paused && !activeFmKey;
+
+        if (tapeHissGain) {
+            var targetTapeGain = (isPlaying && mediaFormat === 'tape') ? 0.016 : 0.0;
+            tapeHissGain.gain.setTargetAtTime(targetTapeGain, audioCtx.currentTime, 0.15);
+        }
+
+        if (vinylCrackleGain) {
+            var targetVinylGain = (isPlaying && mediaFormat === 'vinyl') ? 0.022 : 0.0;
+            vinylCrackleGain.gain.setTargetAtTime(targetVinylGain, audioCtx.currentTime, 0.15);
+        }
+
+        if (wowFlutterMasterGain) {
+            var targetWow = (mediaFormat === 'tape') ? 1.0 : (mediaFormat === 'vinyl' ? 0.35 : 0.0);
+            wowFlutterMasterGain.gain.setTargetAtTime(targetWow, audioCtx.currentTime, 0.05);
+        }
+
+        if (tapeSaturationNode) {
+            var satAmount = (mediaFormat === 'tape') ? 18 : (mediaFormat === 'vinyl' ? 10 : 0);
+            tapeSaturationNode.curve = makeTapeSaturationCurve(satAmount);
+        }
+    }
+
+    function playTapeTransportEngage() {
+        if (!audioCtx) return;
+        var now = audioCtx.currentTime;
+
+        var oscSolenoid = audioCtx.createOscillator();
+        var gainSolenoid = audioCtx.createGain();
+        oscSolenoid.type = 'triangle';
+        oscSolenoid.frequency.setValueAtTime(110, now);
+        oscSolenoid.frequency.exponentialRampToValueAtTime(32, now + 0.08);
+
+        gainSolenoid.gain.setValueAtTime(0.55, now);
+        gainSolenoid.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+        oscSolenoid.connect(gainSolenoid);
+        gainSolenoid.connect(audioCtx.destination);
+        oscSolenoid.start(now);
+        oscSolenoid.stop(now + 0.1);
+
+        var snapBuffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * 0.04), audioCtx.sampleRate);
+        var snapData = snapBuffer.getChannelData(0);
+        for (var i = 0; i < snapData.length; i++) {
+            snapData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (snapBuffer.length * 0.25));
+        }
+
+        var snapSource = audioCtx.createBufferSource();
+        snapSource.buffer = snapBuffer;
+
+        var snapFilter = audioCtx.createBiquadFilter();
+        snapFilter.type = 'bandpass';
+        snapFilter.frequency.setValueAtTime(2400, now);
+        snapFilter.Q.setValueAtTime(3.5, now);
+
+        var snapGain = audioCtx.createGain();
+        snapGain.gain.setValueAtTime(0.35, now + 0.02);
+        snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+
+        snapSource.connect(snapFilter);
+        snapFilter.connect(snapGain);
+        snapGain.connect(audioCtx.destination);
+        snapSource.start(now + 0.02);
+    }
+
+    function playTapeTransportRelease() {
+        if (!audioCtx) return;
+        var now = audioCtx.currentTime;
+
+        var oscSpring = audioCtx.createOscillator();
+        var gainSpring = audioCtx.createGain();
+        oscSpring.type = 'square';
+        oscSpring.frequency.setValueAtTime(1800, now);
+        oscSpring.frequency.exponentialRampToValueAtTime(300, now + 0.035);
+
+        gainSpring.gain.setValueAtTime(0.25, now);
+        gainSpring.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+
+        oscSpring.connect(gainSpring);
+        gainSpring.connect(audioCtx.destination);
+        oscSpring.start(now);
+        oscSpring.stop(now + 0.05);
+
+        var oscBody = audioCtx.createOscillator();
+        var gainBody = audioCtx.createGain();
+        oscBody.type = 'sine';
+        oscBody.frequency.setValueAtTime(95, now + 0.015);
+        oscBody.frequency.exponentialRampToValueAtTime(45, now + 0.07);
+
+        gainBody.gain.setValueAtTime(0.4, now + 0.015);
+        gainBody.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+        oscBody.connect(gainBody);
+        gainBody.connect(audioCtx.destination);
+        oscBody.start(now + 0.015);
+        oscBody.stop(now + 0.09);
+    }
+
+    function playNeedleDropSound() {
+        if (!audioCtx) return;
+        var now = audioCtx.currentTime;
+
+        var oscDrop = audioCtx.createOscillator();
+        var gainDrop = audioCtx.createGain();
+        oscDrop.type = 'triangle';
+        oscDrop.frequency.setValueAtTime(80, now);
+        oscDrop.frequency.exponentialRampToValueAtTime(28, now + 0.12);
+
+        gainDrop.gain.setValueAtTime(0.45, now);
+        gainDrop.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+
+        oscDrop.connect(gainDrop);
+        gainDrop.connect(audioCtx.destination);
+        oscDrop.start(now);
+        oscDrop.stop(now + 0.14);
+
+        var scratchBuffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * 0.15), audioCtx.sampleRate);
+        var scratchData = scratchBuffer.getChannelData(0);
+        for (var i = 0; i < scratchData.length; i++) {
+            scratchData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (scratchBuffer.length * 0.4));
+        }
+
+        var scratchSource = audioCtx.createBufferSource();
+        scratchSource.buffer = scratchBuffer;
+
+        var scratchFilter = audioCtx.createBiquadFilter();
+        scratchFilter.type = 'bandpass';
+        scratchFilter.frequency.setValueAtTime(1400, now + 0.04);
+        scratchFilter.Q.setValueAtTime(2.0, now + 0.04);
+
+        var scratchGain = audioCtx.createGain();
+        scratchGain.gain.setValueAtTime(0.3, now + 0.04);
+        scratchGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+        scratchSource.connect(scratchFilter);
+        scratchFilter.connect(scratchGain);
+        scratchGain.connect(audioCtx.destination);
+        scratchSource.start(now + 0.04);
+    }
+
+    function playMechanicalSwitchClick() {
+        if (!audioCtx) return;
+        var now = audioCtx.currentTime;
+
+        var clickOsc = audioCtx.createOscillator();
+        var clickGain = audioCtx.createGain();
+        clickOsc.type = 'triangle';
+        clickOsc.frequency.setValueAtTime(3200, now);
+        clickOsc.frequency.exponentialRampToValueAtTime(500, now + 0.015);
+
+        clickGain.gain.setValueAtTime(0.2, now);
+        clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+
+        clickOsc.connect(clickGain);
+        clickGain.connect(audioCtx.destination);
+        clickOsc.start(now);
+        clickOsc.stop(now + 0.025);
+    }
+
+    function playMechanicalEjectSound() {
+        if (!audioCtx) return;
+        var now = audioCtx.currentTime;
+
+        var oscLatch = audioCtx.createOscillator();
+        var gainLatch = audioCtx.createGain();
+        oscLatch.type = 'triangle';
+        oscLatch.frequency.setValueAtTime(320, now);
+        oscLatch.frequency.exponentialRampToValueAtTime(45, now + 0.06);
+
+        gainLatch.gain.setValueAtTime(0.65, now);
+        gainLatch.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+
+        oscLatch.connect(gainLatch);
+        gainLatch.connect(audioCtx.destination);
+        oscLatch.start(now);
+        oscLatch.stop(now + 0.08);
+
+        var springBuffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * 0.18), audioCtx.sampleRate);
+        var springData = springBuffer.getChannelData(0);
+        for (var i = 0; i < springData.length; i++) {
+            springData[i] = (Math.random() * 2 - 1) * Math.sin(i * 0.08) * Math.exp(-i / (springBuffer.length * 0.28));
+        }
+
+        var springSource = audioCtx.createBufferSource();
+        springSource.buffer = springBuffer;
+
+        var springFilter = audioCtx.createBiquadFilter();
+        springFilter.type = 'bandpass';
+        springFilter.frequency.setValueAtTime(1850, now + 0.02);
+        springFilter.Q.setValueAtTime(4.2, now + 0.02);
+
+        var springGain = audioCtx.createGain();
+        springGain.gain.setValueAtTime(0.4, now + 0.02);
+        springGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+        springSource.connect(springFilter);
+        springFilter.connect(springGain);
+        springGain.connect(audioCtx.destination);
+        springSource.start(now + 0.02);
+    }
+
+    function triggerFormatCueSound() {
+        if (mediaFormat === 'vinyl') {
+            playNeedleDropSound();
+        } else if (mediaFormat === 'tape') {
+            playTapeTransportEngage();
+        }
+    }
+
+    function initRealAudioContext() {
+        if (!audioCtx) {
+            try {
+                var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 64;
+
+                analyserL = audioCtx.createAnalyser();
+                analyserL.fftSize = 256;
+                analyserL.smoothingTimeConstant = 0.8;
+
+                analyserR = audioCtx.createAnalyser();
+                analyserR.fftSize = 256;
+                analyserR.smoothingTimeConstant = 0.8;
+
+                channelSplitter = audioCtx.createChannelSplitter(2);
+
+                bassFilter = audioCtx.createBiquadFilter();
+                bassFilter.type = "lowshelf";
+                bassFilter.frequency.setValueAtTime(150, audioCtx.currentTime);
+                bassFilter.gain.setValueAtTime(currentBassGain, audioCtx.currentTime);
+
+                trebleFilter = audioCtx.createBiquadFilter();
+                trebleFilter.type = "highshelf";
+                trebleFilter.frequency.setValueAtTime(3500, audioCtx.currentTime);
+                trebleFilter.gain.setValueAtTime(currentTrebleGain, audioCtx.currentTime);
+
+                tapeSaturationNode = audioCtx.createWaveShaper();
+                tapeSaturationNode.curve = makeTapeSaturationCurve(mediaFormat === 'tape' ? 18 : (mediaFormat === 'vinyl' ? 10 : 0));
+                tapeSaturationNode.oversample = '4x';
+
+                setupWowFlutterNodes(audioCtx);
+                setupTapeHissNode(audioCtx);
+                setupVinylNodes(audioCtx);
+                setupFmStaticNode(audioCtx);
+
+                if (audioCtx.createStereoPanner) {
+                    stereoPanner = audioCtx.createStereoPanner();
+                    stereoPanner.pan.setValueAtTime(currentPan, audioCtx.currentTime);
+                }
+
+                compressor = audioCtx.createDynamicsCompressor();
+                compressor.threshold.setValueAtTime(-18, audioCtx.currentTime);
+                compressor.knee.setValueAtTime(12, audioCtx.currentTime);
+                compressor.ratio.setValueAtTime(12, audioCtx.currentTime);
+                compressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
+                compressor.release.setValueAtTime(0.25, audioCtx.currentTime);
+
+                gainNode = audioCtx.createGain();
+
+                if (!audioSourceConnected) {
+                    var source = audioCtx.createMediaElementSource(hifiAudio);
+
+                    source.connect(analyser);
+                    analyser.connect(bassFilter);
+                    bassFilter.connect(trebleFilter);
+                    trebleFilter.connect(tapeSaturationNode);
+                    tapeSaturationNode.connect(tapeDelayNode);
+
+                    var pannedOutput = tapeDelayNode;
+                    if (stereoPanner) {
+                        tapeDelayNode.connect(stereoPanner);
+                        pannedOutput = stereoPanner;
+                    }
+
+                    pannedOutput.connect(channelSplitter);
+                    channelSplitter.connect(analyserL, 0);
+                    channelSplitter.connect(analyserR, 1);
+
+                    tapeHissGain.connect(compressor);
+                    vinylCrackleGain.connect(compressor);
+
+                    pannedOutput.connect(compressor);
+                    compressor.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+
+                    audioSourceConnected = true;
+                }
+            } catch(e) {}
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(()=>{});
+        }
+        updateFormatNoiseState();
+    }
+
+    function setupKnobControl(knobEl, onValueChange, minVal, maxVal, defaultVal) {
+        if (!knobEl) return;
+        var isDragging = false;
+        var startY = 0;
+
+        function updateVisualAngle(val) {
+            var norm = (val - minVal) / (maxVal - minVal);
+            var angle = -135 + norm * 270;
+            knobEl.style.transform = 'rotate(' + angle + 'deg)';
+            knobEl.setAttribute('data-val', val);
+        }
+
+        knobEl.addEventListener('pointerdown', function(e) {
+            initRealAudioContext();
+            isDragging = true;
+            startY = e.clientY;
+            knobEl.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        });
+
+        knobEl.addEventListener('pointermove', function(e) {
+            if (!isDragging) return;
+            var deltaY = startY - e.clientY;
+            startY = e.clientY;
+
+            var currentVal = parseFloat(knobEl.getAttribute('data-val') || defaultVal);
+            var step = (maxVal - minVal) / 100;
+            var newVal = Math.min(maxVal, Math.max(minVal, currentVal + deltaY * step));
+
+            updateVisualAngle(newVal);
+            onValueChange(newVal);
+        });
+
+        knobEl.addEventListener('pointerup', function(e) {
+            isDragging = false;
+            knobEl.releasePointerCapture(e.pointerId);
+        });
+
+        updateVisualAngle(defaultVal);
+        return updateVisualAngle;
+    }
+
+    var updateVolumeKnobAngle = setupKnobControl(
+        document.getElementById('masterVolumeKnob'),
+        function(newVal) {
+            volumeSlider.value = newVal;
+            applyVolumeGain();
+        },
+        0.0, 5.0, 1.0
+    );
+
+    setupKnobControl(
+        document.getElementById('bassKnob'),
+        function(dB) {
+            currentBassGain = dB;
+            if (bassFilter && audioCtx) {
+                bassFilter.gain.setTargetAtTime(dB, audioCtx.currentTime, 0.02);
+            }
+            updateKnobLevelGauge('gaugeBass', (dB + 12) / 24, true, '#00e5ff');
+        },
+        -12, 12, 0
+    );
+
+    setupKnobControl(
+        document.getElementById('trebleKnob'),
+        function(dB) {
+            currentTrebleGain = dB;
+            if (trebleFilter && audioCtx) {
+                trebleFilter.gain.setTargetAtTime(dB, audioCtx.currentTime, 0.02);
+            }
+            updateKnobLevelGauge('gaugeTreble', (dB + 12) / 24, true, '#00e5ff');
+        },
+        -12, 12, 0
+    );
+
+    setupKnobControl(
+        document.getElementById('balanceKnob'),
+        function(panValue) {
+            currentPan = panValue;
+            if (stereoPanner && audioCtx) {
+                stereoPanner.pan.setTargetAtTime(panValue, audioCtx.currentTime, 0.02);
+            }
+            updateKnobLevelGauge('gaugeBalance', (panValue + 1.0) / 2.0, true, '#ffaa00');
+        },
+        -1.0, 1.0, 0.0
+    );
+
+    /* ROTARY TUNER KNOB (Continuous 720° Spin + Push to Toggle Power ON/OFF) */
+    (function setupRotaryTunerKnob() {
+        var knobEl = document.getElementById('fmTuningKnob');
+        if (!knobEl) return;
+
+        var isDragging = false;
+        var startY = 0;
+        var hasMoved = false;
+        var currentAngle = 0;
+
+        var minFreq = 88.0;
+        var maxFreq = 108.0;
+
+        function setInitialKnobAngle(freq) {
+            var ratio = (freq - minFreq) / (maxFreq - minFreq);
+            currentAngle = ratio * 720;
+            knobEl.style.transform = 'rotate(' + currentAngle + 'deg)';
+        }
+
+        knobEl.addEventListener('pointerdown', function(e) {
+            initRealAudioContext();
+            isDragging = true;
+            hasMoved = false;
+            startY = e.clientY;
+            knobEl.classList.add('depressed');
+            knobEl.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        });
+
+        knobEl.addEventListener('pointermove', function(e) {
+            if (!isDragging) return;
+            var deltaY = startY - e.clientY;
+
+            if (Math.abs(deltaY) > 2) {
+                hasMoved = true;
+                if (!isTunerPowerOn) {
+                    turnOnRadio();
+                }
+
+                startY = e.clientY;
+                currentAngle += deltaY * 2.5;
+                currentAngle = Math.max(0, Math.min(720, currentAngle));
+
+                knobEl.style.transform = 'rotate(' + currentAngle + 'deg)';
+
+                var rawTargetFreq = minFreq + ((currentAngle / 720) * (maxFreq - minFreq));
+                var snappedFreq = getMagneticallySnappedFrequency(rawTargetFreq);
+                updateFmDialFromFrequency(snappedFreq);
+            }
+        });
+
+        knobEl.addEventListener('pointerup', function(e) {
+            isDragging = false;
+            knobEl.classList.remove('depressed');
+            knobEl.releasePointerCapture(e.pointerId);
+
+            if (!hasMoved) {
+                if (isTunerPowerOn) {
+                    turnOffRadio(e);
+                } else {
+                    turnOnRadio();
+                }
+            }
+        });
+
+        setInitialKnobAngle(currentFmFrequency || 96.3);
+    })();
+
+    function applyVolumeGain() {
+        var val = parseFloat(volumeSlider.value);
+        if (isNaN(val)) val = 1.0;
+
+        hifiAudio.volume = Math.min(1.0, Math.max(0.0, val > 0 ? 1.0 : 0.0));
+
+        if (gainNode && audioCtx) {
+            gainNode.gain.setTargetAtTime(val, audioCtx.currentTime, 0.015);
+            if (compressor) {
+                var adaptiveThreshold = val > 1.5 ? -18 - ((val - 1.5) * 2.5) : -14;
+                compressor.threshold.setTargetAtTime(adaptiveThreshold, audioCtx.currentTime, 0.05);
+            }
+        }
+
+        boostText.textContent = val.toFixed(1) + "x";
+        if (typeof updateVolumeKnobAngle === 'function') {
+            updateVolumeKnobAngle(val);
+        }
+        updateKnobLevelGauge('gaugeVolume', Math.min(1.0, val / 5.0), false, '#00e5ff');
+    }
+
+    function cycleBoostMode() {
+        var val = parseFloat(volumeSlider.value);
+        if (val < 1.0) volumeSlider.value = 1.0;
+        else if (val < 2.5) volumeSlider.value = 2.5;
+        else if (val < 5.0) volumeSlider.value = 5.0;
+        else volumeSlider.value = 1.0;
+        applyVolumeGain();
+    }
+
+    /* CONTINUOUS TONEARM & TAPE PACK TRACKING */
+    function syncDeckVisuals() {
+        var isPlaying = !hifiAudio.paused;
+
+        if (tapeLeft && tapeRight) {
+            tapeLeft.classList.toggle('spinning', isPlaying && mediaFormat === 'tape');
+            tapeRight.classList.toggle('spinning', isPlaying && mediaFormat === 'tape');
+        }
+
+        var dur = hifiAudio.duration;
+        var cur = hifiAudio.currentTime;
+        var progress = (!isNaN(dur) && dur > 0) ? Math.min(1.0, Math.max(0.0, cur / dur)) : 0.0;
+
+        updateMagneticTapePacks(progress);
+
+        if (svgVinylPlatter) {
+            svgVinylPlatter.classList.toggle('spinning', isPlaying && mediaFormat === 'vinyl');
+        }
+
+        if (svgTonearmAssembly) {
+            if (mediaFormat === 'vinyl') {
+                if (!isPlaying) {
+                    svgTonearmAssembly.style.transform = 'rotate(-25deg)';
+                } else {
+                    var dynamicAngle = 10 + (progress * 13);
+                    svgTonearmAssembly.style.transform = 'rotate(' + dynamicAngle.toFixed(1) + 'deg)';
+                }
+            } else {
+                svgTonearmAssembly.style.transform = 'rotate(-25deg)';
+            }
+        }
+    }
+
+    function cycleMediaFormat(e) {
+        if (e) e.stopPropagation();
+        initRealAudioContext();
+        playMechanicalEjectSound();
+
+        var well = document.getElementById('cassetteDeckWell');
+        var btn = document.getElementById('mediaFormatBtn');
+
+        if (well) well.classList.add('ejecting');
+
+        setTimeout(function() {
+            if (mediaFormat === 'tape') {
+                mediaFormat = 'vinyl';
+                btn.textContent = "💿 VINYL";
+                btn.className = "tape-toggle-btn active-mode";
+                nowPlayingSubtitle.textContent = "FORMAT: VINTAGE 33 RPM VINYL";
+
+                if (svgCassetteGroup) svgCassetteGroup.style.display = 'none';
+                if (svgVinylGroup) svgVinylGroup.style.display = 'block';
+                if (spoolOverlayContainer) spoolOverlayContainer.style.display = 'none';
+
+            } else if (mediaFormat === 'vinyl') {
+                mediaFormat = 'clean';
+                btn.textContent = "✨ DIGITAL";
+                btn.className = "tape-toggle-btn";
+                nowPlayingSubtitle.textContent = "FORMAT: CLEAN HI-RES DIGITAL";
+
+                if (svgCassetteGroup) svgCassetteGroup.style.display = 'block';
+                if (svgVinylGroup) svgVinylGroup.style.display = 'none';
+                if (spoolOverlayContainer) spoolOverlayContainer.style.display = 'block';
+
+            } else {
+                mediaFormat = 'tape';
+                btn.textContent = "📼 TAPE";
+                btn.className = "tape-toggle-btn active-mode";
+                nowPlayingSubtitle.textContent = "FORMAT: CASSETTE TYPE I (FERRIC)";
+
+                if (svgCassetteGroup) svgCassetteGroup.style.display = 'block';
+                if (svgVinylGroup) svgVinylGroup.style.display = 'none';
+                if (spoolOverlayContainer) spoolOverlayContainer.style.display = 'block';
+            }
+
+            var tapeLayer = document.getElementById('magneticTapeLayer');
+            if (tapeLayer) {
+                tapeLayer.style.display = (mediaFormat === 'tape') ? 'block' : 'none';
+            }
+
+            updateFormatNoiseState();
+            syncDeckVisuals();
+
+            setTimeout(function() {
+                if (well) well.classList.remove('ejecting');
+                playTapeTransportEngage();
+            }, 300);
+
+            setTimeout(syncTrackUI, 2200);
+        }, 320);
+    }
+
+    function animateVUMeters() {
+        requestAnimationFrame(animateVUMeters);
+        if (isPageHidden) return;
+
+        var targetAngleL = REST_ANGLE;
+        var targetAngleR = REST_ANGLE;
+        var isPeakL = false;
+        var isPeakR = false;
+
+        if (!hifiAudio.paused && analyserL && analyserR) {
+            var dataL = new Uint8Array(analyserL.fftSize);
+            var dataR = new Uint8Array(analyserR.fftSize);
+
+            analyserL.getByteTimeDomainData(dataL);
+            analyserR.getByteTimeDomainData(dataR);
+
+            var sumL = 0, maxExcursionL = 0;
+            for (var i = 0; i < dataL.length; i++) {
+                var normL = (dataL[i] - 128) / 128;
+                sumL += normL * normL;
+                var absL = Math.abs(normL);
+                if (absL > maxExcursionL) maxExcursionL = absL;
+            }
+            var rmsL = Math.sqrt(sumL / dataL.length);
+
+            var sumR = 0, maxExcursionR = 0;
+            for (var j = 0; j < dataR.length; j++) {
+                var normR = (dataR[j] - 128) / 128;
+                sumR += normR * normR;
+                var absR = Math.abs(normR);
+                if (absR > maxExcursionR) maxExcursionR = absR;
+            }
+            var rmsR = Math.sqrt(sumR / dataR.length);
+
+            if (maxExcursionL >= 0.88) isPeakL = true;
+            if (maxExcursionR >= 0.88) isPeakR = true;
+
+            var dbL = 20 * Math.log10(Math.max(rmsL, 0.0001));
+            var dbR = 20 * Math.log10(Math.max(rmsR, 0.0001));
+
+            var normMeterL = Math.max(0, Math.min(1, (dbL + 36) / 36));
+            var normMeterR = Math.max(0, Math.min(1, (dbR + 36) / 36));
+
+            targetAngleL = REST_ANGLE + (normMeterL * (MAX_ANGLE - REST_ANGLE));
+            targetAngleR = REST_ANGLE + (normMeterR * (MAX_ANGLE - REST_ANGLE));
+        }
+
+        var forceL = (targetAngleL - needleL.pos) * VU_SPRING;
+        needleL.vel = (needleL.vel + forceL) * VU_DAMPING;
+        needleL.pos += needleL.vel;
+
+        if (needleL.pos < REST_ANGLE) {
+            needleL.pos = REST_ANGLE;
+            needleL.vel = -needleL.vel * 0.2;
+        } else if (needleL.pos > MAX_ANGLE + 3) {
+            needleL.pos = MAX_ANGLE + 3;
+            needleL.vel = -needleL.vel * 0.1;
+        }
+
+        var forceR = (targetAngleR - needleR.pos) * VU_SPRING;
+        needleR.vel = (needleR.vel + forceR) * VU_DAMPING;
+        needleR.pos += needleR.vel;
+
+        if (needleR.pos < REST_ANGLE) {
+            needleR.pos = REST_ANGLE;
+            needleR.vel = -needleR.vel * 0.2;
+        } else if (needleR.pos > MAX_ANGLE + 3) {
+            needleR.pos = MAX_ANGLE + 3;
+            needleR.vel = -needleR.vel * 0.1;
+        }
+
+        vuNeedleL.style.transform = 'rotate(' + needleL.pos.toFixed(2) + 'deg)';
+        vuNeedleR.style.transform = 'rotate(' + needleR.pos.toFixed(2) + 'deg)';
+
+        if (isPeakL) peakHoldL = PEAK_HOLD_FRAMES;
+        else if (peakHoldL > 0) peakHoldL--;
+        vuPeakL.classList.toggle('lit', peakHoldL > 0);
+
+        if (isPeakR) peakHoldR = PEAK_HOLD_FRAMES;
+        else if (peakHoldR > 0) peakHoldR--;
+        vuPeakR.classList.toggle('lit', peakHoldR > 0);
+    }
+
+    function renderVisualizer() {
+        requestAnimationFrame(renderVisualizer);
+        if (isPageHidden) return;
+
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        var numBars = 24, barWidth = 8, gap = 9;
+        var startX = (canvas.width - (numBars * (barWidth + gap))) / 2;
+
+        if (!hifiAudio.paused && analyser) {
+            var dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(dataArray);
+
+            if (neonBadgeGroup) {
+                var rawBass = (dataArray[0] + dataArray[1] + dataArray[2] + dataArray[3]) / (4 * 255);
+                
+                if (rawBass > badgeBassEnergy) {
+                    badgeBassEnergy = rawBass;
+                } else {
+                    badgeBassEnergy *= 0.88;
+                }
+
+                var cyanRadius = (2 + badgeBassEnergy * 10).toFixed(1);
+                var amberRadius = (4 + badgeBassEnergy * 18).toFixed(1);
+                var opacityVal = (0.7 + badgeBassEnergy * 0.3).toFixed(2);
+
+                neonBadgeGroup.style.filter = 
+                    'drop-shadow(0 0 ' + cyanRadius + 'px rgba(0, 229, 255, ' + (0.3 + badgeBassEnergy * 0.7).toFixed(2) + ')) ' +
+                    'drop-shadow(0 0 ' + amberRadius + 'px rgba(255, 170, 0, ' + (0.2 + badgeBassEnergy * 0.8).toFixed(2) + '))';
+                neonBadgeGroup.style.opacity = opacityVal;
+
+                var notes = neonBadgeGroup.querySelectorAll('.neon-note, .neon-note-bottom');
+                var noteColor = badgeBassEnergy > 0.65 ? '#ffffff' : (badgeBassEnergy > 0.4 ? '#00e5ff' : '#ffaa00');
+                notes.forEach(function(note) {
+                    note.setAttribute('fill', noteColor);
+                });
+            }
+
+            for (var i = 0; i < numBars; i++) {
+                var val = dataArray[i] || 0;
+                var targetHeight = Math.max(4, (val / 255) * (canvas.height - 10));
+
+                if (!capHeights[i] || targetHeight > capHeights[i]) {
+                    capHeights[i] = targetHeight;
+                } else {
+                    capHeights[i] -= 0.8;
+                }
+
+                var x = startX + i * (barWidth + gap);
+                var gradient = canvasCtx.createLinearGradient(0, canvas.height, 0, 0);
+                gradient.addColorStop(0, '#ff4b1f');
+                gradient.addColorStop(0.6, '#ffaa00');
+                gradient.addColorStop(1, '#00e5ff');
+
+                canvasCtx.fillStyle = gradient;
+                canvasCtx.fillRect(x, canvas.height - targetHeight - 2, barWidth, targetHeight);
+
+                canvasCtx.fillStyle = '#ffffff';
+                canvasCtx.beginPath();
+                canvasCtx.arc(x + barWidth / 2, canvas.height - capHeights[i] - 5, 2, 0, Math.PI * 2);
+                canvasCtx.fill();
+            }
+        } else {
+            if (neonBadgeGroup) {
+                neonBadgeGroup.style.filter = 'drop-shadow(0 0 2px rgba(0, 229, 255, 0.3))';
+                neonBadgeGroup.style.opacity = '0.7';
+                var idleNotes = neonBadgeGroup.querySelectorAll('.neon-note, .neon-note-bottom');
+                idleNotes.forEach(function(note) { note.setAttribute('fill', '#ffaa00'); });
+            }
+
+            for (var j = 0; j < numBars; j++) {
+                var idleX = startX + j * (barWidth + gap);
+                canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                canvasCtx.fillRect(idleX, canvas.height - 6, barWidth, 3);
+            }
+        }
+    }
+
+    function destroyHls() {
+        if (hls) {
+            hls.destroy();
+            hls = null;
+        }
+    }
+
+    function playFmStation(key, evt) {
+        if (!fmStations[key]) return;
+        
+        captureTapePosition();
+
+        activeFmKey = key;
+        hifiAudio.pause();
+        destroyHls();
+        clearLoadGuard();
+        playMechanicalSwitchClick();
+
+        if (!isTunerPowerOn) {
+            turnOnRadio();
+        }
+
+        document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
+        if (evt && evt.currentTarget) {
+            evt.currentTarget.classList.add('active-fm');
+        } else {
+            var matchedBtn = Array.from(document.querySelectorAll('.fm-preset-btn')).find(b => b.textContent.includes(key.toUpperCase()));
+            if (matchedBtn) matchedBtn.classList.add('active-fm');
+        }
+
+        var stationInfo = fmStations[key];
+        currentFmFrequency = stationInfo.freq;
+        if (fmFreqVal) fmFreqVal.textContent = stationInfo.freq.toFixed(1) + " MHz";
+        var percent = Math.min(100, Math.max(0, ((stationInfo.freq - 88.0) / 20.0) * 100));
+        if (fmTuningNeedle) fmTuningNeedle.style.left = percent.toFixed(1) + "%";
+        if (fmStereoBeacon) fmStereoBeacon.classList.add('tuned');
+        if (fmStationCallsign) fmStationCallsign.textContent = stationInfo.query.toUpperCase();
+
+        nowPlayingSubtitle.textContent = "TUNING STREAM...";
+        currentTrackTitle.textContent = stationInfo.title;
+        currentTimeSpan.textContent = "0:00";
+        durationSpan.textContent = "LIVE";
+        progressSlider.value = 0;
+
+        if (nextTrackTitle) {
+            nextTrackTitle.textContent = "FM LIVE BROADCAST (NO QUEUE)";
+        }
+
+        if (stationInfo.useApi) {
+            fetch("https://de1.api.radio-browser.info/json/stations/byname/" + encodeURIComponent(stationInfo.query))
+                .then(res => res.json())
+                .then(data => {
+                    if (activeFmKey !== key) return;
+                    var resolvedUrl = (data && data.length > 0 && data[0].url_resolved) ? data[0].url_resolved : stationInfo.backup;
+                    startStreamUrl(stationInfo.title, resolvedUrl);
+                })
+                .catch(() => {
+                    if (activeFmKey !== key) return;
+                    startStreamUrl(stationInfo.title, stationInfo.backup);
+                });
+        } else {
+            startStreamUrl(stationInfo.title, stationInfo.backup);
+        }
+    }
+
+    function startStreamUrl(title, url) {
+        destroyHls();
+        currentStreamUrl = url;
+        currentTrackTitle.textContent = title;
+
+        if (url.includes('.m3u8')) {
+            if (Hls.isSupported()) {
+                hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(hifiAudio);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    nowPlayingSubtitle.textContent = "LIVE FM RADIO";
+                    hifiAudio.play().catch(() => {});
+                });
+            } else if (hifiAudio.canPlayType('application/vnd.apple.mpegurl')) {
+                hifiAudio.src = url;
+                hifiAudio.load();
+                hifiAudio.play().catch(() => {});
+            }
+        } else {
+            hifiAudio.src = url;
+            hifiAudio.load();
+            hifiAudio.play().catch(() => {});
+        }
+        updateMediaSession();
+    }
+
+    function exitApp() {
+        destroyHls();
+        if (hifiAudio) hifiAudio.pause();
+        if (wakeLock) wakeLock.release().catch(()=>{});
+        try { window.close(); } catch(e) {}
+        setTimeout(() => { window.location.href = "about:blank"; }, 300);
+    }
+
+    async function requestWakeLock() {
+        try {
+            if ('wakeLock' in navigator && (!wakeLock || wakeLock.released)) {
+                wakeLock = await navigator.wakeLock.request('screen');
+            }
+        } catch (err) {}
+    }
+
+    async function handleLocalFiles(event) {
+        var files = event.target.files;
+        if (!files || files.length === 0) return;
+
+        activeFmKey = null;
+        destroyHls();
+        document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
+
+        nowPlayingSubtitle.textContent = "IMPORTING & SAVING LOCAL TRACKS...";
+
+        var addedCount = 0;
+        var firstAddedIndex = -1;
+
+        for (var j = 0; j < files.length; j++) {
+            var file = files[j];
+            if (file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|m4a|aac|flac)$/i)) {
+                var cleanTitle = file.name.replace(/\.[^/.]+$/, "");
+                
+                try {
+                    await saveTrackToDB(cleanTitle, file);
+                } catch (e) {
+                    console.warn("Could not save to DB:", cleanTitle, e);
+                }
+
+                var existsIndex = playlist.findIndex(t => t.title.toLowerCase() === cleanTitle.toLowerCase());
+                if (existsIndex === -1) {
+                    var objectUrl = URL.createObjectURL(file);
+                    playlist.push({
+                        title: cleanTitle,
+                        src: objectUrl,
+                        isLocalImported: true
+                    });
+                    if (firstAddedIndex === -1) {
+                        firstAddedIndex = playlist.length - 1;
+                    }
+                    addedCount++;
+                } else if (firstAddedIndex === -1) {
+                    firstAddedIndex = existsIndex;
+                }
+            }
+        }
+
+        playlist.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+
+        if (firstAddedIndex !== -1) {
+            var targetTitle = (files[0].name.replace(/\.[^/.]+$/, ""));
+            var sortedIdx = playlist.findIndex(t => t.title === targetTitle);
+            if (sortedIdx !== -1) firstAddedIndex = sortedIdx;
+        }
+
+        event.target.value = '';
+
+        updateSavedCountDisplay();
+        populatePlaylistDropdown();
+
+        if (firstAddedIndex !== -1) {
+            togglePlaylistDropdown();
+            loadTrack(firstAddedIndex, true);
+        }
+
+        nowPlayingSubtitle.textContent = `IMPORTED ${addedCount} TRACKS TO PLAYLIST!`;
+        setTimeout(syncTrackUI, 2500);
+    }
+
+    function restoreSavedTracksIntoPlaylist() {
+        return openOfflineDB().then(function(db) {
+            return new Promise(function(resolve) {
+                var tx = db.transaction(STORE_NAME, 'readonly');
+                var store = tx.objectStore(STORE_NAME);
+                var req = store.openCursor();
+
+                req.onsuccess = function(e) {
+                    var cursor = e.target.result;
+                    if (cursor) {
+                        var record = cursor.value;
+                        if (record && record.title && record.blob) {
+                            var exists = playlist.some(t => t.title.toLowerCase() === record.title.toLowerCase());
+                            if (!exists) {
+                                playlist.push({
+                                    title: record.title,
+                                    src: URL.createObjectURL(record.blob),
+                                    isLocalImported: true
+                                });
+                            }
+                        }
+                        cursor.continue();
+                    } else {
+                        playlist.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+                        resolve();
+                    }
+                };
+
+                req.onerror = function() {
+                    resolve();
+                };
+            });
+        });
+    }
+
+    function updateMediaSession() {
+        if ('mediaSession' in navigator) {
+            var activeTitle = activeFmKey 
+                ? fmStations[activeFmKey].title 
+                : (playlist[currentTrackIndex] ? playlist[currentTrackIndex].title : "Track");
+
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: activeTitle,
+                artist: "Chanthiran Mini HiFi",
+                album: activeFmKey ? "FM Tuner" : (mediaFormat === 'vinyl' ? "Vinyl LP" : "Cassette BGM")
+            });
+            navigator.mediaSession.playbackState = hifiAudio.paused ? "paused" : "playing";
+
+            navigator.mediaSession.setActionHandler('play', () => togglePlayPause());
+            navigator.mediaSession.setActionHandler('pause', () => togglePlayPause());
+            navigator.mediaSession.setActionHandler('previoustrack', () => playPrevious());
+            navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
+        }
+    }
+
+    function formatTime(seconds) {
+        var min = Math.floor(seconds / 60);
+        var sec = Math.floor(seconds % 60);
+        return min + ':' + (sec < 10 ? '0' + sec : sec);
+    }
+
+    function populatePlaylistDropdown() {
+        dropdownTrackList.innerHTML = '';
+        updateSavedCountDisplay();
+
+        getAllSavedTrackTitles().then(function(savedTitles) {
+            var savedSet = new Set(savedTitles);
+
+            var tracksToDisplay = playlist.map(function(track, originalIdx) {
+                return { 
+                    track: track, 
+                    originalIdx: originalIdx, 
+                    isSaved: savedSet.has(track.title) 
+                };
+            });
+
+            if (currentPlaylistTab === 'offline') {
+                tracksToDisplay = tracksToDisplay.filter(function(item) {
+                    return item.isSaved;
+                });
+            }
+
+            if (searchFilterText) {
+                tracksToDisplay = tracksToDisplay.filter(function(item) {
+                    return item.track.title.toLowerCase().includes(searchFilterText);
+                });
+            }
+
+            if (tracksToDisplay.length === 0) {
+                var emptyMsg = document.createElement('div');
+                emptyMsg.className = 'empty-offline-notice';
+                if (searchFilterText) {
+                    emptyMsg.innerHTML = `NO SONGS FOUND MATCHING:<br>"<span style="color:#ffaa00;">${searchFilterText}</span>"`;
+                } else if (currentPlaylistTab === 'offline') {
+                    emptyMsg.innerHTML = "NO SAVED TRACKS YET.<br>PICK LOCAL FILES OR SAVE SONGS FOR OFFLINE PLAYBACK.";
+                }
+                dropdownTrackList.appendChild(emptyMsg);
+                return;
+            }
+
+            tracksToDisplay.forEach(function(item) {
+                var a = document.createElement('a');
+                a.href = '#';
+                a.setAttribute('data-index', item.originalIdx);
+                
+                var badgeHtml = item.isSaved ? '<span class="offline-item-badge">💾 SAVED</span>' : '';
+                
+                var displayTitle = item.track.title;
+                if (searchFilterText) {
+                    var regex = new RegExp(`(${searchFilterText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                    displayTitle = displayTitle.replace(regex, '<span style="color:#00e5ff; text-decoration:underline;">$1</span>');
+                }
+
+                a.innerHTML = `<span>${displayTitle}</span>${badgeHtml}`;
+
+                a.onclick = function(e) { 
+                    e.preventDefault(); 
+                    activeFmKey = null;
+                    destroyHls();
+                    document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
+                    loadTrack(item.originalIdx, true); 
+                    togglePlaylistDropdown(); 
+                };
+
+                dropdownTrackList.appendChild(a);
+            });
+
+            updateActiveTrackHighlight();
+        });
+    }
+
+    function updateActiveTrackHighlight() {
+        Array.from(dropdownTrackList.children).forEach(function(item) {
+            if (item.hasAttribute('data-index')) {
+                var idx = parseInt(item.getAttribute('data-index'), 10);
+                item.classList.toggle('active', !activeFmKey && idx === currentTrackIndex);
+            }
+        });
+    }
+
+    function toggleShuffle() {
+        isShuffle = !isShuffle;
+        shuffleButton.classList.toggle('active-mode', isShuffle);
+        playMechanicalSwitchClick();
+        nextUpcomingIndex = -1;
+        scheduleNextTrackPreload();
+    }
+
+    function getRandomIndex() {
+        if (playlist.length <= 1) return 0;
+        var randomIndex;
+        do {
+            randomIndex = Math.floor(Math.random() * playlist.length);
+        } while (randomIndex === currentTrackIndex);
+        return randomIndex;
+    }
+
+    function restartTrack() {
+        if (activeFmKey) {
+            playFmStation(activeFmKey);
+            return;
+        }
+        playMechanicalSwitchClick();
+        hifiAudio.currentTime = 0;
+        hifiAudio.play().catch(()=>{});
+    }
+
+    function syncTrackUI() {
+        hasUserStartedPlayback = true;
+        if (activeFmKey) {
+            nowPlayingSubtitle.textContent = "LIVE FM RADIO";
+            currentTrackTitle.textContent = fmStations[activeFmKey].title;
+            if (nextTrackTitle) nextTrackTitle.textContent = "FM LIVE BROADCAST (NO QUEUE)";
+        } else {
+            var title = playlist[currentTrackIndex] ? playlist[currentTrackIndex].title : "Track";
+            nowPlayingSubtitle.textContent = "NOW PLAYING";
+            currentTrackTitle.textContent = title;
+            updateUpcomingTrackUI();
+        }
+        updateActiveTrackHighlight();
+        updateMediaSession();
+    }
+
+    function determineNextIndex() {
+        if (playlist.length <= 1) return 0;
+        return isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
+    }
+
+    function updateUpcomingTrackUI() {
+        if (!nextTrackTitle) return;
+        if (activeFmKey) {
+            nextTrackTitle.textContent = "FM LIVE BROADCAST (NO QUEUE)";
+            return;
+        }
+        if (playlist.length <= 1) {
+            nextTrackTitle.textContent = "SINGLE TRACK LOOP";
+            return;
+        }
+        if (nextUpcomingIndex < 0 || nextUpcomingIndex >= playlist.length) {
+            nextUpcomingIndex = determineNextIndex();
+        }
+        var nextSong = playlist[nextUpcomingIndex];
+        nextTrackTitle.textContent = nextSong ? nextSong.title : "None";
+    }
+
+    async function scheduleNextTrackPreload() {
+        if (playlist.length <= 1 || activeFmKey) return;
+
+        if (nextUpcomingIndex < 0 || nextUpcomingIndex === currentTrackIndex) {
+            nextUpcomingIndex = determineNextIndex();
+        }
+
+        var candidateTrack = playlist[nextUpcomingIndex];
+        if (!candidateTrack) return;
+
+        updateUpcomingTrackUI();
+
+        if (candidateTrack.title === preloadedTrackTitle) return;
+        preloadedTrackTitle = candidateTrack.title;
+
+        var cachedBlob = await getTrackFromDB(candidateTrack.title);
+        if (cachedBlob) {
+            if (preloadedBlobUrl) URL.revokeObjectURL(preloadedBlobUrl);
+            preloadedBlobUrl = URL.createObjectURL(cachedBlob);
+            preloaderAudio.src = preloadedBlobUrl;
+        } else {
+            preloaderAudio.src = candidateTrack.src;
+        }
+
+        preloaderAudio.load();
+    }
+
+    function loadTrack(index, autoPlay = true) {
+        if (playlist.length === 0) return;
+        activeFmKey = null;
+        destroyHls();
+        clearLoadGuard();
+        currentTrackIndex = index;
+        isTransitioning = true;
+        nextUpcomingIndex = -1;
+
+        var targetTrack = playlist[currentTrackIndex];
+        initRealAudioContext();
+        if (autoPlay) triggerFormatCueSound();
+
+        hifiAudio.pause();
+
+        if (preloadedTrackTitle === targetTrack.title && preloaderAudio.src) {
+            hifiAudio.src = preloaderAudio.src;
+            hifiAudio.load();
+            syncTrackUI();
+
+            if (autoPlay) {
+                var playPromise = hifiAudio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        isTransitioning = false;
+                        requestWakeLock();
+                    }).catch(() => {
+                        setTimeout(() => hifiAudio.play().catch(()=>{}), 200);
+                    });
+                }
+            } else {
+                isTransitioning = false;
+            }
+
+            setTimeout(scheduleNextTrackPreload, 1000);
+            return;
+        }
+
+        getTrackFromDB(targetTrack.title).then(function(cachedBlob) {
+            if (cachedBlob) {
+                hifiAudio.src = URL.createObjectURL(cachedBlob);
+                updateCacheButtonState(true);
+            } else {
+                hifiAudio.src = targetTrack.src;
+                updateCacheButtonState(false);
+            }
+
+            hifiAudio.load();
+            syncTrackUI();
+
+            if (autoPlay) {
+                var playPromise = hifiAudio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        isTransitioning = false;
+                        requestWakeLock();
+                    }).catch(() => {
+                        setTimeout(() => hifiAudio.play().catch(()=>{}), 250);
+                    });
+                }
+            } else {
+                isTransitioning = false;
+            }
+
+            setTimeout(scheduleNextTrackPreload, 1500);
+        });
+    }
+
+    function togglePlayPause() {
+        initRealAudioContext();
+        if (hifiAudio.paused) { 
+            triggerFormatCueSound();
+            hifiAudio.play().catch(()=>{});
+        } else { 
+            playTapeTransportRelease();
+            hifiAudio.pause(); 
+        }
+    }
+
+    function playNext() {
+        clearLoadGuard();
+        if (activeFmKey) return;
+        playMechanicalSwitchClick();
+
+        if (playlist.length === 0) return;
+        
+        triggerFastWind('forward', 600);
+
+        var targetIndex = (nextUpcomingIndex >= 0 && nextUpcomingIndex < playlist.length) 
+            ? nextUpcomingIndex 
+            : determineNextIndex();
+
+        loadTrack(targetIndex, true);
+    }
+
+    function playPrevious() {
+        clearLoadGuard();
+        if (activeFmKey) return;
+        playMechanicalSwitchClick();
+
+        if (playlist.length === 0) return;
+
+        triggerFastWind('reverse', 600);
+
+        var prevIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+        loadTrack(prevIndex, true);
+    }
+
+    function togglePlaylistDropdown() { 
+        playlistDropdown.parentElement.classList.toggle('show'); 
+        playMechanicalSwitchClick();
+    }
+
+    hifiAudio.addEventListener('ended', function() {
+        if (playlist.length > 0 && !isTransitioning) {
+            isTransitioning = true;
+            playNext();
+        }
+    });
+
+    hifiAudio.addEventListener('error', function() {
+        clearLoadGuard();
+        if (hifiAudio.error && hifiAudio.error.code === 20) return;
+
+        consecutiveErrorCount++;
+        if (consecutiveErrorCount > 3) {
+            nowPlayingSubtitle.textContent = "PLAYBACK PAUSED: NETWORK UNSTABLE";
+            isTransitioning = false;
+            return;
+        }
+
+        nowPlayingSubtitle.textContent = "RETRYING / ADVANCING TRACK...";
+        setTimeout(() => {
+            playNext();
+        }, 1200);
+    });
+
+    hifiAudio.addEventListener('waiting', function() {
+        clearLoadGuard();
+        loadTimeout = setTimeout(function() {
+            if (hifiAudio.readyState < 2 && !hifiAudio.paused && !isTransitioning) {
+                isTransitioning = true;
+                playNext();
+            }
+        }, 12000);
+    });
+
+    hifiAudio.addEventListener('playing', () => {
+        clearLoadGuard();
+        isTransitioning = false;
+        consecutiveErrorCount = 0;
+        preloadTriggeredForCurrentTrack = false;
+        syncTrackUI();
+        initRealAudioContext();
+        updateFormatNoiseState();
+        playButton.style.display = 'none'; 
+        pauseButton.style.display = 'inline-flex'; 
+        syncDeckVisuals();
+    });
+
+    hifiAudio.addEventListener('pause', () => { 
+        if (hifiAudio.paused) {
+            updateFormatNoiseState();
+            playButton.style.display = 'inline-flex'; 
+            pauseButton.style.display = 'none'; 
+            syncDeckVisuals();
+            updateMediaSession();
+        }
+    });
+
+    hifiAudio.addEventListener('timeupdate', () => {
+        if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
+            progressSlider.value = hifiAudio.currentTime;
+            currentTimeSpan.textContent = formatTime(hifiAudio.currentTime);
+            updateTapeCounter(hifiAudio.currentTime);
+            syncDeckVisuals();
+
+            if (Math.floor(hifiAudio.currentTime) % 2 === 0) {
+                persistTapeState(currentTrackIndex, hifiAudio.currentTime, !hifiAudio.paused);
+            }
+
+            if (!preloadTriggeredForCurrentTrack && (hifiAudio.currentTime > 15 || hifiAudio.currentTime > hifiAudio.duration * 0.5)) {
+                preloadTriggeredForCurrentTrack = true;
+                scheduleNextTrackPreload();
+            }
+        }
+    });
+
+    window.addEventListener('beforeunload', function() {
+        if (!activeFmKey && !isNaN(hifiAudio.currentTime)) {
+            persistTapeState(currentTrackIndex, hifiAudio.currentTime, !hifiAudio.paused);
+        }
+    });
+
+    hifiAudio.addEventListener('loadedmetadata', () => {
+        if (!activeFmKey && !isNaN(hifiAudio.duration)) {
+            progressSlider.max = hifiAudio.duration;
+            durationSpan.textContent = formatTime(hifiAudio.duration);
+        }
+        syncTrackUI();
+    });
+
+    volumeSlider.addEventListener('input', () => applyVolumeGain());
+
+    var lastSeekPosition = 0;
+    progressSlider.addEventListener('input', () => { 
+        if (!activeFmKey) {
+            var currentSeekVal = parseFloat(progressSlider.value);
+            var dir = currentSeekVal < lastSeekPosition ? 'reverse' : 'forward';
+            triggerFastWind(dir, 450);
+            lastSeekPosition = currentSeekVal;
+
+            hifiAudio.currentTime = currentSeekVal;
+            updateTapeCounter(currentSeekVal);
+            syncDeckVisuals();
+        }
+    });
+
+    window.onclick = function(event) {
+        if (!event.target.closest('.music-button') && 
+            !event.target.matches('.pl-text') && 
+            !event.target.closest('.dropdown-content')) {
+            document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
+        }
+    };
+
+    var cassetteWellEl = document.querySelector('.cassette-deck-well');
+    if (cassetteWellEl) {
+        cassetteWellEl.addEventListener('click', function(e) {
+            if (e.target.closest('.deck-eject-btn') || e.target.closest('.counter-reset-btn') || e.target.closest('#tapeCounterDigits')) return;
+            initRealAudioContext();
+            playMechanicalSwitchClick();
+        });
+    }
+
+    async function initPlayer() {
+        await restoreSavedTracksIntoPlaylist();
+        populatePlaylistDropdown();
+        loadSavedPresetSlots();
+        loadPersistedCounterMode();
+        animateVUMeters();
+        renderVisualizer();
+
+        var savedSession = getPersistedTapeState();
+        var bootIndex = (savedSession && playlist[savedSession.index]) ? savedSession.index : Math.floor(Math.random() * playlist.length);
+        var bootTime = (savedSession && savedSession.time) ? savedSession.time : 0;
+
+        loadTrack(bootIndex, false);
+
+        if (bootTime > 0) {
+            var onInitialMeta = function() {
+                if (bootTime < hifiAudio.duration) {
+                    hifiAudio.currentTime = bootTime;
+                    progressSlider.value = bootTime;
+                    currentTimeSpan.textContent = formatTime(bootTime);
+                    updateTapeCounter(bootTime);
+                }
+                hifiAudio.removeEventListener('loadedmetadata', onInitialMeta);
+            };
+            hifiAudio.addEventListener('loadedmetadata', onInitialMeta);
+        }
+
+        applyVolumeGain();
+        updateNetworkStatus();
+        updateSavedCountDisplay();
+        updateKnobLevelGauge('gaugeBass', 0.5, true, '#00e5ff');
+        updateKnobLevelGauge('gaugeTreble', 0.5, true, '#00e5ff');
+        updateKnobLevelGauge('gaugeBalance', 0.5, true, '#ffaa00');
+        updateKnobLevelGauge('gaugeVolume', 0.2, false, '#00e5ff');
+
+        turnOffRadio();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPlayer);
+    } else {
+        initPlayer();
+    }
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('sw.js').catch(function() {});
+        });
+    }
+</script>
+</body>
+</html>
