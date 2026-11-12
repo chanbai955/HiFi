@@ -1899,20 +1899,23 @@
 
     /* FM STATIONS (With 92.7 BIG FM, SYOK India Beat & AIR Trichy) */
     var fmStations = {
-        minnal: { title: "Minnal FM (96.3)", freq: 96.3, query: "minnal fm", backup: "https://stream.zeno.fm/f3v48y5168uvh", useApi: true },
-        raaga: { title: "THR Raaga (99.3)", freq: 99.3, query: "thr raaga", backup: "https://astro3.astro.com.my/raaga/raaga.m3u8", useApi: true },
+        minnal: { title: "Minnal FM (96.3)", freq: 96.3, query: "minnal fm", backup: "https://playerservices.streamtheworld.com/api/livestream-redirect/MINNAL_FMAAC_SC", useApi: true },
+        raaga: { title: "THR Raaga (99.3)", freq: 99.3, query: "thr raaga", backup: "https://listen.openstream.co/7044/audio", useApi: true },
         suria: { title: "92.7 BIG FM India", freq: 92.7, query: "92.7 big fm", backup: "https://stream.zeno.fm/0r0xa792kwzuv", useApi: true },
         indiabeat: { title: "SYOK India Beat (Astro 864)", freq: 94.5, query: "india beat", backup: "https://audio1.syok.my/dvr_india.m3u8", useApi: true },
         trichy: { title: "AIR Trichy FM Rainbow (102.1)", freq: 102.1,     query: "tiruchirappalli",     backup: "https://air.pc.cdn.bitgravity.com/air/live/pcrchannel26/playlist.m3u8",     useApi: false },
         sinar: { title: "Sinar FM (96.7)", freq: 96.7, query: "sinar fm", backup: "https://astro3.astro.com.my/sinar/sinar.m3u8", useApi: true },
         lite: { title: "Lite FM (105.7)", freq: 105.7, query: "lite fm", backup: "https://stream.rcs.revma.com/bn4ex8sbv4uvv/5_18oihpcuu06zk02/playlist.m3u8", useApi: true },
         my: { title: "MY FM (101.8)", freq: 101.8, query: "my fm", backup: "https://astro3.astro.com.my/my/my.m3u8", useApi: true },
-        oli: { title: "Oli 96.8 FM Singapore", freq: 96.8, query: "oli 96.8", backup: "https://mediacorp.coltcdn.com/oli968/live.m3u8", useApi: true },
-        sooriyan: { title: "Sooriyan FM Sri Lanka (103.4)", freq: 103.4, query: "sooriyan fm", backup: "https://shaincast.riereta.net/listen/sooriyan_fm/radio.mp3", useApi: true },
-        ilayaraja: { title: "Ilayaraja FM Hits (106.5)", freq: 106.5, query: "ilayaraja radio", backup: "https://sp4.v3http.xyz/radio/8020/radio.mp3", useApi: true },
-        airtamil80s: { title: "80's Tamil Hits - AIR Tamil (91.2)", freq: 91.2, query: "80s tamil hits", backup: "https://sp4.v3http.xyz/radio/8040/radio.mp3", useApi: true },
-        arrahman: { title: "A.R. Rahman Radio (89.5)", freq: 89.5, query: "ar rahman radio", backup: "https://sp4.v3http.xyz/radio/8010/radio.mp3", useApi: true },
-        wbgo: { title: "WBGO Jazz 88.3 FM (New York)", freq: 88.3, query: "wbgo", backup: "https://ais-sa8.cdnstream1.com/3629_128.mp3", useApi: true }
+        oli: { title: "Oli 96.8 FM Singapore", freq: 96.8, query: "oli 96.8", backup: "https://playerservices.streamtheworld.com/api/livestream-redirect/OLI968FMAAC.aac", useApi: true },
+        sooriyan: { title: "Sooriyan FM Sri Lanka (103.6)", freq: 103.6, query: "sooriyan fm", backup: "https://radio.lotustechnologieslk.net:8006/", useApi: true },
+        ilayaraja: { title: "Ilayaraja FM Hits (106.5)", freq: 106.5, query: "ilayaraja radio", backup: "https://stream.zeno.fm/4937115368uvh", useApi: true },
+        airtamil80s: { title: "80's Tamil Hits - AIR Tamil (91.2)", freq: 91.2, query: "80s tamil hits", backup: "https://stream.zeno.fm/2556862168uvh", useApi: true },
+        arrahman: { title: "A.R. Rahman Radio (89.5)", freq: 89.5, query: "ar rahman radio", backup: "https://stream.zeno.fm/8904954168uvh", useApi: true },
+        wbgo: { title: "WBGO Jazz 88.3 FM (New York)", freq: 88.3, query: "wbgo", backup: "https://ais-sa8.cdnstream1.com/3629_128.mp3", useApi: true },
+        shakthi: { title: "Shakthi FM (Sri Lanka)", freq: 103.9, query: "shakthi fm",backup: "https://mbc.thestreamtech.com:8086/stream",  useApi: true},
+        suryan: {   title: "Suryan FM (93.5)", freq: 93.5, query: "suryan fm", backup: "https://stream.zeno.fm/suryan-fm-93-5-chennai", useApi: true }
+        
     };
 
     var defaultPresetSlots = {
@@ -1924,7 +1927,7 @@
         6: { name: "LITE", key: "lite", freq: 105.7 },
         7: { name: "MY FM", key: "my", freq: 101.8 },
         8: { name: "OLI 96.8", key: "oli", freq: 96.8 },
-        9: { name: "SOORIYAN", key: "sooriyan", freq: 103.4 }
+        9: { name: "SHAKTHI", key: "shakthi", freq: 103.9 }
     };
 
     var userPresetSlots = {};
