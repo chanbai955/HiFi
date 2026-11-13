@@ -42,7 +42,7 @@
             width: 100%;
             min-height: 100vh;
             max-width: 480px;
-            margin: 0 auto;
+           margin: 28px; 
             padding: 16px;
             background: linear-gradient(145deg, #22252a 0%, #111215 100%);
             border: 3px solid #3a3f47;
@@ -77,7 +77,7 @@
                 width: 96%;
                 min-height: auto;
                 max-width: 940px;
-                margin: 45px auto 30px auto;
+                margin: 80px auto 30px auto;
                 padding: 16px 20px;
                 border-radius: 14px;
                 box-shadow: 0 0 45px rgba(0,0,0,0.95), inset 0 1px 2px rgba(255,255,255,0.15);
@@ -871,7 +871,7 @@
             right: 0;
             padding: 14px 16px;
             background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 70%, transparent 100%);
-            display: none;
+            display: flex;
             flex-direction: column;
             align-items: stretch;
             gap: 8px;
@@ -882,12 +882,14 @@
         }
 
         .video-screen-frame:fullscreen .video-fs-controls.visible,
-        .video-screen-frame:-webkit-full-screen .video-fs-controls.visible,
-        .video-screen-frame.mobile-fs-active .video-fs-controls.visible,
-        .video-screen-frame:hover .video-fs-controls {
-            opacity: 1;
-            pointer-events: auto;
-        }
+.video-screen-frame:-webkit-full-screen .video-fs-controls.visible,
+.video-screen-frame.mobile-fs-active .video-fs-controls.visible,
+.video-screen-frame:fullscreen:hover .video-fs-controls,
+.video-screen-frame:-webkit-full-screen:hover .video-fs-controls,
+.video-screen-frame.mobile-fs-active:hover .video-fs-controls {
+    opacity: 1;
+    pointer-events: auto;
+}
 
         .video-fs-seek-row {
             display: flex;
@@ -1351,21 +1353,21 @@
 
         .dropdown { position: relative; display: inline-block; }
         .dropdown-content {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 92vw;
-    max-width: 420px;
-    max-height: 82vh;
-    background-color: #181a1f;
-    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.95), 0 0 0 9999px rgba(0, 0, 0, 0.65);
-    z-index: 9999;
-    border-radius: 10px;
-    overflow-y: auto;
-    border: 2px solid #ffaa00;
-    }
+            display: none;
+            position: absolute;
+            background-color: #181a1f;
+            min-width: 285px;
+            max-width: 88vw;
+            box-shadow: 0px 10px 30px rgba(0,0,0,0.9);
+            z-index: 1000;
+            right: 0;
+            bottom: 100%;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            max-height: 65vh;
+            overflow-y: auto;
+            border: 2px solid #ffaa00;
+        }
         .dropdown.show .dropdown-content { display: block; }
         .dropdown-content a, .dropdown-content label {
             color: #eee;
@@ -1392,6 +1394,25 @@
             z-index: 10;
         }
 
+  .pl-close-btn {
+    padding: 8px 12px;
+    background: rgba(255, 51, 51, 0.12);
+    border: none;
+    border-left: 1px solid #2a2e38;
+    color: #ff5555;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+
+ .pl-close-btn:hover,
+ .pl-close-btn:active {
+    background: #ff3333;
+    color: #ffffff;
+ }
         .pl-filter-tab {
             flex: 1;
             padding: 8px 4px;
@@ -2129,10 +2150,11 @@
                         <div id="playlistDropdown" class="dropdown-content">
                             <!-- TABS: ALL vs VIDEOS vs OFFLINE -->
                             <div class="playlist-tab-bar">
-                                <button class="pl-filter-tab active-tab" id="tabAllSongs" onclick="switchPlaylistTab('all', event)">ALL MEDIA</button>
-                                <button class="pl-filter-tab" id="tabVideosOnly" onclick="switchPlaylistTab('videos', event)">🎬 VIDEOS</button>
-                                <button class="pl-filter-tab" id="tabOfflineSongs" onclick="switchPlaylistTab('offline', event)">💾 OFFLINE</button>
-                            </div>
+    <button class="pl-filter-tab active-tab" id="tabAllSongs" onclick="switchPlaylistTab('all', event)">ALL MEDIA</button>
+    <button class="pl-filter-tab" id="tabVideosOnly" onclick="switchPlaylistTab('videos', event)">🎬 VIDEOS</button>
+    <button class="pl-filter-tab" id="tabOfflineSongs" onclick="switchPlaylistTab('offline', event)">💾 OFFLINE</button>
+    <button class="pl-close-btn" onclick="closePlaylistDropdown(event)" title="Close Playlist">✕</button>
+ </div>
 
                             <!-- LIVE SEARCH BAR -->
                             <div class="playlist-search-container">
@@ -2774,9 +2796,13 @@
         }
     }
 
-    function revealFullscreenControls() {
+ function revealFullscreenControls() {
         var fsControls = document.getElementById('videoFsControls');
         if (!fsControls) return;
+        if (!isVideoFullscreenActive()) {
+            fsControls.classList.remove('visible');
+            return;
+        }
         fsControls.classList.add('visible');
         if (fsControlsHideTimer) clearTimeout(fsControlsHideTimer);
         fsControlsHideTimer = setTimeout(function() {
@@ -5443,9 +5469,11 @@
         nextTrackTitle.textContent = nextLabel;
 
         var fsTitleEl = document.getElementById('videoFsTitle');
-        if (fsTitleEl && isVideoFullscreenActive()) {
+        if (fsTitleEl) {
             var curTitle = playlist[currentTrackIndex] ? playlist[currentTrackIndex].title : "NOW PLAYING";
-            fsTitleEl.textContent = curTitle + "   |   NEXT: " + nextLabel;
+            fsTitleEl.textContent = isVideoFullscreenActive()
+                ? (curTitle + "   |   NEXT: " + nextLabel)
+                : curTitle;
         }
     }
 
@@ -5598,6 +5626,11 @@
         playMechanicalSwitchClick();
     }
 
+ function closePlaylistDropdown(event) {
+    if (event) event.stopPropagation();
+    playlistDropdown.parentElement.classList.remove('show');
+     playMechanicalSwitchClick();
+ }
     /* SYNCHRONOUS BACKGROUND-SAFE TRACK ADVANCE */
     hifiAudio.addEventListener('ended', function() {
         updateRadioLedState();
