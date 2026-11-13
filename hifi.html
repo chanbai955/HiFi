@@ -456,6 +456,22 @@
 
         .cassette-deck-well svg.cdeck-svg { width: 100%; height: 100%; display: block; }
 
+        /* BLINKING RADIO LED (ACTIVE ONLY WHEN TUNER IS PLAYING) */
+        @keyframes radioLedBlink {
+            0%, 100% {
+                fill: #ffaa00;
+                filter: drop-shadow(0 0 6px #ffaa00) drop-shadow(0 0 12px #ff5500);
+            }
+            50% {
+                fill: #331a00;
+                filter: none;
+            }
+        }
+
+        .radio-led-blinking {
+            animation: radioLedBlink 0.8s ease-in-out infinite;
+        }
+
         /* PHYSICAL MECHANICAL EJECT BUTTON */
         .deck-eject-btn {
             position: absolute;
@@ -529,14 +545,8 @@
         }
 
         @keyframes counterWarningPulse {
-            0% {
-                opacity: 1;
-                filter: brightness(1.3);
-            }
-            100% {
-                opacity: 0.25;
-                filter: brightness(0.7);
-            }
+            0% { opacity: 1; filter: brightness(1.3); }
+            100% { opacity: 0.25; filter: brightness(0.7); }
         }
 
         .counter-reset-btn {
@@ -630,17 +640,9 @@
         }
 
         @keyframes glassSweep {
-            0% {
-                transform: translateX(-15%) skewX(-8deg);
-                opacity: 0.65;
-            }
-            50% {
-                opacity: 0.95;
-            }
-            100% {
-                transform: translateX(18%) skewX(-8deg);
-                opacity: 0.75;
-            }
+            0% { transform: translateX(-15%) skewX(-8deg); opacity: 0.65; }
+            50% { opacity: 0.95; }
+            100% { transform: translateX(18%) skewX(-8deg); opacity: 0.75; }
         }
 
         /* UPCOMING TRACK QUEUE DISPLAY */
@@ -687,6 +689,299 @@
             overflow: hidden;
             text-overflow: ellipsis;
             flex: 1;
+        }
+
+        /* VIDEO DECK TAB & COLLAPSIBLE MONITOR BAY (BELOW NEXT QUEUE) */
+        .video-tab-bar {
+            width: 100%;
+            background: linear-gradient(145deg, #161920, #0c0e12);
+            border: 1px solid #2e3542;
+            border-left: 3px solid #00e5ff;
+            border-radius: 5px;
+            padding: 5px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.85);
+        }
+
+        .video-tab-bar:hover, .video-tab-bar.video-active {
+            border-color: #00e5ff;
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+        }
+
+        .video-tab-left {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            overflow: hidden;
+        }
+
+        .video-tab-badge {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55rem;
+            font-weight: 900;
+            color: #00e5ff;
+            background: rgba(0, 229, 255, 0.12);
+            border: 1px solid rgba(0, 229, 255, 0.45);
+            border-radius: 3px;
+            padding: 2px 6px;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .video-tab-bar.video-active .video-tab-badge {
+            background: #00e5ff;
+            color: #07090d;
+        }
+
+        .video-tab-status {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #a1aab8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .video-tab-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .video-mini-btn {
+            background: linear-gradient(145deg, #272c36, #14171d);
+            border: 1px solid #454e5e;
+            color: #ffaa00;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.5rem;
+            font-weight: 800;
+            padding: 3px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.12s ease;
+        }
+
+        .video-mini-btn:hover {
+            border-color: #00e5ff;
+            color: #00e5ff;
+        }
+
+        .video-deck-bay {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            background: #050608;
+            border: 2px solid #2b3340;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: inset 0 0 18px rgba(0, 229, 255, 0.12);
+        }
+
+        .video-deck-bay.open {
+            display: flex;
+        }
+
+        .video-screen-frame {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border: 1px solid #1e2631;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #hifiAudio {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+            display: block;
+        }
+
+        /* TRUE EDGE-TO-EDGE FULLSCREEN FOR ANDROID & iOS */
+        .video-screen-frame:fullscreen,
+        .video-screen-frame:-webkit-full-screen,
+        .video-screen-frame.mobile-fs-active {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            aspect-ratio: unset !important;
+            max-width: none !important;
+            max-height: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            z-index: 99999 !important;
+            background: #000 !important;
+            touch-action: pan-y;
+        }
+
+        .video-screen-frame:fullscreen #hifiAudio,
+        .video-screen-frame:-webkit-full-screen #hifiAudio,
+        .video-screen-frame.mobile-fs-active #hifiAudio {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain !important;
+        }
+
+        /* SWIPE FEEDBACK TOAST */
+        .video-swipe-toast {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(10, 14, 20, 0.85);
+            border: 1.5px solid #00e5ff;
+            color: #00e5ff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 900;
+            padding: 8px 16px;
+            border-radius: 6px;
+            letter-spacing: 1px;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 30;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .video-swipe-toast.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* FULLSCREEN VIDEO OVERLAY TRANSPORT CONTROLS */
+        .video-fs-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 14px 16px;
+            background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 70%, transparent 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+            z-index: 20;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .video-screen-frame:fullscreen .video-fs-controls.visible,
+        .video-screen-frame:-webkit-full-screen .video-fs-controls.visible,
+        .video-screen-frame.mobile-fs-active .video-fs-controls.visible,
+        .video-screen-frame:hover .video-fs-controls {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .video-fs-seek-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .video-fs-time {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: #ffaa00;
+            min-width: 38px;
+            text-align: center;
+        }
+
+        #fsProgressSlider {
+            flex: 1;
+            accent-color: #00e5ff;
+            height: 6px;
+            cursor: pointer;
+        }
+
+        .video-fs-bottom-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .video-fs-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #00e5ff;
+            text-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .video-fs-btn-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .video-fs-btn {
+            background: rgba(20, 24, 32, 0.88);
+            border: 1px solid #00e5ff;
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.62rem;
+            font-weight: 800;
+            padding: 6px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .video-fs-btn:hover, .video-fs-btn:active {
+            background: #00e5ff;
+            color: #05070a;
+        }
+
+        .video-fs-btn.amber {
+            border-color: #ffaa00;
+            color: #ffaa00;
+        }
+
+        .video-fs-btn.amber:hover, .video-fs-btn.amber:active {
+            background: #ffaa00;
+            color: #05070a;
+        }
+
+        .video-fs-btn.loop-active {
+            background: linear-gradient(145deg, #ffaa00, #ff7700);
+            border-color: #ffaa00;
+            color: #05070a;
+            box-shadow: 0 0 10px rgba(255, 170, 0, 0.75);
+        }
+
+        .video-deck-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
         }
 
         /* AUDIO-REACTIVE NEON BADGE STYLES */
@@ -1102,7 +1397,7 @@
             padding: 8px 4px;
             text-align: center;
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.62rem;
+            font-size: 0.58rem;
             font-weight: 800;
             color: #8892a0;
             background: transparent;
@@ -1290,6 +1585,32 @@
             vertical-align: middle;
         }
 
+        .pl-item-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+
+        .pl-delete-item-btn {
+            background: rgba(255, 51, 51, 0.14);
+            border: 1px solid #ff4d4d;
+            color: #ff6666;
+            font-size: 0.62rem;
+            padding: 2px 5px;
+            border-radius: 3px;
+            cursor: pointer;
+            line-height: 1;
+            transition: all 0.15s ease;
+        }
+
+        .pl-delete-item-btn:hover,
+        .pl-delete-item-btn:active {
+            background: #ff3333;
+            color: #ffffff;
+        }
+
         .empty-offline-notice {
             padding: 14px 10px;
             text-align: center;
@@ -1332,16 +1653,13 @@
         <div class="brand-label">Chanthiran</div>
         <div class="top-right-controls">
             <span class="compo-model-no">HIFI</span>
-            <button id="mediaFormatBtn" class="tape-toggle-btn active-mode" onclick="cycleMediaFormat()" title="Cycle Format: TAPE / VINYL / DIGITAL">📼 TAPE</button>
+            <button id="mediaFormatBtn" class="tape-toggle-btn active-mode" onclick="cycleMediaFormat()" title="Cycle Format: TAPE / VINYL / DIGITAL / RADIO">📼 TAPE</button>
             <button class="exit-btn" onclick="exitApp()" title="Exit App">
                 <svg viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg>
                 OFF
             </button>
         </div>
     </div>
-
-    <!-- MAIN AUDIO ELEMENT -->
-    <audio id="hifiAudio" crossorigin="anonymous" preload="auto" playsinline></audio>
 
     <!-- TOP ROTARY AMP KNOBS PANEL WITH ILLUMINATED ACTIVE LEVEL GAUGES -->
     <div class="compact-amp-panel">
@@ -1404,7 +1722,7 @@
     <!-- RESPONSIVE COMPONENT GRID (Vertical on Mobile / Dual-Rack on Desktop & Landscape) -->
     <div class="hifi-horizontal-grid">
         
-        <!-- COLUMN 1: METERS, SPECTRUM, 3D DECK WELL & NEXT QUEUE -->
+        <!-- COLUMN 1: METERS, SPECTRUM, 3D DECK WELL, NEXT QUEUE & VIDEO TAB -->
         <div class="rack-col">
             <div class="vu-meters-wrapper">
                 <div class="vu-meter-unit">
@@ -1425,7 +1743,7 @@
                 <canvas id="visualizerCanvas" width="420" height="52"></canvas>
             </div>
 
-            <div class="cassette-deck-well" id="cassetteDeckWell" title="Cassette / Turntable Deck Well">
+            <div class="cassette-deck-well" id="cassetteDeckWell" title="Cassette / Turntable / Radio Deck Well">
                 <!-- EJECT ILLUMINATION BACKSTAGE WARM GLOW -->
                 <div class="eject-backlight-lamp"></div>
 
@@ -1440,7 +1758,7 @@
                     <button class="counter-reset-btn" onclick="resetTapeCounter(event)" title="Reset to Start of Track">RESET</button>
                 </div>
 
-                <!-- 3D TILTING CASSETTE/VINYL DOOR TRAY -->
+                <!-- 3D TILTING CASSETTE/VINYL/RADIO DOOR TRAY -->
                 <div class="deck-tilt-tray" id="deckTiltTray">
                     <svg class="cdeck-svg" viewBox="0 0 400 120" preserveAspectRatio="none">
                         <defs>
@@ -1575,6 +1893,45 @@
                             </g>
                         </g>
 
+                        <!-- 3D RADIO TUNER VISUAL GROUP WITH BLINKING LED & AUDIO-REACTIVE SIGNAL METER -->
+                        <g id="svgRadioGroup" style="display: none;">
+                            <rect x="18" y="15" width="274" height="90" rx="4" fill="#0b0d12" stroke="#2c3545" stroke-width="1.5"/>
+                            <!-- Telescopic Antenna -->
+                            <line x1="42" y1="22" x2="255" y2="18" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="256" cy="18" r="2.2" fill="#e2e8f0"/>
+                            <circle cx="42" cy="22" r="3" fill="#475569" stroke="#cbd5e1" stroke-width="0.8"/>
+
+                            <!-- Vintage Speaker Grille (Left) -->
+                            <rect x="28" y="30" width="76" height="66" rx="4" fill="#131720" stroke="#334155" stroke-width="1.2"/>
+                            <g stroke="#2a3240" stroke-width="1.5">
+                                <line x1="34" y1="38" x2="98" y2="38"/><line x1="34" y1="44" x2="98" y2="44"/>
+                                <line x1="34" y1="50" x2="98" y2="50"/><line x1="34" y1="56" x2="98" y2="56"/>
+                                <line x1="34" y1="62" x2="98" y2="62"/><line x1="34" y1="68" x2="98" y2="68"/>
+                                <line x1="34" y1="74" x2="98" y2="74"/><line x1="34" y1="80" x2="98" y2="80"/>
+                                <line x1="34" y1="86" x2="98" y2="86"/>
+                            </g>
+
+                            <!-- Illuminated FM Dial Window (Right) -->
+                            <rect x="114" y="30" width="166" height="40" rx="3" fill="#05070a" stroke="#00e5ff" stroke-width="1.2"/>
+                            <text x="122" y="43" fill="#ffaa00" font-family="'Orbitron', sans-serif" font-size="6.5" font-weight="800" letter-spacing="1">FM STEREO RECEIVER</text>
+                            <text id="deckRadioFreqText" x="122" y="61" fill="#00e5ff" font-family="'Orbitron', sans-serif" font-size="13" font-weight="900">96.3 MHz</text>
+
+                            <!-- BLINKING STEREO LED INDICATOR (ONLY BLINKS WHEN PLAYING) -->
+                            <circle id="radioLiveLed" cx="262" cy="43" r="4.5" fill="#2a1500" stroke="#552a00" stroke-width="1"/>
+                            <text x="262" y="55" fill="#8892a0" font-family="'Orbitron', sans-serif" font-size="5" font-weight="800" text-anchor="middle">FM LED</text>
+
+                            <!-- AUDIO-REACTIVE SIGNAL STRENGTH BAR -->
+                            <rect x="114" y="76" width="166" height="20" rx="3" fill="#141821" stroke="#2d3646" stroke-width="1"/>
+                            <text x="122" y="89" fill="#94a3b8" font-family="'Orbitron', sans-serif" font-size="6" font-weight="800" letter-spacing="1">SIGNAL</text>
+                            <g id="radioSignalBars">
+                                <rect x="164" y="88" width="16" height="4" rx="1" fill="#252c38"/>
+                                <rect x="184" y="86" width="16" height="6" rx="1" fill="#252c38"/>
+                                <rect x="204" y="84" width="16" height="8" rx="1" fill="#252c38"/>
+                                <rect x="224" y="82" width="16" height="10" rx="1" fill="#252c38"/>
+                                <rect x="244" y="80" width="16" height="12" rx="1" fill="#252c38"/>
+                            </g>
+                        </g>
+
                         <!-- Neon Badge -->
                         <g id="neonBadgeGroup" class="neon-badge-group" text-anchor="middle">
                             <text class="neon-note" x="345" y="34" fill="#ffaa00" font-size="13" font-family="'Orbitron', sans-serif">♪ ♫ ♪</text>
@@ -1621,6 +1978,55 @@
             <div id="nextTrackBanner" class="next-track-banner" onclick="playNext()" title="Click to play next song now">
                 <span class="next-queue-tag">NEXT QUEUE ▶</span>
                 <span id="nextTrackTitle" class="next-queue-title">Loading queue...</span>
+            </div>
+
+            <!-- EXTRA TAB BELOW NEXT QUEUE: VIDEO DECK -->
+            <div id="videoTabBar" class="video-tab-bar" onclick="toggleVideoDeck(event)" title="Open/Close Music Video Deck">
+                <div class="video-tab-left">
+                    <span class="video-tab-badge">🎬 VIDEO</span>
+                    <span id="videoTabStatus" class="video-tab-status">MP4 • WMV • MPEG • AVI</span>
+                </div>
+                <div class="video-tab-actions">
+                    <button class="video-mini-btn" onclick="openVideoFilePicker(event)" title="Load Music Video Files">+ LOAD VIDEO</button>
+                    <span id="videoChevron" style="font-size:0.65rem; color:#00e5ff;">▼</span>
+                </div>
+            </div>
+
+            <!-- COLLAPSIBLE VIDEO MONITOR BAY WITH FULLSCREEN CONTROLS & SWIPE TOAST -->
+            <div id="videoDeckBay" class="video-deck-bay">
+                <div class="video-screen-frame" id="videoScreenFrame">
+                    <!-- UNIFIED AV ENGINE: Handles both Audio & Video streams through HiFi DSP -->
+                    <video id="hifiAudio" crossorigin="anonymous" preload="auto" playsinline></video>
+
+                    <!-- SWIPE FEEDBACK TOAST -->
+                    <div class="video-swipe-toast" id="videoSwipeToast">NEXT ⏭</div>
+
+                    <!-- FULLSCREEN ON-SCREEN TRANSPORT CONTROLS -->
+                    <div class="video-fs-controls" id="videoFsControls">
+                        <div class="video-fs-seek-row">
+                            <span id="fsCurrentTime" class="video-fs-time">0:00</span>
+                            <input type="range" id="fsProgressSlider" min="0" max="0" value="0" />
+                            <span id="fsDuration" class="video-fs-time">0:00</span>
+                        </div>
+                        <div class="video-fs-bottom-row">
+                            <span class="video-fs-title" id="videoFsTitle">NOW PLAYING</span>
+                            <div class="video-fs-btn-group">
+                                <button class="video-fs-btn" onclick="playPrevious(); event.stopPropagation();" title="Previous Video (Left Arrow)">⏮ PREV</button>
+                                <button class="video-fs-btn amber" onclick="togglePlayPause(); event.stopPropagation();" title="Play / Pause (Space)">⏯ PLAY/PAUSE</button>
+                                <button class="video-fs-btn" id="fsLoopBtn" onclick="toggleRepeatOne(event)" title="Loop Current Video (L)">🔁 LOOP: OFF</button>
+                                <button class="video-fs-btn" onclick="playNext(); event.stopPropagation();" title="Next Video (Right Arrow)">NEXT ⏭</button>
+                                <button class="video-fs-btn" onclick="toggleVideoFullscreen(event)" title="Exit Fullscreen">✕ EXIT</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="video-deck-toolbar">
+                    <button class="video-mini-btn" onclick="openVideoFilePicker(event)">📄 PICK VIDEOS</button>
+                    <button class="video-mini-btn" onclick="openVideoFolderPicker(event)">📂 VIDEO FOLDER</button>
+                    <button class="video-mini-btn" onclick="toggleVideoFullscreen(event)">⛶ FULLSCREEN</button>
+                </div>
+                <input type="file" id="videoFileInput" multiple accept="video/*,.mp4,.wmv,.mpeg,.mpg,.avi,.mkv,.webm,.mov" style="display:none;" onchange="handleVideoFiles(event)" />
+                <input type="file" id="videoFolderInput" webkitdirectory directory style="display:none;" onchange="handleVideoFiles(event)" />
             </div>
         </div>
 
@@ -1678,13 +2084,13 @@
                 <div class="fm-buttons-grid">
                     <button class="fm-preset-btn" data-preset="1" onclick="handlePresetClick(1, event)">MINNAL</button>
                     <button class="fm-preset-btn" data-preset="2" onclick="handlePresetClick(2, event)">RAAGA</button>
-                    <button class="fm-preset-btn" data-preset="3" onclick="handlePresetClick(3, event)">BIG FM</button>
-                    <button class="fm-preset-btn" data-preset="4" onclick="handlePresetClick(4, event)">SINAR</button>
-                    <button class="fm-preset-btn" data-preset="5" onclick="handlePresetClick(5, event)">LITE</button>
-                    <button class="fm-preset-btn" data-preset="6" onclick="handlePresetClick(6, event)">MY FM</button>
-                    <button class="fm-preset-btn" data-preset="7" onclick="handlePresetClick(7, event)">OLI 96.8</button>
-                    <button class="fm-preset-btn" data-preset="8" onclick="handlePresetClick(8, event)">SOORIYAN</button>
-                    <button class="fm-preset-btn" data-preset="9" onclick="handlePresetClick(9, event)">ILAYARAJA</button>
+                    <button class="fm-preset-btn" data-preset="3" onclick="handlePresetClick(3, event)">SINAR</button>
+                    <button class="fm-preset-btn" data-preset="4" onclick="handlePresetClick(4, event)">ILAYARAJA</button>
+                    <button class="fm-preset-btn" data-preset="5" onclick="handlePresetClick(5, event)">ARRAHMAN</button>
+                    <button class="fm-preset-btn" data-preset="6" onclick="handlePresetClick(6, event)">LITE</button>
+                    <button class="fm-preset-btn" data-preset="7" onclick="handlePresetClick(7, event)">MY FM</button>
+                    <button class="fm-preset-btn" data-preset="8" onclick="handlePresetClick(8, event)">OLI 96.8</button>
+                    <button class="fm-preset-btn" data-preset="9" onclick="handlePresetClick(9, event)">SHAKTHI</button>
                     <button class="fm-preset-btn off-btn" id="btnTunerOff" onclick="turnOffRadio(event)">HI-FI</button>
                 </div>
             </div>
@@ -1700,7 +2106,7 @@
                     <button id="restartButton" class="music-button" onclick="restartTrack()" title="Reconnect / Start Again">
                         <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
                     </button>
-                    <button id="prevButton" class="music-button" onclick="playPrevious()" title="Previous Song">
+                    <button id="prevButton" class="music-button" onclick="playPrevious()" title="Previous Song / Video">
                         <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
                     </button>
                     <button id="playButton" class="music-button" onclick="togglePlayPause()" title="Play">
@@ -1709,7 +2115,7 @@
                     <button id="pauseButton" class="music-button" onclick="togglePlayPause()" style="display:none;" title="Pause">
                         <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                     </button>
-                    <button id="nextButton" class="music-button" onclick="playNext()" title="Next Song">
+                    <button id="nextButton" class="music-button" onclick="playNext()" title="Next Song / Video">
                         <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
                     </button>
                     <button id="shuffleButton" class="music-button active-mode" onclick="toggleShuffle()" title="Shuffle">
@@ -1721,16 +2127,17 @@
                     <div class="dropdown">
                         <button onclick="togglePlaylistDropdown()" class="music-button" title="Playlist"><span class="pl-text">PL</span></button>
                         <div id="playlistDropdown" class="dropdown-content">
-                            <!-- TABS: ALL vs OFFLINE ONLY -->
+                            <!-- TABS: ALL vs VIDEOS vs OFFLINE -->
                             <div class="playlist-tab-bar">
-                                <button class="pl-filter-tab active-tab" id="tabAllSongs" onclick="switchPlaylistTab('all', event)">ALL SONGS</button>
-                                <button class="pl-filter-tab" id="tabOfflineSongs" onclick="switchPlaylistTab('offline', event)">💾 OFFLINE ONLY</button>
+                                <button class="pl-filter-tab active-tab" id="tabAllSongs" onclick="switchPlaylistTab('all', event)">ALL MEDIA</button>
+                                <button class="pl-filter-tab" id="tabVideosOnly" onclick="switchPlaylistTab('videos', event)">🎬 VIDEOS</button>
+                                <button class="pl-filter-tab" id="tabOfflineSongs" onclick="switchPlaylistTab('offline', event)">💾 OFFLINE</button>
                             </div>
 
                             <!-- LIVE SEARCH BAR -->
                             <div class="playlist-search-container">
                                 <span class="search-icon">🔍</span>
-                                <input type="text" id="playlistSearchInput" class="playlist-search-input" placeholder="SEARCH SONGS..." oninput="handlePlaylistSearch(event)" />
+                                <input type="text" id="playlistSearchInput" class="playlist-search-input" placeholder="SEARCH SONGS & VIDEOS..." oninput="handlePlaylistSearch(event)" />
                                 <button id="clearSearchBtn" class="clear-search-btn" onclick="clearPlaylistSearch(event)" title="Clear Search">✕</button>
                             </div>
 
@@ -1753,10 +2160,10 @@
                                 </button>
                             </div>
 
-                            <label for="localFileInput">📄 Pick Songs / Files...</label>
-                            <input type="file" id="localFileInput" multiple accept="audio/*" style="display:none;" onchange="handleLocalFiles(event)" />
+                            <label for="localFileInput">📄 Pick Audio / Video Files...</label>
+                            <input type="file" id="localFileInput" multiple accept="audio/*,video/*,.mp4,.wmv,.mpeg,.mpg,.avi,.mkv,.webm,.mov" style="display:none;" onchange="handleLocalFiles(event)" />
                             <label for="folderInput">📂 Pick Folder / Subfolder...</label>
-                            <input type="file" id="folderInput" webkitdirectory directory accept="audio/*" style="display:none;" onchange="handleLocalFiles(event)" />
+                            <input type="file" id="folderInput" webkitdirectory directory style="display:none;" onchange="handleLocalFiles(event)" />
                             <div id="dropdownTrackList"></div>
                         </div>
                     </div>
@@ -1776,7 +2183,6 @@
 
     </div>
 </div>
-
 <script id="playerScript">
     var playlist = [
         { title: "Abracadabara", src: "https://raw.githack.com/chanbai955/mp3/main/abracadabra!!s.mp3" },
@@ -1897,22 +2303,24 @@
 
     playlist.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
 
-    /* FM STATIONS (With 92.7 BIG FM, SYOK India Beat & AIR Trichy) */
+    /* UPDATED VERIFIED FM STATIONS */
     var fmStations = {
-        minnal: { title: "Minnal FM (96.3)", freq: 96.3, query: "minnal fm", backup: "https://stream.zeno.fm/f3v48y5168uvh", useApi: true },
-        raaga: { title: "THR Raaga (99.3)", freq: 99.3, query: "thr raaga", backup: "https://astro3.astro.com.my/raaga/raaga.m3u8", useApi: true },
-        suria: { title: "92.7 BIG FM India", freq: 92.7, query: "92.7 big fm", backup: "https://stream.zeno.fm/0r0xa792kwzuv", useApi: true },
-        indiabeat: { title: "SYOK India Beat (Astro 864)", freq: 94.5, query: "india beat", backup: "https://audio1.syok.my/dvr_india.m3u8", useApi: true },
-        trichy: { title: "AIR Trichy FM Rainbow (102.1)", freq: 102.1,     query: "tiruchirappalli",     backup: "https://air.pc.cdn.bitgravity.com/air/live/pcrchannel26/playlist.m3u8",     useApi: false },
-        sinar: { title: "Sinar FM (96.7)", freq: 96.7, query: "sinar fm", backup: "https://astro3.astro.com.my/sinar/sinar.m3u8", useApi: true },
-        lite: { title: "Lite FM (105.7)", freq: 105.7, query: "lite fm", backup: "https://stream.rcs.revma.com/bn4ex8sbv4uvv/5_18oihpcuu06zk02/playlist.m3u8", useApi: true },
+        minnal: { title: "Minnal FM (96.3)", freq: 96.3, query: "minnal", backup: "https://22283.live.streamtheworld.com/MINNAL_FMAAC.aac", useApi: true },
+        raaga: { title: "THR Raaga (99.3)", freq: 99.3, query: "raaga", backup: "https://astro3.astro.com.my/raaga/raaga.m3u8", useApi: true },
+        suria: { title: "92.7 BIG FM India", freq: 92.7, query: "big fm", backup: "https://stream.zeno.fm/dbstwo3d0rhvv", useApi: true },
+        indiabeat: { title: "SYOK India Beat (Astro 864)", freq: 94.5, query: "india beat", backup: "https://astro3.astro.com.my/indiabeat/indiabeat.m3u8", useApi: true },
+        trichy: { title: "AIR Trichy FM Rainbow (102.1)", freq: 102.1, query: "trichy", backup: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio026/hlspbaudio02664kbps.m3u8", useApi: false },
+        sinar: { title: "Sinar FM (96.7)", freq: 96.7, query: "sinar", backup: "https://astro3.astro.com.my/sinar/sinar.m3u8", useApi: true },
+        lite: { title: "Lite FM (105.7)", freq: 105.7, query: "lite", backup: "https://astro3.astro.com.my/lite/lite.m3u8", useApi: true },
         my: { title: "MY FM (101.8)", freq: 101.8, query: "my fm", backup: "https://astro3.astro.com.my/my/my.m3u8", useApi: true },
-        oli: { title: "Oli 96.8 FM Singapore", freq: 96.8, query: "oli 96.8", backup: "https://mediacorp.coltcdn.com/oli968/live.m3u8", useApi: true },
-        sooriyan: { title: "Sooriyan FM Sri Lanka (103.4)", freq: 103.4, query: "sooriyan fm", backup: "https://shaincast.riereta.net/listen/sooriyan_fm/radio.mp3", useApi: true },
-        ilayaraja: { title: "Ilayaraja FM Hits (106.5)", freq: 106.5, query: "ilayaraja radio", backup: "https://sp4.v3http.xyz/radio/8020/radio.mp3", useApi: true },
-        airtamil80s: { title: "80's Tamil Hits - AIR Tamil (91.2)", freq: 91.2, query: "80s tamil hits", backup: "https://sp4.v3http.xyz/radio/8040/radio.mp3", useApi: true },
-        arrahman: { title: "A.R. Rahman Radio (89.5)", freq: 89.5, query: "ar rahman radio", backup: "https://sp4.v3http.xyz/radio/8010/radio.mp3", useApi: true },
-        wbgo: { title: "WBGO Jazz 88.3 FM (New York)", freq: 88.3, query: "wbgo", backup: "https://ais-sa8.cdnstream1.com/3629_128.mp3", useApi: true }
+        oli: { title: "Oli 96.8 FM Singapore", freq: 96.8, query: "oli 96.8", backup: "https://22283.live.streamtheworld.com/OLI968FMAAC.aac", useApi: true },
+        sooriyan: { title: "Sooriyan FM Sri Lanka (103.6)", freq: 103.6, query: "sooriyan", backup: "https://cp12.serverse.com/proxy/sooriyan/stream", useApi: true },
+        ilayaraja: { title: "Ilayaraja FM Hits (106.5)", freq: 106.5, query: "ilayaraja", backup: "https://stream.zeno.fm/0r0xa792kwzuv", useApi: true },
+        airtamil80s: { title: "80's Tamil Hits - AIR Tamil (91.2)", freq: 91.2, query: "tamil", backup: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio025/hlspbaudio02564kbps.m3u8", useApi: false },
+        arrahman: { title: "A.R. Rahman Radio (89.5)", freq: 89.5, query: "rahman", backup: "https://stream.zeno.fm/8k9a792kwzuv", useApi: true },
+        wbgo: { title: "WBGO Jazz 88.3 FM (New York)", freq: 88.3, query: "wbgo", backup: "https://ais-sa8.cdnstream1.com/3629_128.mp3", useApi: true },
+        shakthi: { title: "Shakthi FM (Sri Lanka)", freq: 103.9, query: "shakthi", backup: "https://mbc.thestreamtech.com:8086/stream", useApi: true },
+        suryan: { title: "Suryan FM (93.5)", freq: 93.5, query: "suryan", backup: "https://stream.zeno.fm/suryan-fm-93-5-chennai", useApi: true }
     };
 
     var defaultPresetSlots = {
@@ -1924,7 +2332,7 @@
         6: { name: "LITE", key: "lite", freq: 105.7 },
         7: { name: "MY FM", key: "my", freq: 101.8 },
         8: { name: "OLI 96.8", key: "oli", freq: 96.8 },
-        9: { name: "SOORIYAN", key: "sooriyan", freq: 103.4 }
+        9: { name: "SHAKTHI", key: "shakthi", freq: 103.9 }
     };
 
     var userPresetSlots = {};
@@ -1933,11 +2341,24 @@
     var activeFmKey = null;
     var currentStreamUrl = null;
     var hls = null;
+    var fmMirrorQueue = [];
+    var fmMirrorIndex = 0;
 
-    /* --- NATIVE AUDIO & ENGINE REFERENCES --- */
+    /* --- UNIFIED AV ENGINE & DUAL FM RADIO ENGINES (EQ + CORS FALLBACK) --- */
     var hifiAudio = document.getElementById('hifiAudio');
+
+    var fmPlayer = new Audio();
+    fmPlayer.crossOrigin = "anonymous";
+    fmPlayer.preload = "none";
+
+    var fmFallbackPlayer = new Audio();
+    fmFallbackPlayer.preload = "none";
+    var fmSourceConnected = false;
+
     var loadTimeout = null;
     var isPageHidden = false;
+    var isVideoDeckOpen = false;
+    var fsControlsHideTimer = null;
 
     var currentTrackTitle = document.getElementById('currentTrackTitle');
     var nowPlayingSubtitle = document.getElementById('nowPlayingSubtitle');
@@ -1960,6 +2381,9 @@
     var progressSlider = document.getElementById('progressSlider');
     var currentTimeSpan = document.getElementById('currentTime');
     var durationSpan = document.getElementById('duration');
+    var fsProgressSlider = document.getElementById('fsProgressSlider');
+    var fsCurrentTimeSpan = document.getElementById('fsCurrentTime');
+    var fsDurationSpan = document.getElementById('fsDuration');
     var cacheTrackBtn = document.getElementById('cacheTrackBtn');
     var vfdOfflineBanner = document.getElementById('vfdOfflineBanner');
 
@@ -1972,6 +2396,12 @@
 
     var svgCassetteGroup = document.getElementById('svgCassetteGroup');
     var svgVinylGroup = document.getElementById('svgVinylGroup');
+    var svgRadioGroup = document.getElementById('svgRadioGroup');
+    var radioLiveLed = document.getElementById('radioLiveLed');
+    var deckRadioFreqText = document.getElementById('deckRadioFreqText');
+    var radioSignalBars = document.getElementById('radioSignalBars');
+    var previousNonRadioFormat = 'tape';
+
     var svgVinylPlatter = document.getElementById('svgVinylPlatter');
     var svgTonearmAssembly = document.getElementById('svgTonearmAssembly');
     var spoolOverlayContainer = document.querySelector('.spool-overlay-container');
@@ -1991,16 +2421,8 @@
     var wakeLock = null;
 
     var fastWindTimer = null;
-
-    // DUAL-BUFFER PRELOAD WORKER (Background audio element)
-    var preloaderAudio = document.createElement('audio');
-    preloaderAudio.preload = 'auto';
-    preloaderAudio.volume = 0;
-    var preloadedBlobUrl = null;
-    var preloadedTrackTitle = "";
     var isTransitioning = false;
     var consecutiveErrorCount = 0;
-    var preloadTriggeredForCurrentTrack = false;
     var nextUpcomingIndex = -1;
 
     // WEB AUDIO GRAPH NODES
@@ -2051,6 +2473,7 @@
     var counterMode = 'elapsed';
     var STORAGE_KEY_STATE = 'chanthiran_tape_state';
     var STORAGE_KEY_COUNTER_MODE = 'chanthiran_counter_mode';
+    var STORAGE_KEY_LAST_FM_FREQ = 'chanthiran_last_fm_freq';
 
     // MECHANICAL NEEDLE BALLISTICS SIMULATOR
     var needleL = { pos: -42, vel: 0 };
@@ -2068,6 +2491,7 @@
     var DB_NAME = 'ChanthiranHiFiDB';
     var DB_VERSION = 1;
     var STORE_NAME = 'offline_audio_tracks';
+    var MAX_OFFLINE_VIDEO_BYTES = 150 * 1024 * 1024; // 150 MB per video limit
     var dbInstance = null;
     var currentPlaylistTab = 'all';
     var searchFilterText = '';
@@ -2076,6 +2500,7 @@
 
     var currentTrackIndex = 0;
     var isShuffle = true;
+    var isRepeatOne = false;
     var hasUserStartedPlayback = false;
 
     function clearLoadGuard() {
@@ -2085,11 +2510,453 @@
         }
     }
 
+    function stopAllFmPlayers() {
+        fmPlayer.pause();
+        fmPlayer.src = "";
+        fmFallbackPlayer.pause();
+        fmFallbackPlayer.src = "";
+        updateRadioLedState();
+    }
+
+    /* --- LAST TUNED FM FREQUENCY PERSISTENCE --- */
+    function saveLastFmFrequency(freq) {
+        try {
+            if (typeof freq === 'number' && !isNaN(freq)) {
+                localStorage.setItem(STORAGE_KEY_LAST_FM_FREQ, freq.toFixed(1));
+            }
+        } catch (e) {}
+    }
+
+    function loadLastFmFrequency() {
+        try {
+            var saved = parseFloat(localStorage.getItem(STORAGE_KEY_LAST_FM_FREQ));
+            if (!isNaN(saved) && saved >= 88.0 && saved <= 108.0) {
+                return saved;
+            }
+        } catch (e) {}
+        return 96.3;
+    }
+
+    /* --- RADIO DECK LED & AUDIO-REACTIVE SIGNAL STRENGTH CONTROLLER --- */
+    function updateRadioSignalBars(level) {
+        if (!radioSignalBars) return;
+        var bars = radioSignalBars.querySelectorAll('rect');
+        bars.forEach(function(bar, idx) {
+            if (idx < level) {
+                var color = idx < 3 ? '#00e5ff' : (idx === 3 ? '#ffaa00' : '#ff4b1f');
+                bar.setAttribute('fill', color);
+                bar.style.filter = 'drop-shadow(0 0 3px ' + color + ')';
+            } else {
+                bar.setAttribute('fill', '#252c38');
+                bar.style.filter = 'none';
+            }
+        });
+    }
+
+    function updateRadioLedState() {
+        var isRadioPlaying = Boolean(
+            activeFmKey &&
+            (!hifiAudio.paused || !fmPlayer.paused || !fmFallbackPlayer.paused)
+        );
+        if (radioLiveLed) {
+            radioLiveLed.classList.toggle('radio-led-blinking', isRadioPlaying);
+        }
+        if (deckRadioFreqText) {
+            deckRadioFreqText.textContent = isTunerPowerOn
+                ? (currentFmFrequency.toFixed(1) + " MHz")
+                : "TUNER OFF";
+        }
+        if (!isTunerPowerOn) {
+            updateRadioSignalBars(0);
+        } else if (!isRadioPlaying) {
+            updateRadioSignalBars(activeFmKey ? 3 : 1);
+        }
+    }
+
+    function applyDeckFormatVisuals(targetFormat) {
+        mediaFormat = targetFormat;
+        var btn = document.getElementById('mediaFormatBtn');
+        var tapeLayer = document.getElementById('magneticTapeLayer');
+
+        if (svgCassetteGroup) svgCassetteGroup.style.display = (mediaFormat === 'tape' || mediaFormat === 'clean') ? 'block' : 'none';
+        if (svgVinylGroup) svgVinylGroup.style.display = (mediaFormat === 'vinyl') ? 'block' : 'none';
+        if (svgRadioGroup) svgRadioGroup.style.display = (mediaFormat === 'radio') ? 'block' : 'none';
+        if (spoolOverlayContainer) spoolOverlayContainer.style.display = (mediaFormat === 'tape' || mediaFormat === 'clean') ? 'block' : 'none';
+        if (tapeLayer) tapeLayer.style.display = (mediaFormat === 'tape') ? 'block' : 'none';
+
+        if (btn) {
+            if (mediaFormat === 'tape') {
+                btn.textContent = "📼 TAPE";
+                btn.className = "tape-toggle-btn active-mode";
+            } else if (mediaFormat === 'vinyl') {
+                btn.textContent = "💿 VINYL";
+                btn.className = "tape-toggle-btn active-mode";
+            } else if (mediaFormat === 'clean') {
+                btn.textContent = "✨ DIGITAL";
+                btn.className = "tape-toggle-btn";
+            } else if (mediaFormat === 'radio') {
+                btn.textContent = "📻 RADIO";
+                btn.className = "tape-toggle-btn active-mode";
+            }
+        }
+
+        updateFormatNoiseState();
+        syncDeckVisuals();
+        updateRadioLedState();
+    }
+
+    /* --- VIDEO TAB, FULLSCREEN & SWIPE MONITOR CONTROLS --- */
+    function isVideoFileName(nameOrUrl) {
+        return /\.(mp4|wmv|mpeg|mpg|avi|mkv|webm|mov|m4v)(\?|#|$)/i.test(nameOrUrl || '');
+    }
+
+    function isPlaylistItemVideo(track) {
+        if (!track) return false;
+        return Boolean(track.isVideo || isVideoFileName(track.title) || isVideoFileName(track.src));
+    }
+
+    function getVideoOnlyIndices() {
+        var indices = [];
+        for (var i = 0; i < playlist.length; i++) {
+            if (isPlaylistItemVideo(playlist[i])) {
+                indices.push(i);
+            }
+        }
+        return indices;
+    }
+
+    function isVideoFullscreenActive() {
+        var frame = document.getElementById('videoScreenFrame');
+        return Boolean(
+            document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            (frame && frame.classList.contains('mobile-fs-active'))
+        );
+    }
+
+    function shouldRestrictToVideos() {
+        var currentTrack = playlist[currentTrackIndex];
+        return isVideoFullscreenActive() && isPlaylistItemVideo(currentTrack);
+    }
+
+    function getNextVideoIndex() {
+        var videoIndices = getVideoOnlyIndices();
+        if (videoIndices.length === 0) return -1;
+        if (videoIndices.length === 1) return videoIndices[0];
+
+        if (isShuffle) {
+            var candidates = videoIndices.filter(function(idx) { return idx !== currentTrackIndex; });
+            return candidates[Math.floor(Math.random() * candidates.length)];
+        }
+
+        var pos = videoIndices.indexOf(currentTrackIndex);
+        if (pos === -1) return videoIndices[0];
+        return videoIndices[(pos + 1) % videoIndices.length];
+    }
+
+    function getPreviousVideoIndex() {
+        var videoIndices = getVideoOnlyIndices();
+        if (videoIndices.length === 0) return -1;
+        if (videoIndices.length === 1) return videoIndices[0];
+
+        var pos = videoIndices.indexOf(currentTrackIndex);
+        if (pos === -1) return videoIndices[videoIndices.length - 1];
+        return videoIndices[(pos - 1 + videoIndices.length) % videoIndices.length];
+    }
+
+    function toggleVideoDeck(e) {
+        if (e && e.target.closest('button')) return;
+        playMechanicalSwitchClick();
+        isVideoDeckOpen = !isVideoDeckOpen;
+        updateVideoDeckVisibility();
+    }
+
+    function updateVideoDeckVisibility() {
+        var bay = document.getElementById('videoDeckBay');
+        var bar = document.getElementById('videoTabBar');
+        var chevron = document.getElementById('videoChevron');
+        if (bay) bay.classList.toggle('open', isVideoDeckOpen);
+        if (bar) bar.classList.toggle('video-active', isVideoDeckOpen);
+        if (chevron) chevron.textContent = isVideoDeckOpen ? '▲' : '▼';
+    }
+
+    function openVideoFilePicker(e) {
+        if (e) e.stopPropagation();
+        playMechanicalSwitchClick();
+        var inp = document.getElementById('videoFileInput');
+        if (inp) inp.click();
+    }
+
+    function openVideoFolderPicker(e) {
+        if (e) e.stopPropagation();
+        playMechanicalSwitchClick();
+        var inp = document.getElementById('videoFolderInput');
+        if (inp) inp.click();
+    }
+
+    function showVideoSwipeToast(label) {
+        var toast = document.getElementById('videoSwipeToast');
+        if (!toast) return;
+        toast.textContent = label;
+        toast.classList.add('show');
+        clearTimeout(toast._hideTimer);
+        toast._hideTimer = setTimeout(function() {
+            toast.classList.remove('show');
+        }, 700);
+    }
+
+    async function lockLandscapeOrientation() {
+        try {
+            if (screen.orientation && screen.orientation.lock) {
+                await screen.orientation.lock('landscape');
+            }
+        } catch (e) {}
+    }
+
+    function unlockOrientation() {
+        try {
+            if (screen.orientation && screen.orientation.unlock) {
+                screen.orientation.unlock();
+            }
+        } catch (e) {}
+    }
+
+    function toggleRepeatOne(e) {
+        if (e) e.stopPropagation();
+        playMechanicalSwitchClick();
+        isRepeatOne = !isRepeatOne;
+        hifiAudio.loop = isRepeatOne;
+
+        var loopBtn = document.getElementById('fsLoopBtn');
+        if (loopBtn) {
+            loopBtn.classList.toggle('loop-active', isRepeatOne);
+            loopBtn.textContent = isRepeatOne ? "🔁 LOOP: ON" : "🔁 LOOP: OFF";
+        }
+        showVideoSwipeToast(isRepeatOne ? "🔁 LOOP ONE: ON" : "🔁 LOOP ONE: OFF");
+        revealFullscreenControls();
+    }
+
+    function toggleVideoFullscreen(e) {
+        if (e) e.stopPropagation();
+        playMechanicalSwitchClick();
+        var frame = document.getElementById('videoScreenFrame');
+        if (!frame) return;
+
+        if (!isVideoFullscreenActive()) {
+            if (frame.requestFullscreen) {
+                frame.requestFullscreen().then(function() {
+                    lockLandscapeOrientation();
+                }).catch(function() {
+                    frame.classList.add('mobile-fs-active');
+                    lockLandscapeOrientation();
+                });
+            } else if (frame.webkitRequestFullscreen) {
+                frame.webkitRequestFullscreen();
+                lockLandscapeOrientation();
+            } else {
+                // Fallback for iOS Safari where div.requestFullscreen is unsupported
+                frame.classList.add('mobile-fs-active');
+                lockLandscapeOrientation();
+            }
+            revealFullscreenControls();
+            nextUpcomingIndex = -1;
+            updateUpcomingTrackUI();
+        } else {
+            frame.classList.remove('mobile-fs-active');
+            unlockOrientation();
+            if (document.fullscreenElement && document.exitFullscreen) {
+                document.exitFullscreen().catch(function(){});
+            } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+            nextUpcomingIndex = -1;
+            updateUpcomingTrackUI();
+        }
+    }
+
+    function revealFullscreenControls() {
+        var fsControls = document.getElementById('videoFsControls');
+        if (!fsControls) return;
+        fsControls.classList.add('visible');
+        if (fsControlsHideTimer) clearTimeout(fsControlsHideTimer);
+        fsControlsHideTimer = setTimeout(function() {
+            fsControls.classList.remove('visible');
+        }, 3200);
+    }
+
+    document.addEventListener('fullscreenchange', function() {
+        var frame = document.getElementById('videoScreenFrame');
+        if (!document.fullscreenElement) {
+            if (frame) frame.classList.remove('mobile-fs-active');
+            unlockOrientation();
+        } else {
+            lockLandscapeOrientation();
+            revealFullscreenControls();
+        }
+        nextUpcomingIndex = -1;
+        updateUpcomingTrackUI();
+    });
+
+    (function setupFullscreenVideoGestures() {
+        var frame = document.getElementById('videoScreenFrame');
+        if (!frame) return;
+
+        var touchStartX = 0;
+        var touchStartY = 0;
+        var isSwiping = false;
+
+        frame.addEventListener('pointermove', revealFullscreenControls);
+        frame.addEventListener('pointerdown', revealFullscreenControls);
+        frame.addEventListener('dblclick', function(e) {
+            if (!e.target.closest('button') && !e.target.closest('input')) {
+                toggleVideoFullscreen(e);
+            }
+        });
+
+        frame.addEventListener('touchstart', function(e) {
+            if (e.touches.length !== 1) return;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            isSwiping = true;
+            revealFullscreenControls();
+        }, { passive: true });
+
+        frame.addEventListener('touchend', function(e) {
+            if (!isSwiping || !e.changedTouches || e.changedTouches.length === 0) return;
+            isSwiping = false;
+
+            if (!isVideoFullscreenActive()) return;
+            if (e.target.closest('button') || e.target.closest('input')) return;
+
+            var deltaX = e.changedTouches[0].clientX - touchStartX;
+            var deltaY = e.changedTouches[0].clientY - touchStartY;
+
+            if (Math.abs(deltaX) > 55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3) {
+                if (deltaX < 0) {
+                    showVideoSwipeToast("NEXT ⏭");
+                    playNext();
+                } else {
+                    showVideoSwipeToast("⏮ PREV");
+                    playPrevious();
+                }
+                revealFullscreenControls();
+            }
+        }, { passive: true });
+
+        document.addEventListener('keydown', function(e) {
+            if (!isVideoFullscreenActive()) return;
+            if (e.key === 'ArrowRight' || e.key === 'n' || e.key === 'N') {
+                e.preventDefault();
+                playNext();
+                revealFullscreenControls();
+            } else if (e.key === 'ArrowLeft' || e.key === 'p' || e.key === 'P') {
+                e.preventDefault();
+                playPrevious();
+                revealFullscreenControls();
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                togglePlayPause();
+                revealFullscreenControls();
+            } else if (e.key === 'l' || e.key === 'L') {
+                e.preventDefault();
+                toggleRepeatOne();
+            } else if (e.key === 'Escape') {
+                toggleVideoFullscreen();
+            }
+        });
+    })();
+
+    function updateVideoScreenState(isVideoTrack, titleText) {
+        var statusEl = document.getElementById('videoTabStatus');
+        var fsTitleEl = document.getElementById('videoFsTitle');
+        if (fsTitleEl) fsTitleEl.textContent = titleText || "NOW PLAYING";
+
+        if (isVideoTrack) {
+            isVideoDeckOpen = true;
+            updateVideoDeckVisibility();
+            if (statusEl) statusEl.textContent = "PLAYING: " + titleText;
+        } else {
+            if (statusEl) statusEl.textContent = "MP4 • WMV • MPEG • AVI";
+        }
+    }
+
+    async function handleVideoFiles(event) {
+        var files = event.target.files;
+        if (!files || files.length === 0) return;
+
+        activeFmKey = null;
+        destroyHls();
+        stopAllFmPlayers();
+        document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
+
+        nowPlayingSubtitle.textContent = "IMPORTING & SAVING VIDEOS...";
+
+        var addedCount = 0;
+        var savedOfflineCount = 0;
+        var firstAddedIndex = -1;
+        var firstTargetTitle = "";
+
+        for (var j = 0; j < files.length; j++) {
+            var file = files[j];
+            if (file.type.startsWith('video/') || isVideoFileName(file.name)) {
+                var cleanTitle = "🎬 " + file.name.replace(/\.[^/.]+$/, "");
+                if (!firstTargetTitle) firstTargetTitle = cleanTitle;
+
+                if (file.size <= MAX_OFFLINE_VIDEO_BYTES) {
+                    try {
+                        await saveTrackToDB(cleanTitle, file);
+                        savedOfflineCount++;
+                    } catch (e) {
+                        console.warn("Could not save video to IndexedDB:", cleanTitle, e);
+                    }
+                }
+
+                var existsIndex = playlist.findIndex(t => t.title.toLowerCase() === cleanTitle.toLowerCase());
+                if (existsIndex === -1) {
+                    var objectUrl = URL.createObjectURL(file);
+                    playlist.push({
+                        title: cleanTitle,
+                        src: objectUrl,
+                        isVideo: true,
+                        isLocalImported: true
+                    });
+                    if (firstAddedIndex === -1) {
+                        firstAddedIndex = playlist.length - 1;
+                    }
+                    addedCount++;
+                } else if (firstAddedIndex === -1) {
+                    firstAddedIndex = existsIndex;
+                }
+            }
+        }
+
+        playlist.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+
+        if (firstTargetTitle) {
+            var sortedIdx = playlist.findIndex(t => t.title === firstTargetTitle);
+            if (sortedIdx !== -1) firstAddedIndex = sortedIdx;
+        }
+
+        event.target.value = '';
+        updateSavedCountDisplay();
+        populatePlaylistDropdown();
+
+        if (firstAddedIndex !== -1) {
+            isVideoDeckOpen = true;
+            updateVideoDeckVisibility();
+            loadTrack(firstAddedIndex, true);
+        }
+
+        nowPlayingSubtitle.textContent = `ADDED ${addedCount} VIDEO(S) • ${savedOfflineCount} SAVED OFFLINE`;
+        setTimeout(syncTrackUI, 2800);
+    }
+
     /* DYNAMIC TAPE PACK RADIUS CALCULATOR (AREA CONSERVATION) */
     var HUB_RADIUS = 12.0;
     var MAX_PACK_RADIUS = 27.5;
 
     function updateMagneticTapePacks(progressFraction) {
+        if (document.hidden) return;
         if (!packLeftEl || !packRightEl || mediaFormat !== 'tape') return;
 
         var p = Math.max(0.0, Math.min(1.0, progressFraction || 0.0));
@@ -2120,7 +2987,7 @@
 
     /* FAST-WIND & REWIND CASSETTE SPOOL CONTROLLER */
     function triggerFastWind(direction, durationMs) {
-        if (mediaFormat !== 'tape') return;
+        if (document.hidden || mediaFormat !== 'tape') return;
         
         var leftWheel = document.getElementById('tapeLeft');
         var rightWheel = document.getElementById('tapeRight');
@@ -2180,7 +3047,7 @@
     }
 
     function updateTapeCounter(sec) {
-        if (!tapeCounterDigits) return;
+        if (document.hidden || !tapeCounterDigits) return;
 
         if (activeFmKey) {
             tapeCounterDigits.textContent = "LIVE";
@@ -2230,6 +3097,8 @@
         hifiAudio.currentTime = 0;
         progressSlider.value = 0;
         currentTimeSpan.textContent = "0:00";
+        if (fsProgressSlider) fsProgressSlider.value = 0;
+        if (fsCurrentTimeSpan) fsCurrentTimeSpan.textContent = "0:00";
         updateTapeCounter(0);
         syncDeckVisuals();
         persistTapeState(currentTrackIndex, 0, !hifiAudio.paused);
@@ -2326,7 +3195,7 @@
     }
 
     function playDialTickAudio() {
-        if (!audioCtx) return;
+        if (!audioCtx || document.hidden) return;
         var now = audioCtx.currentTime;
 
         var oscTick = audioCtx.createOscillator();
@@ -2459,6 +3328,7 @@
     /* MANUAL FM ROTARY SELECTOR & ANALOG DIAL CONTROLLER */
     function updateFmDialFromFrequency(freq) {
         currentFmFrequency = freq;
+        saveLastFmFrequency(freq);
         if (fmFreqVal) fmFreqVal.textContent = freq.toFixed(1) + " MHz";
 
         if (Math.abs(freq - lastTickFrequency) >= 0.2) {
@@ -2491,6 +3361,7 @@
             if (fmStationCallsign) fmStationCallsign.textContent = "SEARCHING";
             if (activeFmKey) {
                 hifiAudio.pause();
+                stopAllFmPlayers();
                 activeFmKey = null;
                 document.querySelectorAll('.fm-preset-btn').forEach(b => b.classList.remove('active-fm'));
             }
@@ -2498,6 +3369,7 @@
                 fmStaticGain.gain.setTargetAtTime(0.06, audioCtx.currentTime, 0.05);
             }
         }
+        updateRadioLedState();
     }
 
     /* DIRECT TUNER METER CLICK & SLIDE CONTROLLER */
@@ -2556,7 +3428,7 @@
             } catch (err) {}
         });
 
-        scaleWindow.addEventListener('pointercancel', function(e) {
+        scaleWindow.addEventListener('pointercancel', function() {
             isSliding = false;
         });
     })();
@@ -2568,9 +3440,17 @@
         var wasListeningToFm = (activeFmKey !== null);
         isTunerPowerOn = false;
         activeFmKey = null;
+        fmMirrorQueue = [];
+        fmMirrorIndex = 0;
         currentStreamUrl = null;
         destroyHls();
+        stopAllFmPlayers();
         playMechanicalSwitchClick();
+
+        if (mediaFormat === 'radio') {
+            applyDeckFormatVisuals(previousNonRadioFormat || 'tape');
+        }
+        updateRadioLedState();
 
         if (fmStaticGain && audioCtx) {
             fmStaticGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.04);
@@ -2627,6 +3507,11 @@
         isTunerPowerOn = true;
         playMechanicalSwitchClick();
 
+        if (mediaFormat !== 'radio') {
+            previousNonRadioFormat = mediaFormat;
+        }
+        applyDeckFormatVisuals('radio');
+
         var panel = document.getElementById('fmTunerPanel');
         if (panel) panel.classList.remove('powered-off');
         var knob = document.getElementById('fmTuningKnob');
@@ -2640,7 +3525,9 @@
         var offBtn = document.getElementById('btnTunerOff');
         if (offBtn) offBtn.classList.remove('active-fm');
 
-        updateFmDialFromFrequency(currentFmFrequency || 96.3);
+        var targetFreq = currentFmFrequency || loadLastFmFrequency();
+        updateFmDialFromFrequency(targetFreq);
+        updateRadioLedState();
     }
 
     /* SPECULAR SHEEN MOUSE MOVE */
@@ -2666,6 +3553,8 @@
                 audioCtx.resume().catch(()=>{});
             }
             requestWakeLock();
+            syncDeckVisuals();
+            syncTrackUI();
         }
     });
 
@@ -2688,7 +3577,7 @@
     window.addEventListener('online', updateNetworkStatus);
     window.addEventListener('offline', updateNetworkStatus);
 
-    /* --- INDEXEDDB AUDIO CACHE ENGINE --- */
+    /* --- INDEXEDDB AUDIO & VIDEO CACHE ENGINE --- */
     function openOfflineDB() {
         return new Promise(function(resolve, reject) {
             if (dbInstance) return resolve(dbInstance);
@@ -2917,11 +3806,11 @@
         var savedSet = new Set(savedTitles);
 
         var queue = playlist.filter(function(track) {
-            return !savedSet.has(track.title);
+            return !savedSet.has(track.title) && !track.isVideo;
         });
 
         if (queue.length === 0) {
-            nowPlayingSubtitle.textContent = "ALL TRACKS ARE ALREADY SAVED!";
+            nowPlayingSubtitle.textContent = "ALL AUDIO TRACKS ARE ALREADY SAVED!";
             bulkBtn.classList.remove('downloading');
             isBulkDownloading = false;
             setTimeout(syncTrackUI, 2500);
@@ -2986,7 +3875,7 @@
             return;
         }
 
-        var confirmed = confirm(`Delete all ${savedTitles.length} cached songs from device storage?`);
+        var confirmed = confirm(`Delete all ${savedTitles.length} cached items from device storage?`);
         if (!confirmed) return;
 
         try {
@@ -3019,6 +3908,8 @@
         playMechanicalSwitchClick();
 
         document.getElementById('tabAllSongs').classList.toggle('active-tab', tabName === 'all');
+        var tabVideosEl = document.getElementById('tabVideosOnly');
+        if (tabVideosEl) tabVideosEl.classList.toggle('active-tab', tabName === 'videos');
         document.getElementById('tabOfflineSongs').classList.toggle('active-tab', tabName === 'offline');
         populatePlaylistDropdown();
     }
@@ -3193,7 +4084,7 @@
     }
 
     function playTapeTransportEngage() {
-        if (!audioCtx) return;
+        if (!audioCtx || document.hidden) return;
         var now = audioCtx.currentTime;
 
         var oscSolenoid = audioCtx.createOscillator();
@@ -3235,7 +4126,7 @@
     }
 
     function playTapeTransportRelease() {
-        if (!audioCtx) return;
+        if (!audioCtx || document.hidden) return;
         var now = audioCtx.currentTime;
 
         var oscSpring = audioCtx.createOscillator();
@@ -3268,7 +4159,7 @@
     }
 
     function playNeedleDropSound() {
-        if (!audioCtx) return;
+        if (!audioCtx || document.hidden) return;
         var now = audioCtx.currentTime;
 
         var oscDrop = audioCtx.createOscillator();
@@ -3310,7 +4201,7 @@
     }
 
     function playMechanicalSwitchClick() {
-        if (!audioCtx) return;
+        if (!audioCtx || document.hidden) return;
         var now = audioCtx.currentTime;
 
         var clickOsc = audioCtx.createOscillator();
@@ -3329,7 +4220,7 @@
     }
 
     function playMechanicalEjectSound() {
-        if (!audioCtx) return;
+        if (!audioCtx || document.hidden) return;
         var now = audioCtx.currentTime;
 
         var oscLatch = audioCtx.createOscillator();
@@ -3371,6 +4262,7 @@
     }
 
     function triggerFormatCueSound() {
+        if (document.hidden) return;
         if (mediaFormat === 'vinyl') {
             playNeedleDropSound();
         } else if (mediaFormat === 'tape') {
@@ -3457,6 +4349,12 @@
                     gainNode.connect(audioCtx.destination);
 
                     audioSourceConnected = true;
+                }
+
+                if (!fmSourceConnected) {
+                    var fmSource = audioCtx.createMediaElementSource(fmPlayer);
+                    fmSource.connect(analyser);
+                    fmSourceConnected = true;
                 }
             } catch(e) {}
         }
@@ -3554,6 +4452,7 @@
     );
 
     /* ROTARY TUNER KNOB (Continuous 720° Spin + Push to Toggle Power ON/OFF) */
+    var setFmKnobAngleFromFreq = null;
     (function setupRotaryTunerKnob() {
         var knobEl = document.getElementById('fmTuningKnob');
         if (!knobEl) return;
@@ -3566,11 +4465,11 @@
         var minFreq = 88.0;
         var maxFreq = 108.0;
 
-        function setInitialKnobAngle(freq) {
-            var ratio = (freq - minFreq) / (maxFreq - minFreq);
+        setFmKnobAngleFromFreq = function(freq) {
+            var ratio = Math.max(0, Math.min(1, (freq - minFreq) / (maxFreq - minFreq)));
             currentAngle = ratio * 720;
             knobEl.style.transform = 'rotate(' + currentAngle + 'deg)';
-        }
+        };
 
         knobEl.addEventListener('pointerdown', function(e) {
             initRealAudioContext();
@@ -3618,7 +4517,7 @@
             }
         });
 
-        setInitialKnobAngle(currentFmFrequency || 96.3);
+        setFmKnobAngleFromFreq(currentFmFrequency || 96.3);
     })();
 
     function applyVolumeGain() {
@@ -3626,6 +4525,8 @@
         if (isNaN(val)) val = 1.0;
 
         hifiAudio.volume = Math.min(1.0, Math.max(0.0, val > 0 ? 1.0 : 0.0));
+        fmPlayer.volume = 1.0;
+        fmFallbackPlayer.volume = Math.min(1.0, Math.max(0.0, val > 0 ? Math.min(1.0, val) : 0.0));
 
         if (gainNode && audioCtx) {
             gainNode.gain.setTargetAtTime(val, audioCtx.currentTime, 0.015);
@@ -3653,6 +4554,7 @@
 
     /* CONTINUOUS TONEARM & TAPE PACK TRACKING */
     function syncDeckVisuals() {
+        if (document.hidden) return;
         var isPlaying = !hifiAudio.paused;
 
         if (tapeLeft && tapeRight) {
@@ -3684,55 +4586,38 @@
         }
     }
 
+    /* 4-MODE CYCLE: TAPE -> VINYL -> DIGITAL -> RADIO (AUTO POWER ON LAST TUNED) */
     function cycleMediaFormat(e) {
         if (e) e.stopPropagation();
         initRealAudioContext();
         playMechanicalEjectSound();
 
         var well = document.getElementById('cassetteDeckWell');
-        var btn = document.getElementById('mediaFormatBtn');
-
         if (well) well.classList.add('ejecting');
 
         setTimeout(function() {
             if (mediaFormat === 'tape') {
-                mediaFormat = 'vinyl';
-                btn.textContent = "💿 VINYL";
-                btn.className = "tape-toggle-btn active-mode";
+                previousNonRadioFormat = 'vinyl';
+                applyDeckFormatVisuals('vinyl');
                 nowPlayingSubtitle.textContent = "FORMAT: VINTAGE 33 RPM VINYL";
-
-                if (svgCassetteGroup) svgCassetteGroup.style.display = 'none';
-                if (svgVinylGroup) svgVinylGroup.style.display = 'block';
-                if (spoolOverlayContainer) spoolOverlayContainer.style.display = 'none';
-
             } else if (mediaFormat === 'vinyl') {
-                mediaFormat = 'clean';
-                btn.textContent = "✨ DIGITAL";
-                btn.className = "tape-toggle-btn";
+                previousNonRadioFormat = 'clean';
+                applyDeckFormatVisuals('clean');
                 nowPlayingSubtitle.textContent = "FORMAT: CLEAN HI-RES DIGITAL";
-
-                if (svgCassetteGroup) svgCassetteGroup.style.display = 'block';
-                if (svgVinylGroup) svgVinylGroup.style.display = 'none';
-                if (spoolOverlayContainer) spoolOverlayContainer.style.display = 'block';
-
+            } else if (mediaFormat === 'clean') {
+                applyDeckFormatVisuals('radio');
+                nowPlayingSubtitle.textContent = "FORMAT: FM STEREO RADIO (AUTO ON)";
+                if (!isTunerPowerOn) {
+                    turnOnRadio();
+                }
             } else {
-                mediaFormat = 'tape';
-                btn.textContent = "📼 TAPE";
-                btn.className = "tape-toggle-btn active-mode";
+                previousNonRadioFormat = 'tape';
+                applyDeckFormatVisuals('tape');
                 nowPlayingSubtitle.textContent = "FORMAT: CASSETTE TYPE I (FERRIC)";
-
-                if (svgCassetteGroup) svgCassetteGroup.style.display = 'block';
-                if (svgVinylGroup) svgVinylGroup.style.display = 'none';
-                if (spoolOverlayContainer) spoolOverlayContainer.style.display = 'block';
+                if (isTunerPowerOn) {
+                    turnOffRadio();
+                }
             }
-
-            var tapeLayer = document.getElementById('magneticTapeLayer');
-            if (tapeLayer) {
-                tapeLayer.style.display = (mediaFormat === 'tape') ? 'block' : 'none';
-            }
-
-            updateFormatNoiseState();
-            syncDeckVisuals();
 
             setTimeout(function() {
                 if (well) well.classList.remove('ejecting');
@@ -3745,14 +4630,16 @@
 
     function animateVUMeters() {
         requestAnimationFrame(animateVUMeters);
-        if (isPageHidden) return;
+        if (document.hidden) return;
 
         var targetAngleL = REST_ANGLE;
         var targetAngleR = REST_ANGLE;
         var isPeakL = false;
         var isPeakR = false;
 
-        if (!hifiAudio.paused && analyserL && analyserR) {
+        var isAnyAudioActive = !hifiAudio.paused || !fmPlayer.paused;
+
+        if (isAnyAudioActive && analyserL && analyserR) {
             var dataL = new Uint8Array(analyserL.fftSize);
             var dataR = new Uint8Array(analyserR.fftSize);
 
@@ -3828,15 +4715,29 @@
 
     function renderVisualizer() {
         requestAnimationFrame(renderVisualizer);
-        if (isPageHidden) return;
+        if (document.hidden) return;
 
         canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
         var numBars = 24, barWidth = 8, gap = 9;
         var startX = (canvas.width - (numBars * (barWidth + gap))) / 2;
 
-        if (!hifiAudio.paused && analyser) {
+        var isAnyAudioActive = !hifiAudio.paused || !fmPlayer.paused;
+        var isRadioPlaying = Boolean(activeFmKey && (!hifiAudio.paused || !fmPlayer.paused || !fmFallbackPlayer.paused));
+
+        if (isAnyAudioActive && analyser) {
             var dataArray = new Uint8Array(analyser.frequencyBinCount);
             analyser.getByteFrequencyData(dataArray);
+
+            // Live Audio-Reactive Radio Signal Bars
+            if (isRadioPlaying && mediaFormat === 'radio') {
+                var sumFreq = 0;
+                for (var b = 0; b < 12; b++) sumFreq += dataArray[b] || 0;
+                var avgLevel = sumFreq / (12 * 255);
+                var activeBars = avgLevel > 0.01
+                    ? Math.min(5, Math.max(3, Math.round(2.5 + avgLevel * 4.5)))
+                    : 4;
+                updateRadioSignalBars(activeBars);
+            }
 
             if (neonBadgeGroup) {
                 var rawBass = (dataArray[0] + dataArray[1] + dataArray[2] + dataArray[3]) / (4 * 255);
@@ -3888,6 +4789,12 @@
                 canvasCtx.fill();
             }
         } else {
+            if (isRadioPlaying && mediaFormat === 'radio') {
+                // Fallback carrier lock pulse when CORS restricts frequency bins
+                var pulseBar = 4 + (Math.floor(Date.now() / 350) % 2);
+                updateRadioSignalBars(pulseBar);
+            }
+
             if (neonBadgeGroup) {
                 neonBadgeGroup.style.filter = 'drop-shadow(0 0 2px rgba(0, 229, 255, 0.3))';
                 neonBadgeGroup.style.opacity = '0.7';
@@ -3910,20 +4817,46 @@
         }
     }
 
+    /* --- MULTI-NODE RADIO-BROWSER API LOOKUP --- */
+    function fetchVerifiedRadioMirrors(query) {
+        var endpoints = [
+            "https://de1.api.radio-browser.info/json/stations/search?name=" + encodeURIComponent(query) + "&hidebroken=true&order=votes&reverse=true&limit=6",
+            "https://fi1.api.radio-browser.info/json/stations/search?name=" + encodeURIComponent(query) + "&hidebroken=true&order=votes&reverse=true&limit=6",
+            "https://at1.api.radio-browser.info/json/stations/search?name=" + encodeURIComponent(query) + "&hidebroken=true&order=votes&reverse=true&limit=6"
+        ];
+
+        var requests = endpoints.map(function(url) {
+            return fetch(url).then(function(res) {
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                return res.json();
+            });
+        });
+
+        return Promise.any(requests);
+    }
+
+    /* --- VERIFIED MULTI-MIRROR FM TUNER ENGINE --- */
     function playFmStation(key, evt) {
         if (!fmStations[key]) return;
-        
         captureTapePosition();
 
         activeFmKey = key;
+        fmMirrorQueue = [];
+        fmMirrorIndex = 0;
         hifiAudio.pause();
+        stopAllFmPlayers();
         destroyHls();
         clearLoadGuard();
         playMechanicalSwitchClick();
 
-        if (!isTunerPowerOn) {
-            turnOnRadio();
+        updateVideoScreenState(false, "");
+
+        if (mediaFormat !== 'radio') {
+            previousNonRadioFormat = mediaFormat;
         }
+        applyDeckFormatVisuals('radio');
+
+        if (!isTunerPowerOn) turnOnRadio();
 
         document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
         if (evt && evt.currentTarget) {
@@ -3935,62 +4868,159 @@
 
         var stationInfo = fmStations[key];
         currentFmFrequency = stationInfo.freq;
+        saveLastFmFrequency(stationInfo.freq);
+        if (typeof setFmKnobAngleFromFreq === 'function') {
+            setFmKnobAngleFromFreq(stationInfo.freq);
+        }
         if (fmFreqVal) fmFreqVal.textContent = stationInfo.freq.toFixed(1) + " MHz";
         var percent = Math.min(100, Math.max(0, ((stationInfo.freq - 88.0) / 20.0) * 100));
         if (fmTuningNeedle) fmTuningNeedle.style.left = percent.toFixed(1) + "%";
         if (fmStereoBeacon) fmStereoBeacon.classList.add('tuned');
         if (fmStationCallsign) fmStationCallsign.textContent = stationInfo.query.toUpperCase();
 
-        nowPlayingSubtitle.textContent = "TUNING STREAM...";
+        nowPlayingSubtitle.textContent = "SCANNING VERIFIED MIRRORS...";
         currentTrackTitle.textContent = stationInfo.title;
         currentTimeSpan.textContent = "0:00";
         durationSpan.textContent = "LIVE";
         progressSlider.value = 0;
+        updateRadioLedState();
 
-        if (nextTrackTitle) {
-            nextTrackTitle.textContent = "FM LIVE BROADCAST (NO QUEUE)";
-        }
+        if (nextTrackTitle) nextTrackTitle.textContent = "FM LIVE BROADCAST (NO QUEUE)";
 
         if (stationInfo.useApi) {
-            fetch("https://de1.api.radio-browser.info/json/stations/byname/" + encodeURIComponent(stationInfo.query))
-                .then(res => res.json())
-                .then(data => {
+            fetchVerifiedRadioMirrors(stationInfo.query)
+                .then(function(data) {
                     if (activeFmKey !== key) return;
-                    var resolvedUrl = (data && data.length > 0 && data[0].url_resolved) ? data[0].url_resolved : stationInfo.backup;
-                    startStreamUrl(stationInfo.title, resolvedUrl);
+
+                    var verifiedUrls = [];
+                    if (Array.isArray(data)) {
+                        data.forEach(function(st) {
+                            var candidate = st.url_resolved || st.url;
+                            if (candidate && (candidate.startsWith('https://') || candidate.startsWith('http://')) && verifiedUrls.indexOf(candidate) === -1) {
+                                verifiedUrls.push(candidate);
+                            }
+                        });
+                    }
+
+                    if (stationInfo.backup && verifiedUrls.indexOf(stationInfo.backup) === -1) {
+                        verifiedUrls.unshift(stationInfo.backup);
+                    }
+
+                    fmMirrorQueue = verifiedUrls.length > 0 ? verifiedUrls : [stationInfo.backup];
+                    fmMirrorIndex = 0;
+                    tryNextFmMirror(stationInfo.title);
                 })
-                .catch(() => {
+                .catch(function() {
                     if (activeFmKey !== key) return;
-                    startStreamUrl(stationInfo.title, stationInfo.backup);
+                    fmMirrorQueue = [stationInfo.backup];
+                    fmMirrorIndex = 0;
+                    tryNextFmMirror(stationInfo.title);
                 });
         } else {
-            startStreamUrl(stationInfo.title, stationInfo.backup);
+            fmMirrorQueue = [stationInfo.backup];
+            fmMirrorIndex = 0;
+            tryNextFmMirror(stationInfo.title);
         }
+    }
+
+    function tryNextFmMirror(title) {
+        if (!activeFmKey) return;
+
+        if (fmMirrorIndex >= fmMirrorQueue.length) {
+            nowPlayingSubtitle.textContent = "ALL FM MIRRORS OFFLINE";
+            updateRadioLedState();
+            return;
+        }
+
+        var targetUrl = fmMirrorQueue[fmMirrorIndex];
+        var mirrorLabel = fmMirrorQueue.length > 1
+            ? "TUNING MIRROR " + (fmMirrorIndex + 1) + "/" + fmMirrorQueue.length + "..."
+            : "TUNING LIVE STREAM...";
+
+        nowPlayingSubtitle.textContent = mirrorLabel;
+        startStreamUrl(title, targetUrl);
     }
 
     function startStreamUrl(title, url) {
         destroyHls();
+        clearLoadGuard();
+        hifiAudio.pause();
+        stopAllFmPlayers();
+
         currentStreamUrl = url;
         currentTrackTitle.textContent = title;
 
+        loadTimeout = setTimeout(function() {
+            if (activeFmKey && hifiAudio.paused && fmPlayer.paused && fmFallbackPlayer.paused) {
+                fmMirrorIndex++;
+                tryNextFmMirror(title);
+            }
+        }, 12000);
+
         if (url.includes('.m3u8')) {
             if (Hls.isSupported()) {
-                hls = new Hls();
+                hls = new Hls({
+                    manifestLoadingTimeOut: 10000,
+                    levelLoadingTimeOut: 10000
+                });
                 hls.loadSource(url);
                 hls.attachMedia(hifiAudio);
+
                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    nowPlayingSubtitle.textContent = "LIVE FM RADIO";
-                    hifiAudio.play().catch(() => {});
+                    clearLoadGuard();
+                    nowPlayingSubtitle.textContent = "LIVE FM RADIO (EQ ACTIVE)";
+                    if (audioCtx && audioCtx.state === 'suspended') {
+                        audioCtx.resume().catch(function() {});
+                    }
+                    hifiAudio.play().then(function() {
+                        updateRadioLedState();
+                    }).catch(function() {});
+                });
+
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    if (data.fatal && activeFmKey) {
+                        clearLoadGuard();
+                        fmMirrorIndex++;
+                        tryNextFmMirror(title);
+                    }
                 });
             } else if (hifiAudio.canPlayType('application/vnd.apple.mpegurl')) {
                 hifiAudio.src = url;
                 hifiAudio.load();
-                hifiAudio.play().catch(() => {});
+                hifiAudio.play().then(function() {
+                    updateRadioLedState();
+                }).catch(function() {});
             }
         } else {
-            hifiAudio.src = url;
-            hifiAudio.load();
-            hifiAudio.play().catch(() => {});
+            initRealAudioContext();
+            fmPlayer.volume = 1.0;
+            fmPlayer.src = url;
+            fmPlayer.play().then(function() {
+                clearLoadGuard();
+                nowPlayingSubtitle.textContent = "LIVE FM RADIO (EQ ACTIVE)";
+                playButton.style.display = 'none';
+                pauseButton.style.display = 'inline-flex';
+                updateRadioLedState();
+            }).catch(function() {
+                // Server rejected CORS: fall back to direct non-CORS playback
+                fmPlayer.src = "";
+                var currentVol = parseFloat(volumeSlider.value);
+                fmFallbackPlayer.volume = Math.min(1.0, Math.max(0.0, isNaN(currentVol) ? 1.0 : Math.min(1.0, currentVol)));
+                fmFallbackPlayer.src = url;
+                fmFallbackPlayer.play().then(function() {
+                    clearLoadGuard();
+                    nowPlayingSubtitle.textContent = "LIVE FM RADIO";
+                    playButton.style.display = 'none';
+                    pauseButton.style.display = 'inline-flex';
+                    updateRadioLedState();
+                }).catch(function() {
+                    if (activeFmKey) {
+                        clearLoadGuard();
+                        fmMirrorIndex++;
+                        tryNextFmMirror(title);
+                    }
+                });
+            });
         }
         updateMediaSession();
     }
@@ -3998,6 +5028,7 @@
     function exitApp() {
         destroyHls();
         if (hifiAudio) hifiAudio.pause();
+        stopAllFmPlayers();
         if (wakeLock) wakeLock.release().catch(()=>{});
         try { window.close(); } catch(e) {}
         setTimeout(() => { window.location.href = "about:blank"; }, 300);
@@ -4017,22 +5048,30 @@
 
         activeFmKey = null;
         destroyHls();
+        stopAllFmPlayers();
         document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
 
-        nowPlayingSubtitle.textContent = "IMPORTING & SAVING LOCAL TRACKS...";
+        nowPlayingSubtitle.textContent = "IMPORTING & SAVING MEDIA TRACKS...";
 
         var addedCount = 0;
         var firstAddedIndex = -1;
+        var firstTargetTitle = "";
 
         for (var j = 0; j < files.length; j++) {
             var file = files[j];
-            if (file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|m4a|aac|flac)$/i)) {
-                var cleanTitle = file.name.replace(/\.[^/.]+$/, "");
-                
-                try {
-                    await saveTrackToDB(cleanTitle, file);
-                } catch (e) {
-                    console.warn("Could not save to DB:", cleanTitle, e);
+            var isVideo = file.type.startsWith('video/') || isVideoFileName(file.name);
+            var isAudio = file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|m4a|aac|flac)$/i);
+
+            if (isAudio || isVideo) {
+                var cleanTitle = (isVideo ? "🎬 " : "") + file.name.replace(/\.[^/.]+$/, "");
+                if (!firstTargetTitle) firstTargetTitle = cleanTitle;
+
+                if (!isVideo || file.size <= MAX_OFFLINE_VIDEO_BYTES) {
+                    try {
+                        await saveTrackToDB(cleanTitle, file);
+                    } catch (e) {
+                        console.warn("Could not save to DB:", cleanTitle, e);
+                    }
                 }
 
                 var existsIndex = playlist.findIndex(t => t.title.toLowerCase() === cleanTitle.toLowerCase());
@@ -4041,6 +5080,7 @@
                     playlist.push({
                         title: cleanTitle,
                         src: objectUrl,
+                        isVideo: isVideo,
                         isLocalImported: true
                     });
                     if (firstAddedIndex === -1) {
@@ -4055,14 +5095,12 @@
 
         playlist.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
 
-        if (firstAddedIndex !== -1) {
-            var targetTitle = (files[0].name.replace(/\.[^/.]+$/, ""));
-            var sortedIdx = playlist.findIndex(t => t.title === targetTitle);
+        if (firstTargetTitle) {
+            var sortedIdx = playlist.findIndex(t => t.title === firstTargetTitle);
             if (sortedIdx !== -1) firstAddedIndex = sortedIdx;
         }
 
         event.target.value = '';
-
         updateSavedCountDisplay();
         populatePlaylistDropdown();
 
@@ -4089,9 +5127,14 @@
                         if (record && record.title && record.blob) {
                             var exists = playlist.some(t => t.title.toLowerCase() === record.title.toLowerCase());
                             if (!exists) {
+                                var isVid = record.title.startsWith('🎬') ||
+                                    (record.blob.type && record.blob.type.startsWith('video/')) ||
+                                    isVideoFileName(record.title);
+
                                 playlist.push({
                                     title: record.title,
                                     src: URL.createObjectURL(record.blob),
+                                    isVideo: isVid,
                                     isLocalImported: true
                                 });
                             }
@@ -4110,6 +5153,7 @@
         });
     }
 
+  /* LOCK-SCREEN CONTINUOUS BACKGROUND RECOVERY */
     function updateMediaSession() {
         if ('mediaSession' in navigator) {
             var activeTitle = activeFmKey 
@@ -4121,12 +5165,33 @@
                 artist: "Chanthiran Mini HiFi",
                 album: activeFmKey ? "FM Tuner" : (mediaFormat === 'vinyl' ? "Vinyl LP" : "Cassette BGM")
             });
-            navigator.mediaSession.playbackState = hifiAudio.paused ? "paused" : "playing";
+
+            var isAnyPaused = (activeFmKey && currentStreamUrl && !currentStreamUrl.includes('.m3u8'))
+                ? (fmPlayer.paused && fmFallbackPlayer.paused)
+                : hifiAudio.paused;
+            navigator.mediaSession.playbackState = isAnyPaused ? "paused" : "playing";
+
+            if (!isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
+                try {
+                    navigator.mediaSession.setPositionState({
+                        duration: hifiAudio.duration,
+                        playbackRate: hifiAudio.playbackRate || 1.0,
+                        position: Math.min(hifiAudio.currentTime, hifiAudio.duration)
+                    });
+                } catch (e) {}
+            }
 
             navigator.mediaSession.setActionHandler('play', () => togglePlayPause());
             navigator.mediaSession.setActionHandler('pause', () => togglePlayPause());
             navigator.mediaSession.setActionHandler('previoustrack', () => playPrevious());
             navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
+            navigator.mediaSession.setActionHandler('seekto', function(details) {
+                if (details.seekTime !== undefined && !activeFmKey) {
+                    hifiAudio.currentTime = details.seekTime;
+                    updateTapeCounter(details.seekTime);
+                    updateMediaSession();
+                }
+            });
         }
     }
 
@@ -4134,6 +5199,60 @@
         var min = Math.floor(seconds / 60);
         var sec = Math.floor(seconds % 60);
         return min + ':' + (sec < 10 ? '0' + sec : sec);
+    }
+
+    async function deleteSingleSavedTrack(originalIdx, event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        playMechanicalSwitchClick();
+
+        var track = playlist[originalIdx];
+        if (!track) return;
+
+        try {
+            await removeTrackFromDB(track.title);
+
+            var wasCurrentTrack = (!activeFmKey && originalIdx === currentTrackIndex);
+
+            if (track.isLocalImported) {
+                if (track.src && track.src.startsWith('blob:')) {
+                    try { URL.revokeObjectURL(track.src); } catch (e) {}
+                }
+                playlist.splice(originalIdx, 1);
+
+                if (wasCurrentTrack) {
+                    if (playlist.length > 0) {
+                        var nextIdx = Math.min(originalIdx, playlist.length - 1);
+                        loadTrack(nextIdx, !hifiAudio.paused);
+                    } else {
+                        hifiAudio.pause();
+                        hifiAudio.src = "";
+                    }
+                } else if (originalIdx < currentTrackIndex) {
+                    currentTrackIndex--;
+                }
+            } else if (wasCurrentTrack) {
+                updateCacheButtonState(false);
+                var pos = hifiAudio.currentTime;
+                var wasPaused = hifiAudio.paused;
+                hifiAudio.src = track.src;
+                hifiAudio.currentTime = pos;
+                if (!wasPaused) hifiAudio.play().catch(function(){});
+            }
+
+            nextUpcomingIndex = -1;
+            updateUpcomingTrackUI();
+            updateSavedCountDisplay();
+            populatePlaylistDropdown();
+
+            nowPlayingSubtitle.textContent = "REMOVED: " + track.title;
+            setTimeout(syncTrackUI, 2000);
+        } catch (err) {
+            nowPlayingSubtitle.textContent = "FAILED TO REMOVE ITEM";
+            setTimeout(syncTrackUI, 2000);
+        }
     }
 
     function populatePlaylistDropdown() {
@@ -4155,6 +5274,10 @@
                 tracksToDisplay = tracksToDisplay.filter(function(item) {
                     return item.isSaved;
                 });
+            } else if (currentPlaylistTab === 'videos') {
+                tracksToDisplay = tracksToDisplay.filter(function(item) {
+                    return isPlaylistItemVideo(item.track);
+                });
             }
 
             if (searchFilterText) {
@@ -4167,7 +5290,9 @@
                 var emptyMsg = document.createElement('div');
                 emptyMsg.className = 'empty-offline-notice';
                 if (searchFilterText) {
-                    emptyMsg.innerHTML = `NO SONGS FOUND MATCHING:<br>"<span style="color:#ffaa00;">${searchFilterText}</span>"`;
+                    emptyMsg.innerHTML = `NO MEDIA FOUND MATCHING:<br>"<span style="color:#ffaa00;">${searchFilterText}</span>"`;
+                } else if (currentPlaylistTab === 'videos') {
+                    emptyMsg.innerHTML = "NO VIDEOS LOADED YET.<br>TAP '+ LOAD VIDEO' TO IMPORT MP4, WMV, MPEG, OR AVI FILES.";
                 } else if (currentPlaylistTab === 'offline') {
                     emptyMsg.innerHTML = "NO SAVED TRACKS YET.<br>PICK LOCAL FILES OR SAVE SONGS FOR OFFLINE PLAYBACK.";
                 }
@@ -4180,21 +5305,52 @@
                 a.href = '#';
                 a.setAttribute('data-index', item.originalIdx);
                 
-                var badgeHtml = item.isSaved ? '<span class="offline-item-badge">💾 SAVED</span>' : '';
-                
                 var displayTitle = item.track.title;
                 if (searchFilterText) {
                     var regex = new RegExp(`(${searchFilterText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
                     displayTitle = displayTitle.replace(regex, '<span style="color:#00e5ff; text-decoration:underline;">$1</span>');
                 }
 
-                a.innerHTML = `<span>${displayTitle}</span>${badgeHtml}`;
+                var titleSpan = document.createElement('span');
+                titleSpan.style.overflow = 'hidden';
+                titleSpan.style.textOverflow = 'ellipsis';
+                titleSpan.style.whiteSpace = 'nowrap';
+                titleSpan.innerHTML = displayTitle;
+                a.appendChild(titleSpan);
+
+                if (item.isSaved) {
+                    var actionsWrap = document.createElement('span');
+                    actionsWrap.className = 'pl-item-actions';
+
+                    var badgeSpan = document.createElement('span');
+                    badgeSpan.className = 'offline-item-badge';
+                    badgeSpan.style.marginLeft = '0';
+                    badgeSpan.textContent = '💾 SAVED';
+
+                    var delBtn = document.createElement('button');
+                    delBtn.type = 'button';
+                    delBtn.className = 'pl-delete-item-btn';
+                    delBtn.title = 'Remove from offline storage';
+                    delBtn.textContent = '🗑';
+                    delBtn.onclick = function(ev) {
+                        deleteSingleSavedTrack(item.originalIdx, ev);
+                    };
+
+                    actionsWrap.appendChild(badgeSpan);
+                    actionsWrap.appendChild(delBtn);
+                    a.appendChild(actionsWrap);
+                }
 
                 a.onclick = function(e) { 
+                    if (e.target.closest('.pl-delete-item-btn')) return;
                     e.preventDefault(); 
                     activeFmKey = null;
                     destroyHls();
+                    stopAllFmPlayers();
                     document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
+                    if (mediaFormat === 'radio') {
+                        applyDeckFormatVisuals(previousNonRadioFormat || 'tape');
+                    }
                     loadTrack(item.originalIdx, true); 
                     togglePlaylistDropdown(); 
                 };
@@ -4207,6 +5363,7 @@
     }
 
     function updateActiveTrackHighlight() {
+        if (document.hidden) return;
         Array.from(dropdownTrackList.children).forEach(function(item) {
             if (item.hasAttribute('data-index')) {
                 var idx = parseInt(item.getAttribute('data-index'), 10);
@@ -4220,7 +5377,7 @@
         shuffleButton.classList.toggle('active-mode', isShuffle);
         playMechanicalSwitchClick();
         nextUpcomingIndex = -1;
-        scheduleNextTrackPreload();
+        updateUpcomingTrackUI();
     }
 
     function getRandomIndex() {
@@ -4256,10 +5413,15 @@
         }
         updateActiveTrackHighlight();
         updateMediaSession();
+        updateRadioLedState();
     }
 
     function determineNextIndex() {
         if (playlist.length <= 1) return 0;
+        if (shouldRestrictToVideos()) {
+            var nextVid = getNextVideoIndex();
+            if (nextVid !== -1) return nextVid;
+        }
         return isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
     }
 
@@ -4277,72 +5439,43 @@
             nextUpcomingIndex = determineNextIndex();
         }
         var nextSong = playlist[nextUpcomingIndex];
-        nextTrackTitle.textContent = nextSong ? nextSong.title : "None";
+        var nextLabel = nextSong ? nextSong.title : "None";
+        nextTrackTitle.textContent = nextLabel;
+
+        var fsTitleEl = document.getElementById('videoFsTitle');
+        if (fsTitleEl && isVideoFullscreenActive()) {
+            var curTitle = playlist[currentTrackIndex] ? playlist[currentTrackIndex].title : "NOW PLAYING";
+            fsTitleEl.textContent = curTitle + "   |   NEXT: " + nextLabel;
+        }
     }
 
-    async function scheduleNextTrackPreload() {
-        if (playlist.length <= 1 || activeFmKey) return;
-
-        if (nextUpcomingIndex < 0 || nextUpcomingIndex === currentTrackIndex) {
-            nextUpcomingIndex = determineNextIndex();
-        }
-
-        var candidateTrack = playlist[nextUpcomingIndex];
-        if (!candidateTrack) return;
-
-        updateUpcomingTrackUI();
-
-        if (candidateTrack.title === preloadedTrackTitle) return;
-        preloadedTrackTitle = candidateTrack.title;
-
-        var cachedBlob = await getTrackFromDB(candidateTrack.title);
-        if (cachedBlob) {
-            if (preloadedBlobUrl) URL.revokeObjectURL(preloadedBlobUrl);
-            preloadedBlobUrl = URL.createObjectURL(cachedBlob);
-            preloaderAudio.src = preloadedBlobUrl;
-        } else {
-            preloaderAudio.src = candidateTrack.src;
-        }
-
-        preloaderAudio.load();
-    }
-
+    /* ROBUST CONTINUOUS AUDIO & VIDEO TRANSITION ENGINE */
     function loadTrack(index, autoPlay = true) {
         if (playlist.length === 0) return;
         activeFmKey = null;
         destroyHls();
+        stopAllFmPlayers();
         clearLoadGuard();
+
+        if (mediaFormat === 'radio') {
+            applyDeckFormatVisuals(previousNonRadioFormat || 'tape');
+        }
+
+        hifiAudio.setAttribute('crossorigin', 'anonymous');
+        hifiAudio.loop = isRepeatOne;
+
         currentTrackIndex = index;
         isTransitioning = true;
         nextUpcomingIndex = -1;
 
         var targetTrack = playlist[currentTrackIndex];
+        var isVideo = isPlaylistItemVideo(targetTrack);
+        updateVideoScreenState(isVideo, targetTrack.title);
+
         initRealAudioContext();
-        if (autoPlay) triggerFormatCueSound();
 
-        hifiAudio.pause();
-
-        if (preloadedTrackTitle === targetTrack.title && preloaderAudio.src) {
-            hifiAudio.src = preloaderAudio.src;
-            hifiAudio.load();
-            syncTrackUI();
-
-            if (autoPlay) {
-                var playPromise = hifiAudio.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        isTransitioning = false;
-                        requestWakeLock();
-                    }).catch(() => {
-                        setTimeout(() => hifiAudio.play().catch(()=>{}), 200);
-                    });
-                }
-            } else {
-                isTransitioning = false;
-            }
-
-            setTimeout(scheduleNextTrackPreload, 1000);
-            return;
+        if (autoPlay && !document.hidden) {
+            triggerFormatCueSound();
         }
 
         getTrackFromDB(targetTrack.title).then(function(cachedBlob) {
@@ -4354,29 +5487,58 @@
                 updateCacheButtonState(false);
             }
 
-            hifiAudio.load();
             syncTrackUI();
 
             if (autoPlay) {
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume().catch(()=>{});
+                }
+
                 var playPromise = hifiAudio.play();
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
                         isTransitioning = false;
+                        consecutiveErrorCount = 0;
                         requestWakeLock();
-                    }).catch(() => {
-                        setTimeout(() => hifiAudio.play().catch(()=>{}), 250);
+                        updateMediaSession();
+                    }).catch(function(err) {
+                        console.warn("Background auto-play recovery attempt:", err);
+                        setTimeout(function() {
+                            if (audioCtx && audioCtx.state === 'suspended') {
+                                audioCtx.resume().catch(()=>{});
+                            }
+                            hifiAudio.play().then(() => {
+                                isTransitioning = false;
+                                updateMediaSession();
+                            }).catch(() => {
+                                isTransitioning = false;
+                            });
+                        }, 80);
                     });
                 }
             } else {
                 isTransitioning = false;
             }
-
-            setTimeout(scheduleNextTrackPreload, 1500);
         });
     }
 
     function togglePlayPause() {
         initRealAudioContext();
+        if (activeFmKey && currentStreamUrl && !currentStreamUrl.includes('.m3u8')) {
+            var activePlayer = fmFallbackPlayer.src ? fmFallbackPlayer : fmPlayer;
+            if (activePlayer.paused) {
+                activePlayer.play().catch(()=>{});
+                playButton.style.display = 'none';
+                pauseButton.style.display = 'inline-flex';
+            } else {
+                activePlayer.pause();
+                playButton.style.display = 'inline-flex';
+                pauseButton.style.display = 'none';
+            }
+            updateRadioLedState();
+            updateMediaSession();
+            return;
+        }
         if (hifiAudio.paused) { 
             triggerFormatCueSound();
             hifiAudio.play().catch(()=>{});
@@ -4392,8 +5554,16 @@
         playMechanicalSwitchClick();
 
         if (playlist.length === 0) return;
-        
-        triggerFastWind('forward', 600);
+
+        if (shouldRestrictToVideos()) {
+            var nextVidIdx = getNextVideoIndex();
+            if (nextVidIdx !== -1) {
+                loadTrack(nextVidIdx, true);
+                return;
+            }
+        }
+
+        if (!document.hidden) triggerFastWind('forward', 600);
 
         var targetIndex = (nextUpcomingIndex >= 0 && nextUpcomingIndex < playlist.length) 
             ? nextUpcomingIndex 
@@ -4409,7 +5579,15 @@
 
         if (playlist.length === 0) return;
 
-        triggerFastWind('reverse', 600);
+        if (shouldRestrictToVideos()) {
+            var prevVidIdx = getPreviousVideoIndex();
+            if (prevVidIdx !== -1) {
+                loadTrack(prevVidIdx, true);
+                return;
+            }
+        }
+
+        if (!document.hidden) triggerFastWind('reverse', 600);
 
         var prevIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
         loadTrack(prevIndex, true);
@@ -4420,51 +5598,93 @@
         playMechanicalSwitchClick();
     }
 
+    /* SYNCHRONOUS BACKGROUND-SAFE TRACK ADVANCE */
     hifiAudio.addEventListener('ended', function() {
-        if (playlist.length > 0 && !isTransitioning) {
+        updateRadioLedState();
+        if (isRepeatOne && !activeFmKey) {
+            hifiAudio.currentTime = 0;
+            hifiAudio.play().catch(function(){});
+            return;
+        }
+        if (playlist.length > 0 && !activeFmKey) {
             isTransitioning = true;
-            playNext();
+
+            if (shouldRestrictToVideos()) {
+                var nextVidIdx = getNextVideoIndex();
+                if (nextVidIdx !== -1) {
+                    nextUpcomingIndex = -1;
+                    loadTrack(nextVidIdx, true);
+                    return;
+                }
+            }
+            
+            var targetIndex = (nextUpcomingIndex >= 0 && nextUpcomingIndex < playlist.length) 
+                ? nextUpcomingIndex 
+                : determineNextIndex();
+
+            nextUpcomingIndex = -1;
+            loadTrack(targetIndex, true);
         }
     });
 
+    /* UPDATED AUDIO ERROR HANDLER WITH FM MIRROR FAILOVER */
     hifiAudio.addEventListener('error', function() {
         clearLoadGuard();
+        updateRadioLedState();
         if (hifiAudio.error && hifiAudio.error.code === 20) return;
 
+        if (activeFmKey && fmStations[activeFmKey]) {
+            fmMirrorIndex++;
+            tryNextFmMirror(fmStations[activeFmKey].title);
+            return;
+        }
+
         consecutiveErrorCount++;
-        if (consecutiveErrorCount > 3) {
+        if (consecutiveErrorCount > 4) {
             nowPlayingSubtitle.textContent = "PLAYBACK PAUSED: NETWORK UNSTABLE";
             isTransitioning = false;
             return;
         }
 
         nowPlayingSubtitle.textContent = "RETRYING / ADVANCING TRACK...";
-        setTimeout(() => {
-            playNext();
-        }, 1200);
+        setTimeout(function() { playNext(); }, 600);
+    });
+
+    fmPlayer.addEventListener('error', function() {
+        clearLoadGuard();
+        updateRadioLedState();
+        if (activeFmKey && fmStations[activeFmKey]) {
+            fmMirrorIndex++;
+            tryNextFmMirror(fmStations[activeFmKey].title);
+        }
+    });
+
+    ['playing', 'pause', 'ended'].forEach(function(evtName) {
+        fmPlayer.addEventListener(evtName, updateRadioLedState);
+        fmFallbackPlayer.addEventListener(evtName, updateRadioLedState);
     });
 
     hifiAudio.addEventListener('waiting', function() {
         clearLoadGuard();
         loadTimeout = setTimeout(function() {
-            if (hifiAudio.readyState < 2 && !hifiAudio.paused && !isTransitioning) {
+            if (hifiAudio.readyState < 2 && !hifiAudio.paused && !isTransitioning && !activeFmKey) {
                 isTransitioning = true;
                 playNext();
             }
-        }, 12000);
+        }, 8000);
     });
 
     hifiAudio.addEventListener('playing', () => {
         clearLoadGuard();
         isTransitioning = false;
         consecutiveErrorCount = 0;
-        preloadTriggeredForCurrentTrack = false;
         syncTrackUI();
         initRealAudioContext();
         updateFormatNoiseState();
         playButton.style.display = 'none'; 
         pauseButton.style.display = 'inline-flex'; 
         syncDeckVisuals();
+        updateRadioLedState();
     });
 
     hifiAudio.addEventListener('pause', () => { 
@@ -4473,24 +5693,24 @@
             playButton.style.display = 'inline-flex'; 
             pauseButton.style.display = 'none'; 
             syncDeckVisuals();
+            updateRadioLedState();
             updateMediaSession();
         }
     });
 
     hifiAudio.addEventListener('timeupdate', () => {
         if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
-            progressSlider.value = hifiAudio.currentTime;
-            currentTimeSpan.textContent = formatTime(hifiAudio.currentTime);
-            updateTapeCounter(hifiAudio.currentTime);
-            syncDeckVisuals();
-
-            if (Math.floor(hifiAudio.currentTime) % 2 === 0) {
-                persistTapeState(currentTrackIndex, hifiAudio.currentTime, !hifiAudio.paused);
+            if (!document.hidden) {
+                progressSlider.value = hifiAudio.currentTime;
+                currentTimeSpan.textContent = formatTime(hifiAudio.currentTime);
+                if (fsProgressSlider) fsProgressSlider.value = hifiAudio.currentTime;
+                if (fsCurrentTimeSpan) fsCurrentTimeSpan.textContent = formatTime(hifiAudio.currentTime);
+                updateTapeCounter(hifiAudio.currentTime);
+                syncDeckVisuals();
             }
 
-            if (!preloadTriggeredForCurrentTrack && (hifiAudio.currentTime > 15 || hifiAudio.currentTime > hifiAudio.duration * 0.5)) {
-                preloadTriggeredForCurrentTrack = true;
-                scheduleNextTrackPreload();
+            if (Math.floor(hifiAudio.currentTime) % 4 === 0) {
+                persistTapeState(currentTrackIndex, hifiAudio.currentTime, !hifiAudio.paused);
             }
         }
     });
@@ -4505,6 +5725,16 @@
         if (!activeFmKey && !isNaN(hifiAudio.duration)) {
             progressSlider.max = hifiAudio.duration;
             durationSpan.textContent = formatTime(hifiAudio.duration);
+            if (fsProgressSlider) {
+                fsProgressSlider.max = hifiAudio.duration;
+                fsProgressSlider.value = 0;
+            }
+            if (fsDurationSpan) fsDurationSpan.textContent = formatTime(hifiAudio.duration);
+            if (fsCurrentTimeSpan) fsCurrentTimeSpan.textContent = "0:00";
+        }
+        if (hifiAudio.videoWidth > 0) {
+            var title = playlist[currentTrackIndex] ? playlist[currentTrackIndex].title : "Video";
+            updateVideoScreenState(true, title);
         }
         syncTrackUI();
     });
@@ -4520,10 +5750,33 @@
             lastSeekPosition = currentSeekVal;
 
             hifiAudio.currentTime = currentSeekVal;
+            if (fsProgressSlider) fsProgressSlider.value = currentSeekVal;
+            if (fsCurrentTimeSpan) fsCurrentTimeSpan.textContent = formatTime(currentSeekVal);
             updateTapeCounter(currentSeekVal);
             syncDeckVisuals();
+            updateMediaSession();
         }
     });
+
+    if (fsProgressSlider) {
+        fsProgressSlider.addEventListener('pointerdown', function(e) {
+            e.stopPropagation();
+            revealFullscreenControls();
+        });
+        fsProgressSlider.addEventListener('input', function(e) {
+            e.stopPropagation();
+            if (!activeFmKey) {
+                var seekVal = parseFloat(fsProgressSlider.value);
+                hifiAudio.currentTime = seekVal;
+                progressSlider.value = seekVal;
+                currentTimeSpan.textContent = formatTime(seekVal);
+                if (fsCurrentTimeSpan) fsCurrentTimeSpan.textContent = formatTime(seekVal);
+                updateTapeCounter(seekVal);
+                updateMediaSession();
+                revealFullscreenControls();
+            }
+        });
+    }
 
     window.onclick = function(event) {
         if (!event.target.closest('.music-button') && 
@@ -4547,6 +5800,10 @@
         populatePlaylistDropdown();
         loadSavedPresetSlots();
         loadPersistedCounterMode();
+        currentFmFrequency = loadLastFmFrequency();
+        if (typeof setFmKnobAngleFromFreq === 'function') {
+            setFmKnobAngleFromFreq(currentFmFrequency);
+        }
         animateVUMeters();
         renderVisualizer();
 

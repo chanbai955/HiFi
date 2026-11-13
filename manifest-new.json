@@ -1,0 +1,20 @@
+{
+  "name": "Chanthiran Mini HiFi System",
+  "short_name": "Chanthiran HiFi",
+  "description": "Retro Mini HiFi Cassette, Vinyl, Video & FM Radio Stereo Deck",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0a0c",
+  "theme_color": "#ffaa00",
+  "categories": ["music", "entertainment", "multimedia"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23111215' stroke='%23ffaa00' stroke-width='20'/%3E%3Crect x='64' y='136' width='384' height='240' rx='24' fill='%2322252a' stroke='%2300e5ff' stroke-width='12'/%3E%3Ccircle cx='176' cy='256' r='48' fill='%230a0a0c' stroke='%23ffaa00' stroke-width='12'/%3E%3Ccircle cx='336' cy='256' r='48' fill='%230a0a0c' stroke='%23ffaa00' stroke-width='12'/%3E%3Crect x='216' y='236' width='80' height='40' rx='6' fill='%2300e5ff'/%3E%3C/svg%3E",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
