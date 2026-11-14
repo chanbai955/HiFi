@@ -22,41 +22,47 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background: #0a0a0c;
-            color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overflow-x: hidden;
-            overflow-y: auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+      html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    background: #0a0a0c;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Prevents top header from being pushed above screen */
+}
 
-        /* VERTICAL TOWER CONTAINER */
-        .music-player-container {
-            width: 100%;
-            min-height: 100vh;
-            max-width: 480px;
-           margin: 28px; 
-            padding: 16px;
-            background: linear-gradient(145deg, #22252a 0%, #111215 100%);
-            border: 3px solid #3a3f47;
-            border-radius: 12px;
-            box-shadow: 0 0 35px rgba(0,0,0,0.9), inset 0 1px 2px rgba(255,255,255,0.15);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            justify-content: flex-start;
-            align-items: center;
-            position: relative;
-            transition: max-width 0.3s ease, padding 0.3s ease;
-        }
-.rack-watermark {
+/* VERTICAL TOWER CONTAINER (FITS SINGLE MOBILE SCREEN) */
+.music-player-container {
+    width: 100%;
+    min-height: 100dvh;
+    max-width: 480px;
+    margin: 0 auto; /* Zero top margin on mobile so OFF button & Chanthiran text are visible */
+    padding: 8px 12px;
+    background: linear-gradient(145deg, #22252a 0%, #111215 100%);
+    border: 2px solid #3a3f47;
+    border-radius: 10px;
+    box-shadow: 0 0 35px rgba(0,0,0,0.9), inset 0 1px 2px rgba(255,255,255,0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    transition: max-width 0.3s ease, padding 0.3s ease;
+}
+
+.hifi-horizontal-grid,
+.rack-col {
+    gap: 6px;
+}
+
+{
     flex: 1;
     width: 100%;
     min-height: 85px;
@@ -1698,6 +1704,17 @@
             cursor: pointer;
         }
         #volumeSlider { flex: 1; }
+        @media (max-width: 768px) and (orientation: portrait) {
+    .top-deck-header { padding-bottom: 4px; }
+    .brand-label { font-size: 1.45rem; }
+    .vu-meter-unit { height: 40px; }
+    .vu-needle { height: 36px; }
+    .visualizer-container { height: 38px; }
+    .cassette-deck-well { height: 102px; }
+    .vfd-display-panel { padding: 4px 10px; }
+    .music-button { height: 34px; width: 42px; }
+    .volume-container { padding: 4px 8px; }
+}
     </style>
 </head>
 <body>
