@@ -37,6 +37,45 @@
     align-items: flex-start; /* Prevents top header from being pushed above screen */
 }
 
+/* FULLSCREEN ORIENTATION SWITCHER PILL (TOP RIGHT IN FULLSCREEN) */
+.video-fs-orient-bar {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    z-index: 25;
+}
+
+.video-screen-frame:fullscreen .video-fs-orient-bar,
+.video-screen-frame:-webkit-full-screen .video-fs-orient-bar,
+.video-screen-frame.mobile-fs-active .video-fs-orient-bar {
+    display: flex;
+}
+
+.video-orient-btn {
+    background: rgba(10, 14, 20, 0.85);
+    border: 1.5px solid #00e5ff;
+    color: #00e5ff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 800;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+.video-orient-btn:active {
+    background: #00e5ff;
+    color: #05070a;
+}
+
+/* FILL MODE OPTION (CONTAIN vs COVER FULL HEIGHT/WIDTH) */
+.video-screen-frame.fs-fill-crop #hifiAudio {
+    object-fit: cover !important;
+}
 /* VERTICAL TOWER CONTAINER (FITS SINGLE MOBILE SCREEN) */
 .music-player-container {
     width: 100%;
@@ -2071,6 +2110,11 @@
 
                     <!-- SWIPE FEEDBACK TOAST -->
                     <div class="video-swipe-toast" id="videoSwipeToast">NEXT ⏭</div>
+                    <div class="video-fs-orient-bar" id="videoFsOrientBar">
+    <button class="video-orient-btn" id="fsOrientBtn" onclick="cycleFsOrientation(event)" title="Switch Horizontal / Vertical Fullscreen">🔄 AUTO</button>
+    <button class="video-orient-btn" id="fsCropBtn" onclick="toggleFsFillMode(event)" title="Toggle Fit vs Full Edge-to-Edge Fill">⛶ FIT</button>
+    <button class="video-orient-btn" style="border-color:#ff4d4d; color:#ff6666;" onclick="toggleVideoFullscreen(event)" title="Exit Fullscreen">✕</button>
+</div>
 
                     <!-- FULLSCREEN ON-SCREEN TRANSPORT CONTROLS -->
                     <div class="video-fs-controls" id="videoFsControls">
@@ -2092,10 +2136,11 @@
                     </div>
                 </div>
                 <div class="video-deck-toolbar">
-                    <button class="video-mini-btn" onclick="openVideoFilePicker(event)">📄 PICK VIDEOS</button>
-                    <button class="video-mini-btn" onclick="openVideoFolderPicker(event)">📂 VIDEO FOLDER</button>
-                    <button class="video-mini-btn" onclick="toggleVideoFullscreen(event)">⛶ FULLSCREEN</button>
-                </div>
+    <button class="video-mini-btn" onclick="openVideoFilePicker(event)">📄 PICK VIDEOS</button>
+    <button class="video-mini-btn" onclick="openVideoFolderPicker(event)">📂 VIDEO FOLDER</button>
+    <button class="video-mini-btn" onclick="enterFullscreenWithMode('landscape', event)" title="Horizontal Fullscreen">⛶ HORIZ</button>
+    <button class="video-mini-btn" onclick="enterFullscreenWithMode('portrait', event)" title="Vertical Fullscreen">📱 VERT</button>
+</div>
                 <input type="file" id="videoFileInput" multiple accept="video/*,.mp4,.wmv,.mpeg,.mpg,.avi,.mkv,.webm,.mov" style="display:none;" onchange="handleVideoFiles(event)" />
                 <input type="file" id="videoFolderInput" webkitdirectory directory style="display:none;" onchange="handleVideoFiles(event)" />
             </div>
@@ -2781,6 +2826,118 @@
         }, 700);
     }
 
+// ... keep showVideoSwipeToast(label) above this ...
+
+    var fsOrientationMode = 'auto'; // 'auto' | 'landscape' | 'portrait'
+    var isFsFillCrop = false;
+
+    async function applyFsOrientationLock(mode) {
+        var targetMode = mode || fsOrientationMode;
+        if (targetMode === 'auto') {
+            if (hifiAudio && hifiAudio.videoHeight > hifiAudio.videoWidth) {
+                targetMode = 'portrait';
+            } else {
+                targetMode = 'landscape';
+            }
+        }
+        try {
+            if (screen.orientation && screen.orientation.lock) {
+                await screen.orientation.lock(targetMode);
+            }
+        } catch (e) {}
+    }
+
+    function unlockOrientation() {
+        try {
+            if (screen.orientation && screen.orientation.unlock) {
+                screen.orientation.unlock();
+            }
+        } catch (e) {}
+    }
+
+    function updateFsOrientButtonLabel() {
+        var btn = document.getElementById('fsOrientBtn');
+        if (!btn) return;
+        if (fsOrientationMode === 'portrait') btn.textContent = "📱 VERTICAL";
+        else if (fsOrientationMode === 'landscape') btn.textContent = "🖥 HORIZONTAL";
+        else btn.textContent = "🔄 AUTO (H/V)";
+    }
+
+    function cycleFsOrientation(e) {
+        if (e) e.stopPropagation();
+        playMechanicalSwitchClick();
+        if (fsOrientationMode === 'auto') fsOrientationMode = 'portrait';
+        else if (fsOrientationMode === 'portrait') fsOrientationMode = 'landscape';
+        else fsOrientationMode = 'auto';
+
+        updateFsOrientButtonLabel();
+        applyFsOrientationLock(fsOrientationMode);
+        showVideoSwipeToast(
+            fsOrientationMode === 'portrait' ? "📱 VERTICAL FULLSCREEN" :
+            fsOrientationMode === 'landscape' ? "🖥 HORIZONTAL FULLSCREEN" :
+            "🔄 AUTO ORIENTATION"
+        );
+    }
+
+    function toggleFsFillMode(e) {
+        if (e) e.stopPropagation();
+        playMechanicalSwitchClick();
+        isFsFillCrop = !isFsFillCrop;
+        var frame = document.getElementById('videoScreenFrame');
+        var cropBtn = document.getElementById('fsCropBtn');
+        if (frame) frame.classList.toggle('fs-fill-crop', isFsFillCrop);
+        if (cropBtn) cropBtn.textContent = isFsFillCrop ? "⛶ FILL" : "⛶ FIT";
+        showVideoSwipeToast(isFsFillCrop ? "⛶ FULL SCREEN FILL" : "⛶ ORIGINAL ASPECT FIT");
+    }
+
+    function enterFullscreenWithMode(mode, e) {
+        if (e) e.stopPropagation();
+        fsOrientationMode = mode || 'auto';
+        updateFsOrientButtonLabel();
+        if (!isVideoFullscreenActive()) {
+            toggleVideoFullscreen();
+        } else {
+            applyFsOrientationLock(fsOrientationMode);
+        }
+    }
+
+    function toggleVideoFullscreen(e) {
+        if (e) e.stopPropagation();
+        playMechanicalSwitchClick();
+        var frame = document.getElementById('videoScreenFrame');
+        if (!frame) return;
+
+        if (!isVideoFullscreenActive()) {
+            if (frame.requestFullscreen) {
+                frame.requestFullscreen().then(function() {
+                    applyFsOrientationLock(fsOrientationMode);
+                }).catch(function() {
+                    frame.classList.add('mobile-fs-active');
+                    applyFsOrientationLock(fsOrientationMode);
+                });
+            } else if (frame.webkitRequestFullscreen) {
+                frame.webkitRequestFullscreen();
+                applyFsOrientationLock(fsOrientationMode);
+            } else {
+                frame.classList.add('mobile-fs-active');
+                applyFsOrientationLock(fsOrientationMode);
+            }
+            nextUpcomingIndex = -1;
+            updateUpcomingTrackUI();
+        } else {
+            frame.classList.remove('mobile-fs-active');
+            unlockOrientation();
+            if (document.fullscreenElement && document.exitFullscreen) {
+                document.exitFullscreen().catch(function(){});
+            } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+            nextUpcomingIndex = -1;
+            updateUpcomingTrackUI();
+        }
+    }
+
+    // ... keep document.addEventListener('fullscreenchange', ...) below this ...
     async function lockLandscapeOrientation() {
         try {
             if (screen.orientation && screen.orientation.lock) {
