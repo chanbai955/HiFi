@@ -1,18 +1,25 @@
-const CACHE_NAME = 'hifi-player-v1';
+const CACHE_NAME = 'hifi-player-v2';
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(clients.claim());
+  e.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    ).then(() => clients.claim())
+  );
 });
 
 self.addEventListener('fetch', (e) => {
-  // Let audio and live stream requests pass through directly
-  if (e.request.url.includes('.mp3') || e.request.url.includes('.m3u8')) {
+  const url = new URL(e.request.url);
+
+  // Bypass all external streams (.m3u8, .ts, .aac, .mp3) and Radio-Browser API calls
+  if (url.origin !== self.location.origin) {
     return;
   }
+
   e.respondWith(
     fetch(e.request).catch(() => caches.match(e.request))
   );
