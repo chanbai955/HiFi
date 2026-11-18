@@ -950,6 +950,104 @@
         color: #05070a;
     }
 
+/* FULLSCREEN BOTTOM TRANSPORT & SLIDER OSD */
+    .video-fs-bottom-hud {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: none;
+        flex-direction: column;
+        gap: 8px;
+        padding: 24px 16px 18px 16px;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.65) 65%, transparent 100%);
+        z-index: 1000001;
+        transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .video-screen-frame:fullscreen .video-fs-bottom-hud,
+    .video-screen-frame:-webkit-full-screen .video-fs-bottom-hud,
+    .video-screen-frame.mobile-fs-active .video-fs-bottom-hud {
+        display: flex !important;
+    }
+
+    /* Auto-hide HUD when user is inactive */
+    .video-screen-frame.fs-hud-hidden .video-fs-orient-bar,
+    .video-screen-frame.fs-hud-hidden .video-fs-bottom-hud {
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    .fs-hud-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #00e5ff;
+        text-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
+    }
+
+    .fs-hud-slider-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .fs-hud-slider-row input[type="range"] {
+        flex: 1;
+        height: 22px;
+    }
+
+    .fs-hud-controls-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+    }
+
+    .fs-ctrl-btn {
+        background: rgba(15, 20, 28, 0.88);
+        border: 1.5px solid #3c4657;
+        color: #e2e8f0;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.65rem;
+        font-weight: 800;
+        min-width: 44px;
+        height: 38px;
+        padding: 0 12px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        cursor: pointer;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.85);
+        transition: all 0.12s ease;
+    }
+
+    .fs-ctrl-btn svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+    }
+
+    .fs-ctrl-btn.primary-play {
+        border-color: #00e5ff;
+        color: #00e5ff;
+        min-width: 56px;
+        height: 44px;
+        box-shadow: 0 0 14px rgba(0, 229, 255, 0.35);
+    }
+
+    .fs-ctrl-btn:active {
+        transform: scale(0.92);
+        background: #00e5ff;
+        color: #05070a;
+    }
     /* SWIPE FEEDBACK TOAST */
     .video-swipe-toast {
         position: absolute;
@@ -1980,10 +2078,41 @@
                 <div class="video-screen-frame" id="videoScreenFrame">
                     <video id="hifiAudio" crossorigin="anonymous" preload="auto" playsinline></video>
                     <div class="video-swipe-toast" id="videoSwipeToast">NEXT ⏭</div>
+                    
+                    <!-- TOP-RIGHT FULLSCREEN CONTROLS (PiP, ORIENTATION, FILL/FIT, EXIT) -->
                     <div class="video-fs-orient-bar" id="videoFsOrientBar">
+                        <button class="video-orient-btn" id="fsPipBtn" onclick="toggleVideoPip(event)" title="Picture-in-Picture">⧉ PiP</button>
                         <button class="video-orient-btn" id="fsOrientBtn" onclick="cycleFsOrientation(event)" title="Switch Horizontal / Vertical Fullscreen">🔄 AUTO</button>
                         <button class="video-orient-btn" id="fsCropBtn" onclick="toggleFsFillMode(event)" title="Toggle Fill vs Fit">⛶ FILL</button>
                         <button class="video-orient-btn" style="border-color:#ff4d4d; color:#ff6666;" onclick="toggleVideoFullscreen(event)" title="Exit Fullscreen">✕</button>
+                    </div>
+
+                    <!-- BOTTOM FULLSCREEN SLIDER & TRANSPORT CONTROLS -->
+                    <div class="video-fs-bottom-hud" id="videoFsBottomHud" onclick="event.stopPropagation()">
+                        <div class="fs-hud-title" id="fsTrackTitle">Now Playing</div>
+                        <div class="fs-hud-slider-row">
+                            <span id="fsCurrentTime" class="time-display">0:00</span>
+                            <input type="range" id="fsProgressSlider" min="0" max="0" value="0" />
+                            <span id="fsDuration" class="time-display">0:00</span>
+                        </div>
+                       <div class="fs-hud-controls-row">
+                            <button class="fs-ctrl-btn" style="border-color:#ffaa00; color:#ffaa00;" onclick="toggleVideoFullscreen(event)" title="Back to Main Screen">
+                                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                                BACK
+                            </button>
+                            <button class="fs-ctrl-btn" onclick="playPrevious(); resetFsHudTimer();" title="Previous">
+                                <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                            </button>
+                            <button class="fs-ctrl-btn primary-play" id="fsPlayBtn" onclick="togglePlayPause(); resetFsHudTimer();" title="Play">
+                                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </button>
+                            <button class="fs-ctrl-btn primary-play" id="fsPauseBtn" onclick="togglePlayPause(); resetFsHudTimer();" style="display:none;" title="Pause">
+                                <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                            </button>
+                            <button class="fs-ctrl-btn" onclick="playNext(); resetFsHudTimer();" title="Next">
+                                <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
                <div class="video-deck-toolbar">
@@ -5691,7 +5820,97 @@ function enterFullscreenWithMode(mode, e) {
 
         turnOffRadio();
     }
+/* --- FULLSCREEN HUD SYNC (SLIDER, PLAY/PAUSE, TITLE & TAP TOGGLE) --- */
+    var fsHudHideTimer = null;
 
+    function resetFsHudTimer() {
+        var frame = document.getElementById('videoScreenFrame');
+        if (!frame) return;
+        frame.classList.remove('fs-hud-hidden');
+        clearTimeout(fsHudHideTimer);
+        if (isVideoFullscreenActive() && !hifiAudio.paused) {
+            fsHudHideTimer = setTimeout(function() {
+                frame.classList.add('fs-hud-hidden');
+            }, 3500);
+        }
+    }
+
+    (function initFullscreenHudSync() {
+        var frame = document.getElementById('videoScreenFrame');
+        var fsSlider = document.getElementById('fsProgressSlider');
+        var fsCurTime = document.getElementById('fsCurrentTime');
+        var fsDurTime = document.getElementById('fsDuration');
+        var fsTitle = document.getElementById('fsTrackTitle');
+        var fsPlayBtn = document.getElementById('fsPlayBtn');
+        var fsPauseBtn = document.getElementById('fsPauseBtn');
+
+        if (frame) {
+            frame.addEventListener('click', function(e) {
+                if (!isVideoFullscreenActive()) return;
+                if (e.target.closest('button') || e.target.closest('input')) {
+                    resetFsHudTimer();
+                    return;
+                }
+                if (frame.classList.contains('fs-hud-hidden')) {
+                    resetFsHudTimer();
+                } else {
+                    frame.classList.add('fs-hud-hidden');
+                    clearTimeout(fsHudHideTimer);
+                }
+            });
+        }
+
+        if (fsSlider) {
+            fsSlider.addEventListener('input', function() {
+                if (!activeFmKey) {
+                    var seekVal = parseFloat(fsSlider.value);
+                    hifiAudio.currentTime = seekVal;
+                    progressSlider.value = seekVal;
+                    currentTimeSpan.textContent = formatTime(seekVal);
+                    if (fsCurTime) fsCurTime.textContent = formatTime(seekVal);
+                    updateTapeCounter(seekVal);
+                    resetFsHudTimer();
+                }
+            });
+        }
+
+        hifiAudio.addEventListener('loadedmetadata', function() {
+            if (!activeFmKey && !isNaN(hifiAudio.duration)) {
+                if (fsSlider) fsSlider.max = hifiAudio.duration;
+                if (fsDurTime) fsDurTime.textContent = formatTime(hifiAudio.duration);
+            }
+            if (fsTitle && playlist[currentTrackIndex]) {
+                fsTitle.textContent = playlist[currentTrackIndex].title;
+            }
+        });
+
+        hifiAudio.addEventListener('timeupdate', function() {
+            if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
+                if (fsSlider) fsSlider.value = hifiAudio.currentTime;
+                if (fsCurTime) fsCurTime.textContent = formatTime(hifiAudio.currentTime);
+                if (fsTitle && playlist[currentTrackIndex]) {
+                    fsTitle.textContent = playlist[currentTrackIndex].title;
+                }
+            }
+        });
+
+        hifiAudio.addEventListener('playing', function() {
+            if (fsPlayBtn) fsPlayBtn.style.display = 'none';
+            if (fsPauseBtn) fsPauseBtn.style.display = 'inline-flex';
+            if (fsTitle && playlist[currentTrackIndex]) {
+                fsTitle.textContent = playlist[currentTrackIndex].title;
+            }
+            resetFsHudTimer();
+        });
+
+        hifiAudio.addEventListener('pause', function() {
+            if (fsPlayBtn) fsPlayBtn.style.display = 'inline-flex';
+            if (fsPauseBtn) fsPauseBtn.style.display = 'none';
+            if (frame) frame.classList.remove('fs-hud-hidden');
+            clearTimeout(fsHudHideTimer);
+        });
+    })();
+    
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPlayer);
     } else {
