@@ -874,7 +874,21 @@
     .video-screen-frame.fs-fill-crop #hifiAudio {
         object-fit: cover !important;
     }
+#hifiAudio {
+        transform-origin: center center;
+        transition: transform 0.12s ease-out;
+        will-change: transform;
+    }
 
+    #hifiAudio.is-dragging-zoom {
+        transition: none !important;
+        cursor: grabbing;
+    }
+
+    .video-orient-btn.zoom-ready {
+        border-color: #ffaa00;
+        color: #ffaa00;
+    }
     /* TRUE EDGE-TO-EDGE MOBILE & DESKTOP FULLSCREEN (VERTICAL & HORIZONTAL) */
     .video-screen-frame:fullscreen,
     .video-screen-frame:-webkit-full-screen,
@@ -2081,6 +2095,7 @@
                     
                     <!-- TOP-RIGHT FULLSCREEN CONTROLS (PiP, ORIENTATION, FILL/FIT, EXIT) -->
                     <div class="video-fs-orient-bar" id="videoFsOrientBar">
+                        <button class="video-orient-btn" id="fsZoomBtn" onclick="cyclePausedZoom(event)" title="Zoom (Available when paused)">🔍 1.0x</button>
                         <button class="video-orient-btn" id="fsPipBtn" onclick="toggleVideoPip(event)" title="Picture-in-Picture">⧉ PiP</button>
                         <button class="video-orient-btn" id="fsOrientBtn" onclick="cycleFsOrientation(event)" title="Switch Horizontal / Vertical Fullscreen">🔄 AUTO</button>
                         <button class="video-orient-btn" id="fsCropBtn" onclick="toggleFsFillMode(event)" title="Toggle Fill vs Fit">⛶ FILL</button>
@@ -2955,6 +2970,10 @@ function enterFullscreenWithMode(mode, e) {
             nextUpcomingIndex = -1;
             updateUpcomingTrackUI();
         } else {
+            // === ADD THIS LINE RIGHT HERE ===
+            if (typeof resetVideoZoom === 'function') resetVideoZoom(true);
+            // ================================
+
             frame.classList.remove('mobile-fs-active');
             syncFsFillModeUI();
             document.body.classList.remove('fs-video-lock');
@@ -2970,7 +2989,6 @@ function enterFullscreenWithMode(mode, e) {
             updateUpcomingTrackUI();
         }
     }
-
     document.addEventListener('fullscreenchange', function() {
         var frame = document.getElementById('videoScreenFrame');
         if (!document.fullscreenElement) {
@@ -2985,6 +3003,73 @@ function enterFullscreenWithMode(mode, e) {
         nextUpcomingIndex = -1;
         updateUpcomingTrackUI();
     });
+   /* --- FULLSCREEN PAUSED PINCH-TO-ZOOM, WHEEL ZOOM, PAN & SWIPE --- */
+    var videoZoomScale = 1;
+    var videoPanX = 0;
+    var videoPanY = 0;
+    var MIN_VIDEO_ZOOM = 1;
+    var MAX_VIDEO_ZOOM = 4;
+
+    function canZoomVideoNow() {
+        return isVideoFullscreenActive() && hifiAudio && hifiAudio.paused;
+    }
+
+    function applyVideoZoomTransform(showToast) {
+        if (!hifiAudio) return;
+
+        if (videoZoomScale <= 1.01) {
+            videoZoomScale = 1;
+            videoPanX = 0;
+            videoPanY = 0;
+        } else {
+            var maxPanX = ((videoZoomScale - 1) * window.innerWidth) / 2;
+            var maxPanY = ((videoZoomScale - 1) * window.innerHeight) / 2;
+            videoPanX = Math.max(-maxPanX, Math.min(maxPanX, videoPanX));
+            videoPanY = Math.max(-maxPanY, Math.min(maxPanY, videoPanY));
+        }
+
+        hifiAudio.style.transform = `translate3d(${videoPanX.toFixed(1)}px, ${videoPanY.toFixed(1)}px, 0) scale(${videoZoomScale.toFixed(2)})`;
+
+        var zoomBtn = document.getElementById('fsZoomBtn');
+        if (zoomBtn) {
+            zoomBtn.textContent = `🔍 ${videoZoomScale.toFixed(1)}x`;
+            zoomBtn.classList.toggle('zoom-ready', canZoomVideoNow());
+        }
+
+        if (showToast) {
+            showVideoSwipeToast(`🔍 ZOOM ${videoZoomScale.toFixed(1)}x`);
+        }
+    }
+
+    function resetVideoZoom(silent) {
+        videoZoomScale = 1;
+        videoPanX = 0;
+        videoPanY = 0;
+        applyVideoZoomTransform(!silent);
+    }
+
+    function cyclePausedZoom(e) {
+        if (e) e.stopPropagation();
+        playMechanicalSwitchClick();
+
+        if (!canZoomVideoNow()) {
+            showVideoSwipeToast("⏸ PAUSE VIDEO TO ZOOM");
+            return;
+        }
+
+        if (videoZoomScale < 1.5) videoZoomScale = 1.75;
+        else if (videoZoomScale < 2.4) videoZoomScale = 2.5;
+        else if (videoZoomScale < 3.4) videoZoomScale = 3.5;
+        else {
+            videoZoomScale = 1;
+            videoPanX = 0;
+            videoPanY = 0;
+        }
+
+        applyVideoZoomTransform(true);
+        resetFsHudTimer();
+    }
+
     (function setupFullscreenVideoGestures() {
         var frame = document.getElementById('videoScreenFrame');
         if (!frame) return;
@@ -2993,6 +3078,16 @@ function enterFullscreenWithMode(mode, e) {
         var touchStartY = 0;
         var isSwiping = false;
 
+        var initialPinchDist = 0;
+        var initialPinchScale = 1;
+        var isPanningZoom = false;
+        var panStartX = 0;
+        var panStartY = 0;
+
+        function getTouchDistance(t1, t2) {
+            return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        }
+
         frame.addEventListener('dblclick', function(e) {
             if (!e.target.closest('button') && !e.target.closest('input')) {
                 toggleVideoFullscreen(e);
@@ -3000,17 +3095,68 @@ function enterFullscreenWithMode(mode, e) {
         });
 
         frame.addEventListener('touchstart', function(e) {
-            if (e.touches.length !== 1) return;
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            isSwiping = true;
+            if (canZoomVideoNow() && e.touches.length === 2) {
+                isSwiping = false;
+                isPanningZoom = false;
+                initialPinchDist = getTouchDistance(e.touches[0], e.touches[1]);
+                initialPinchScale = videoZoomScale;
+                hifiAudio.classList.add('is-dragging-zoom');
+                return;
+            }
+
+            if (e.touches.length === 1) {
+                if (canZoomVideoNow() && videoZoomScale > 1) {
+                    if (e.target.closest('button') || e.target.closest('input')) return;
+                    isSwiping = false;
+                    isPanningZoom = true;
+                    panStartX = e.touches[0].clientX - videoPanX;
+                    panStartY = e.touches[0].clientY - videoPanY;
+                    hifiAudio.classList.add('is-dragging-zoom');
+                    return;
+                }
+
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                isSwiping = true;
+            }
         }, { passive: true });
 
+        frame.addEventListener('touchmove', function(e) {
+            if (!canZoomVideoNow()) return;
+
+            if (e.touches.length === 2 && initialPinchDist > 0) {
+                e.preventDefault();
+                var currentDist = getTouchDistance(e.touches[0], e.touches[1]);
+                var scaleRatio = currentDist / initialPinchDist;
+                videoZoomScale = Math.max(MIN_VIDEO_ZOOM, Math.min(MAX_VIDEO_ZOOM, initialPinchScale * scaleRatio));
+                applyVideoZoomTransform(false);
+            } else if (e.touches.length === 1 && isPanningZoom && videoZoomScale > 1) {
+                e.preventDefault();
+                videoPanX = e.touches[0].clientX - panStartX;
+                videoPanY = e.touches[0].clientY - panStartY;
+                applyVideoZoomTransform(false);
+            }
+        }, { passive: false });
+
         frame.addEventListener('touchend', function(e) {
+            if (e.touches.length < 2) initialPinchDist = 0;
+
+            if (e.touches.length === 0) {
+                if (isPanningZoom || videoZoomScale > 1) {
+                    isPanningZoom = false;
+                    isSwiping = false;
+                    hifiAudio.classList.remove('is-dragging-zoom');
+                    if (canZoomVideoNow() && videoZoomScale > 1) {
+                        showVideoSwipeToast(`🔍 ${videoZoomScale.toFixed(1)}x`);
+                    }
+                    return;
+                }
+            }
+
             if (!isSwiping || !e.changedTouches || e.changedTouches.length === 0) return;
             isSwiping = false;
 
-            if (!isVideoFullscreenActive()) return;
+            if (!isVideoFullscreenActive() || videoZoomScale > 1) return;
             if (e.target.closest('button') || e.target.closest('input')) return;
 
             var deltaX = e.changedTouches[0].clientX - touchStartX;
@@ -3026,6 +3172,54 @@ function enterFullscreenWithMode(mode, e) {
                 }
             }
         }, { passive: true });
+
+        // Desktop Mouse Wheel Zoom & Drag-to-Pan when paused in fullscreen
+        frame.addEventListener('wheel', function(e) {
+            if (!canZoomVideoNow()) return;
+            e.preventDefault();
+            var delta = e.deltaY < 0 ? 0.25 : -0.25;
+            videoZoomScale = Math.max(MIN_VIDEO_ZOOM, Math.min(MAX_VIDEO_ZOOM, videoZoomScale + delta));
+            applyVideoZoomTransform(true);
+        }, { passive: false });
+
+        frame.addEventListener('mousedown', function(e) {
+            if (!canZoomVideoNow() || videoZoomScale <= 1) return;
+            if (e.target.closest('button') || e.target.closest('input')) return;
+            isPanningZoom = true;
+            panStartX = e.clientX - videoPanX;
+            panStartY = e.clientY - videoPanY;
+            hifiAudio.classList.add('is-dragging-zoom');
+            e.preventDefault();
+        });
+
+        window.addEventListener('mousemove', function(e) {
+            if (!isPanningZoom || !canZoomVideoNow()) return;
+            videoPanX = e.clientX - panStartX;
+            videoPanY = e.clientY - panStartY;
+            applyVideoZoomTransform(false);
+        });
+
+        window.addEventListener('mouseup', function() {
+            if (isPanningZoom) {
+                isPanningZoom = false;
+                hifiAudio.classList.remove('is-dragging-zoom');
+            }
+        });
+
+        // Automatically reset zoom when playback resumes or fullscreen closes
+        hifiAudio.addEventListener('playing', function() {
+            if (videoZoomScale > 1) resetVideoZoom(true);
+            applyVideoZoomTransform(false);
+        });
+
+        hifiAudio.addEventListener('pause', function() {
+            applyVideoZoomTransform(false);
+        });
+
+        document.addEventListener('fullscreenchange', function() {
+            if (!isVideoFullscreenActive()) resetVideoZoom(true);
+            else applyVideoZoomTransform(false);
+        });
 
         document.addEventListener('keydown', function(e) {
             if (!isVideoFullscreenActive()) return;
@@ -3046,7 +3240,6 @@ function enterFullscreenWithMode(mode, e) {
             }
         });
     })();
-
     function updateVideoScreenState(isVideoTrack, titleText) {
         var statusEl = document.getElementById('videoTabStatus');
         if (isVideoTrack) {
