@@ -1465,6 +1465,16 @@
         z-index: 10;
     }
 
+    .playlist-lang-bar {
+        display: flex;
+        width: 100%;
+        background: #0d0f13;
+        border-bottom: 2px solid #2a2e38;
+        position: sticky;
+        top: 33px;
+        z-index: 10;
+    }
+
     .pl-close-btn {
         padding: 8px 12px;
         background: rgba(255, 51, 51, 0.12);
@@ -1510,6 +1520,13 @@
         text-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
     }
 
+    .playlist-lang-bar .pl-filter-tab.active-tab {
+        color: #ffaa00;
+        border-bottom-color: #ffaa00;
+        background: rgba(255, 170, 0, 0.08);
+        text-shadow: 0 0 6px rgba(255, 170, 0, 0.4);
+    }
+
     .playlist-search-container {
         width: 100%;
         display: flex;
@@ -1519,7 +1536,7 @@
         border-bottom: 1px solid #282f3a;
         gap: 6px;
         position: sticky;
-        top: 33px;
+        top: 66px;
         z-index: 9;
     }
 
@@ -1652,6 +1669,19 @@
         background: linear-gradient(145deg, #ff3333, #990000);
         color: #fff;
         transform: scale(0.95);
+    }
+
+    .lang-pill-tag {
+        display: inline-block;
+        font-size: 0.48rem;
+        color: #ffaa00;
+        background: rgba(255, 170, 0, 0.12);
+        border: 1px solid rgba(255, 170, 0, 0.45);
+        border-radius: 3px;
+        padding: 1px 4px;
+        margin-right: 6px;
+        vertical-align: middle;
+        text-transform: uppercase;
     }
 
     .offline-item-badge {
@@ -2217,6 +2247,13 @@
                                 <button class="pl-close-btn" onclick="closePlaylistDropdown(event)" title="Close Playlist">✕</button>
                             </div>
 
+                            <div class="playlist-lang-bar">
+                                <button class="pl-filter-tab active-tab" id="langAll" onclick="setLanguageFilter('all', event)">ALL LANG</button>
+                                <button class="pl-filter-tab" id="langTamil" onclick="setLanguageFilter('tamil', event)">TAMIL</button>
+                                <button class="pl-filter-tab" id="langMalay" onclick="setLanguageFilter('malay', event)">MALAY</button>
+                                <button class="pl-filter-tab" id="langEnglish" onclick="setLanguageFilter('english', event)">ENGLISH</button>
+                            </div>
+
                             <div class="playlist-search-container">
                                 <span class="search-icon">🔍</span>
                                 <input type="text" id="playlistSearchInput" class="playlist-search-input" placeholder="SEARCH SONGS & VIDEOS..." oninput="handlePlaylistSearch(event)" />
@@ -2272,120 +2309,120 @@
 </div>
 <script id="playerScript">
     var playlist = [
-        { title: "Abracadabara", src: "https://raw.githack.com/chanbai955/mp3/main/abracadabra!!s.mp3" },
-        { title: "AdukkuMalliYeduthu", src: "https://raw.githack.com/chanbai955/mp3/main/AdukkuMalliYeduthu%20.mp3" },
-        { title: "Always On My Mind", src: "https://raw.githack.com/chanbai955/mp3/main/Willie%20Nelson%20-%20Always%20On%20My%20Mind.mp3" },
-        { title: "Always SomeWhere", src: "https://raw.githack.com/chanbai955/mp3/main/Always%20Somewhere%20-%20Scorpions%20.mp3" },
-        { title: "Ammadi UN Azhagu", src: "https://raw.githack.com/chanbai955/mp3/main/Ammadi%20Un%20Azhagu%20.mp3" },
-        { title: "Anbae Peranbae", src: "https://raw.githack.com/chanbai955/mp3/main/%20Anbae%20Peranbae%20.mp3" },
-        { title: "Andainya Ku Pergi Dulu", src: "https://raw.githack.com/chanbai955/mp3/main/Andainya%20Aku%20Pergi%20Dulu.mp3" },
-        { title: "Apo nak Dikato", src: "https://raw.githack.com/chanbai955/mp3/main/Blues%20Gang%20Apo%20-%20Nak%20Dikato.mp3" },
-        { title: "Aarengum Thaan Uranga", src: "https://raw.githack.com/chanbai955/mp3/main/Aarengumthan%20Urange.mp3" },
-        { title: "Ayyayyo", src: "https://raw.githack.com/chanbai955/mp3/main/Ayyayyo.mp3" },
-        { title: "Beat It", src: "https://raw.githack.com/chanbai955/mp3/main/Micheal%20Jackson%20-%20Beat%20It.mp3" },
-        { title: "Because I Got High", src: "https://raw.githack.com/chanbai955/mp3/main/Afroman%20-%20Because%20I%20Got%20High.mp3" },
-        { title: "Billie Jean", src: "https://raw.githack.com/chanbai955/mp3/main/Michael%20Jackson%20-%20Billie%20Jean.mp3" },
-        { title: "Black Magic Women", src: "https://raw.githack.com/chanbai955/mp3/main/Santana_Black-Magic-Woman-Gypsy-Queen.mp3" },
-        { title: "Cheri Cheri Lady", src: "https://raw.githack.com/chanbai955/mp3/main/ModernTalking-CheriCheriLady98.mp3" },
-        { title: "DilLagaLiya", src: "https://raw.githack.com/chanbai955/mp3/main/DilLagaLiya%20.mp3" },
-        { title: "Dont forget to remember me", src: "https://raw.githack.com/chanbai955/mp3/main/Don't%20Forget%20To%20Remember%20Me%20%E2%80%93%20Bee%20Gees%20.mp3" },
-        { title: "Ellarum Cholanum", src: "https://raw.githack.com/chanbai955/mp3/main/Ellarum%20chollanu%20.mp3" },
-        { title: "Ellu Vaya Pookalaye", src: "https://raw.githack.com/chanbai955/mp3/main/%20Ellu%20Vaya%20Pookalaye%20.mp3" },
-        { title: "EnKanmani", src: "https://raw.githack.com/chanbai955/mp3/main/EnKanmani.mp3" },
-        { title: "Enge antha venila", src: "https://raw.githack.com/chanbai955/mp3/main/Enge%20Andha%20Vennila%20.mp3" },
-        { title: "Eppadi Vandhaayo", src: "https://raw.githack.com/chanbai955/mp3/main/Eppadi%20Vandhaayo%20.mp3" },
-        { title: "Every Breath You Take", src: "https://raw.githack.com/chanbai955/mp3/main/Police%20-%20Every%20Breath%20You%20Take.mp3" },
-        { title: "Get Up Stand UP", src: "https://raw.githack.com/chanbai955/mp3/main/Bob%20Marley%20-%20Get%20Up%20Stand%20Up.mp3" },
-        { title: "Hanya Satu Persinggahan", src: "https://raw.githack.com/chanbai955/mp3/main/%20HanyaSatuPersinggahan.mp3" },
-        { title: "Hello", src: "https://raw.githack.com/chanbai955/mp3/main/HELLO%20-%20%20LIONEL%20RICHIE%20.mp3" },
-        { title: "Highway Star", src: "https://raw.githack.com/chanbai955/mp3/main/Deep%20Purple%20-%20Highway%20Star%20.mp3" },
-        { title: "Highway to Hell", src: "https://raw.githack.com/chanbai955/mp3/main/AC%E2%A7%B8DC%20-%20Highway%20to%20Hell%20.mp3" },
-        { title: "Hingga Akhir Nanti", src: "https://raw.githack.com/chanbai955/mp3/main/Hingga%20Akhir%20Nanti.mp3" },
-        { title: "Holy Diver", src: "https://raw.githack.com/chanbai955/mp3/main/Dio%20-%20Holy%20Diver.mp3" },
-        { title: "Hotel california", src: "https://raw.githack.com/chanbai955/mp3/main/Eagles%20-%20Hotel%20California%20(Original).mp3" },
-        { title: "I Love You", src: "https://raw.githack.com/chanbai955/mp3/main/C%C3%A9line%20Dion%20-%20I%20Love%20You.mp3" },
-        { title: "Islands in the stream", src: "https://raw.githack.com/chanbai955/mp3/main/Islands%20In%20the%20Stream.mp3" },
-        { title: "Kaanakarunguyile Kathal", src: "https://raw.githack.com/chanbai955/mp3/main/Kaanakarunguyile%20Kathal.mp3" },
-        { title: "KaalangalilVasantham", src: "https://raw.githack.com/chanbai955/mp3/main/KaalangalilVasantham%20.mp3" },
-        { title: "Kallelaam Maanikka", src: "https://raw.githack.com/chanbai955/mp3/main/Kallelaam%20Maanikka.mp3" },
-        { title: "Kanna Kaattu Podhum", src: "https://raw.githack.com/chanbai955/mp3/main/%20Kanna%20Kaattu%20Podhum.mp3" },
-        { title: "Kannukullae Unnai Vaithen", src: "https://raw.githack.com/chanbai955/mp3/main/Kannukullae%20Unnai%20Vaithen%20.mp3" },
-        { title: "Karma Chameleon", src: "https://raw.githack.com/chanbai955/mp3/main/Culture%20Club%20-%20Karma%20Chameleon.mp3" },
-        { title: "Kerana", src: "https://raw.githack.com/chanbai955/mp3/main/Kerana.mp3" },
-        { title: "Keralanaadu", src: "https://raw.githack.com/chanbai955/mp3/main/Keralanaadu.mp3" },
-        { title: "Knockin Heavens Door", src: "https://raw.githack.com/chanbai955/mp3/main/%20Knockin'%20On%20Heaven's%20Door%20.mp3" },
-        { title: "Konjam Nearam", src: "https://raw.githack.com/chanbai955/mp3/main/%20Innum%20Konjam%20Naeram%20.mp3" },
-        { title: "Koodamela", src: "https://raw.githack.com/chanbai955/mp3/main/%20Koodamela%20Koodavechi.mp3" },
-        { title: "Kudagu Malai", src: "https://raw.githack.com/chanbai955/mp3/main/Kudagu%20Malai%20.mp3" },
-        { title: "Kuruku Sirithavale", src: "https://raw.githack.com/chanbai955/mp3/main/Kurukku%20siruthavale%20.mp3" },
-        { title: "Kuzhal Oothum Kannanukku", src: "https://raw.githack.com/chanbai955/mp3/main/Kuzhal%20Oothum%20Kannanukku%20Song%20.mp3" },
-        { title: "Layang-layang", src: "https://raw.githack.com/chanbai955/mp3/main/Layang%20Layang%20Terputus%20talinya.mp3" },
-        { title: "Like A Virgin", src: "https://raw.githack.com/chanbai955/mp3/main/Madonna-Like%20a%20virg%C3%ADn.mp3" },
-        { title: "MaalaiSooda", src: "https://raw.githack.com/chanbai955/mp3/main/MaalaiSooda%20.mp3" },
-        { title: "Maalaiyil Yaaro Manathodu Pesa", src: "https://raw.githack.com/chanbai955/mp3/main/Maalaiyil%20Yaaro%20Manathodu%20Pesa%20.MP3" },
-        { title: "Malai Kaatru", src: "https://raw.githack.com/chanbai955/mp3/main/Malai%20Kaatru%20.mp3" },
-        { title: "Malarea Mounama", src: "https://raw.githack.com/chanbai955/mp3/main/Malare%20Mounama.mp3" },
-        { title: "MalarnthumMalaradha", src: "https://raw.githack.com/chanbai955/mp3/main/MalarnthumMalaradha.mp3" },
-        { title: "Mallipoo", src: "https://raw.githack.com/chanbai955/mp3/main/Mallipoo%20.mp3" },
-        { title: "Maonamana Neraam", src: "https://raw.githack.com/chanbai955/mp3/main/Maonamana%20neraam.mp3" },
-        { title: "Mun Paniya", src: "https://raw.githack.com/chanbai955/mp3/main/Mun%20Paniya.mp3" },
-        { title: "MuthukkuMuthaga", src: "https://raw.githack.com/chanbai955/mp3/main/MuthukkuMuthaga.mp3" },
-        { title: "Muzhumathi", src: "https://raw.githack.com/chanbai955/mp3/main/Muzhumathi.mp3" },
-        { title: "My Heart Will Go On", src: "https://raw.githack.com/chanbai955/mp3/main/My%20Heart%20Will%20Go%20On.mp3" },
-        { title: "Naam", src: "https://raw.githack.com/chanbai955/mp3/main/Naam%20.mp3" },
-        { title: "Naan Erikkarai", src: "https://raw.githack.com/chanbai955/mp3/main/Naan%20Erikkarai.mp3" },
-        { title: "Naan Malarodu", src: "https://raw.githack.com/chanbai955/mp3/main/Naan%20Malarodu.mp3" },
-        { title: "Nannaga Nanaeruthan", src: "https://raw.githack.com/chanbai955/mp3/main/Nannaga%20Nanaeruthan.mp3" },
-        { title: "NeeKattumSelai", src: "https://raw.githack.com/chanbai955/mp3/main/NeeKattumSelai.mp3" },
-        { title: "Neethanae", src: "https://raw.githack.com/chanbai955/mp3/main/%20Neethanae.mp3" },
-        { title: "Neeyam Naanum", src: "https://raw.githack.com/chanbai955/mp3/main/%20Neeyum%20Naanum.mp3" },
-        { title: "Nejil Maamazhai", src: "https://raw.githack.com/chanbai955/mp3/main/Nejil%20Maamazhai%20.mp3" },
-        { title: "Nota Terakhir", src: "https://raw.githack.com/chanbai955/mp3/main/Alleycats%20-%20Nota%20Terakhir%20.mp3" },
-        { title: "Odugira", src: "https://raw.githack.com/chanbai955/mp3/main/Odugira.mp3" },
-        { title: "Oru Sanam", src: "https://raw.githack.com/chanbai955/mp3/main/Oru%20Sanam.MP3" },
-        { title: "Paakatha", src: "https://raw.githack.com/chanbai955/mp3/main/Paakatha%20.mp3" },
-        { title: "Paattukku Patteduthu", src: "https://raw.githack.com/chanbai955/mp3/main/Paattukku%20Patteduthu%20.mp3" },
-        { title: "Pattu Vanna Rosava", src: "https://raw.githack.com/chanbai955/mp3/main/Pattu%20Vanna%20Rosava.mp3" },
-        { title: "Perfect Strangers", src: "https://raw.githack.com/chanbai955/mp3/main/Deep%20Purple%20%20-%20Perfect%20Strangers%20.mp3" },
-        { title: "PongatruThirumbuma", src: "https://raw.githack.com/chanbai955/mp3/main/PongatruThirumbuma%20.mp3" },
-        { title: "Poongaathe Poongaathe", src: "https://raw.githack.com/chanbai955/mp3/main/Poongaathe%20Poongaathe.mp3" },
-        { title: "Poravale Ponnuthaiyee", src: "https://raw.githack.com/chanbai955/mp3/main/Poravale%20Ponnuthaiyee.mp3" },
-        { title: "PuthamPudhuKaalai", src: "https://raw.githack.com/chanbai955/mp3/main/PuthamPudhuKaalai%20.mp3" },
-        { title: "Raasathi Unna", src: "https://raw.githack.com/chanbai955/mp3/main/Raasathi%20Unna.mp3" },
-        { title: "Raasave", src: "https://raw.githack.com/chanbai955/mp3/main/Raasave.mp3" },
-        { title: "Rhythm of the Rain", src: "https://raw.githack.com/chanbai955/mp3/main/%20Rhythm%20Of%20The%20Rain!s.mp3" },
-        { title: "Right Here waiting for You", src: "https://raw.githack.com/chanbai955/mp3/main/Richard%20Marx%20-%20Right%20Here%20Waiting%20For%20You.mp3" },
-        { title: "Rojamalare", src: "https://raw.githack.com/chanbai955/mp3/main/rojamalare.mp3" },
-        { title: "SaamiKittaSolli", src: "https://raw.githack.com/chanbai955/mp3/main/SaamiKittaSolli.mp3" },
-        { title: "Sampaikan Salam Cintaku", src: "https://raw.githack.com/chanbai955/mp3/main/Sampaikan%20Salam%20Cintaku.mp3" },
-        { title: "Sekuntum Mawar Merah", src: "https://raw.githack.com/chanbai955/mp3/main/Sekuntum%20Mawar%20Merah%20Sebuah%20Puisi.mp3" },
-        { title: "Send me An Angel", src: "https://raw.githack.com/chanbai955/mp3/main/Scorpions%20-%20Send%20me%20an%20angel%20.mp3" },
-        { title: "SenthazhamPoovil", src: "https://raw.githack.com/chanbai955/mp3/main/SenthazhamPoovil%20.mp3" },
-        { title: "Setahun Sudah Berlalu", src: "https://raw.githack.com/chanbai955/mp3/main/Setahun%20Sudah%20Berlalu.mp3" },
-        { title: "Short Clips-002", src: "https://raw.githack.com/chanbai955/mp3/main/shortclips-002.mp3" },
-        { title: "Smoke Is Going Down", src: "https://raw.githack.com/chanbai955/mp3/main/Scorpions%20-%20When%20The%20Smoke%20Is%20Going%20Down%20.mp3" },
-        { title: "Smoke On The Water", src: "https://raw.githack.com/chanbai955/mp3/main/Deep%20Purple%20-%20Smoke%20On%20the%20Water%20.mp3" },
-        { title: "Smooth Operator", src: "https://raw.githack.com/chanbai955/mp3/main/Smooth%20Operator%20-sade.mp3" },
-        { title: "Solai Pushpangale", src: "https://raw.githack.com/chanbai955/mp3/main/Solai%20Pushpangale.mp3" },
-        { title: "Soldier of Fortune", src: "https://raw.githack.com/chanbai955/mp3/main/Soldier%20of%20Fortune.mp3" },
-        { title: "Sollitaley ava", src: "https://raw.githack.com/chanbai955/mp3/main/%20Sollitaley%20Ava%20Kaadhala%20.mp3" },
-        { title: "Still Loving You", src: "https://raw.githack.com/chanbai955/mp3/main/Scorpions%20-%20Still%20Loving%20You.mp3" },
-        { title: "Suara Kekasih", src: "https://raw.githack.com/chanbai955/mp3/main/Suara%20Kekasih.mp3" },
-        { title: "SuciDalamDebu", src: "https://raw.githack.com/chanbai955/mp3/main/SuciDalamDebu.mp3" },
-        { title: "Suratan", src: "https://raw.githack.com/chanbai955/mp3/main/Suratan.mp3" },
-        { title: "ThalattumPoongatru", src: "https://raw.githack.com/chanbai955/mp3/main/ThalattumPoongatru%20.mp3" },
-        { title: "To Love Somebody", src: "https://raw.githack.com/chanbai955/mp3/main/Bee%20Gees%20-%20To%20Love%20Somebody.mp3" },
-        { title: "Unnai Thaane", src: "https://raw.githack.com/chanbai955/mp3/main/%E0%AE%89%E0%AE%A9%E0%AF%8D%E0%AE%A9%E0%AF%88%20%E0%AE%A4%E0%AE%BE%E0%AE%A9%E0%AF%87%20.MP3" },
-        { title: "UrugutheyMaruguthey", src: "https://raw.githack.com/chanbai955/mp3/main/UrugutheyMaruguthey%20.mp3" },
-        { title: "ValarnthaKalai", src: "https://raw.githack.com/chanbai955/mp3/main/ValarnthaKalai%20.mp3" },
-        { title: "Vella Manam", src: "https://raw.githack.com/chanbai955/mp3/main/Vella%20Marnam%20Ulla%20Macha.MP3" },
-        { title: "Vennilave", src: "https://raw.githack.com/chanbai955/mp3/main/Vennilave%20Vennilave%20.mp3" },
-        { title: "Wind Of Change", src: "https://raw.githack.com/chanbai955/mp3/main/51.Scorpions%20-%20Wind%20Of%20Change.mp3" },
-        { title: "Wonderful World", src: "https://raw.githack.com/chanbai955/mp3/main/Sam%20Cooke%20-%20Wonderful%20World.mp3" },
-        { title: "Wonderful World tonight", src: "https://raw.githack.com/chanbai955/mp3/main/Eric%20Clapton_Wonderful%20Tonight.mp3" },
-        { title: "Yenna Marenthe Poluthe", src: "https://raw.githack.com/chanbai955/mp3/main/Yenna%20Marenthe%20Poluthe.MP3" },
-        { title: "You Send Me", src: "https://raw.githack.com/chanbai955/mp3/main/Kenny%20G%20&%20Micheal%20Bolton%20-%20You%20Send%20Me.mp3" },
-        { title: "Your Man", src: "https://raw.githack.com/chanbai955/mp3/main/Josh%20Turner%20-%20Your%20Man.mp3" }
+        { title: "Abracadabara", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/abracadabra!!s.mp3" },
+        { title: "AdukkuMalliYeduthu", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/AdukkuMalliYeduthu%20.mp3" },
+        { title: "Always On My Mind", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Willie%20Nelson%20-%20Always%20On%20My%20Mind.mp3" },
+        { title: "Always SomeWhere", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Always%20Somewhere%20-%20Scorpions%20.mp3" },
+        { title: "Ammadi UN Azhagu", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Ammadi%20Un%20Azhagu%20.mp3" },
+        { title: "Anbae Peranbae", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/%20Anbae%20Peranbae%20.mp3" },
+        { title: "Andainya Ku Pergi Dulu", lang: "malay", src: "https://raw.githack.com/chanbai955/mp3/main/Andainya%20Aku%20Pergi%20Dulu.mp3" },
+        { title: "Apo nak Dikato", lang: "malay", src: "https://raw.githack.com/chanbai955/mp3/main/Blues%20Gang%20Apo%20-%20Nak%20Dikato.mp3" },
+        { title: "Aarengum Thaan Uranga", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Aarengumthan%20Urange.mp3" },
+        { title: "Ayyayyo", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Ayyayyo.mp3" },
+        { title: "Beat It", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Micheal%20Jackson%20-%20Beat%20It.mp3" },
+        { title: "Because I Got High", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Afroman%20-%20Because%20I%20Got%20High.mp3" },
+        { title: "Billie Jean", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Michael%20Jackson%20-%20Billie%20Jean.mp3" },
+        { title: "Black Magic Women", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Santana_Black-Magic-Woman-Gypsy-Queen.mp3" },
+        { title: "Cheri Cheri Lady", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/ModernTalking-CheriCheriLady98.mp3" },
+        { title: "DilLagaLiya", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/DilLagaLiya%20.mp3" },
+        { title: "Dont forget to remember me", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Don't%20Forget%20To%20Remember%20Me%20%E2%80%93%20Bee%20Gees%20.mp3" },
+        { title: "Ellarum Cholanum", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Ellarum%20chollanu%20.mp3" },
+        { title: "Ellu Vaya Pookalaye", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/%20Ellu%20Vaya%20Pookalaye%20.mp3" },
+        { title: "EnKanmani", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/EnKanmani.mp3" },
+        { title: "Enge antha venila", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Enge%20Andha%20Vennila%20.mp3" },
+        { title: "Eppadi Vandhaayo", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Eppadi%20Vandhaayo%20.mp3" },
+        { title: "Every Breath You Take", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Police%20-%20Every%20Breath%20You%20Take.mp3" },
+        { title: "Get Up Stand UP", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Bob%20Marley%20-%20Get%20Up%20Stand%20Up.mp3" },
+        { title: "Hanya Satu Persinggahan", lang: "malay", src: "https://raw.githack.com/chanbai955/mp3/main/%20HanyaSatuPersinggahan.mp3" },
+        { title: "Hello", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/HELLO%20-%20%20LIONEL%20RICHIE%20.mp3" },
+        { title: "Highway Star", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Deep%20Purple%20-%20Highway%20Star%20.mp3" },
+        { title: "Highway to Hell", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/AC%E2%A7%B8DC%20-%20Highway%20to%20Hell%20.mp3" },
+        { title: "Hingga Akhir Nanti", lang: "malay", src: "https://raw.githack.com/chanbai955/mp3/main/Hingga%20Akhir%20Nanti.mp3" },
+        { title: "Holy Diver", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Dio%20-%20Holy%20Diver.mp3" },
+        { title: "Hotel california", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Eagles%20-%20Hotel%20California%20(Original).mp3" },
+        { title: "I Love You", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/C%C3%A9line%20Dion%20-%20I%20Love%20You.mp3" },
+        { title: "Islands in the stream", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Islands%20In%20the%20Stream.mp3" },
+        { title: "Kaanakarunguyile Kathal", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Kaanakarunguyile%20Kathal.mp3" },
+        { title: "KaalangalilVasantham", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/KaalangalilVasantham%20.mp3" },
+        { title: "Kallelaam Maanikka", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Kallelaam%20Maanikka.mp3" },
+        { title: "Kanna Kaattu Podhum", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/%20Kanna%20Kaattu%20Podhum.mp3" },
+        { title: "Kannukullae Unnai Vaithen", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Kannukullae%20Unnai%20Vaithen%20.mp3" },
+        { title: "Karma Chameleon", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Culture%20Club%20-%20Karma%20Chameleon.mp3" },
+        { title: "Kerana", lang: "malay", src: "https://raw.githack.com/chanbai955/mp3/main/Kerana.mp3" },
+        { title: "Keralanaadu", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Keralanaadu.mp3" },
+        { title: "Knockin Heavens Door", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/%20Knockin'%20On%20Heaven's%20Door%20.mp3" },
+        { title: "Konjam Nearam", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/%20Innum%20Konjam%20Naeram%20.mp3" },
+        { title: "Koodamela", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/%20Koodamela%20Koodavechi.mp3" },
+        { title: "Kudagu Malai", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Kudagu%20Malai%20.mp3" },
+        { title: "Kuruku Sirithavale", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Kurukku%20siruthavale%20.mp3" },
+        { title: "Kuzhal Oothum Kannanukku", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Kuzhal%20Oothum%20Kannanukku%20Song%20.mp3" },
+        { title: "Layang-layang", lang: "malay", src: "https://raw.githack.com/chanbai955/mp3/main/Layang%20Layang%20Terputus%20talinya.mp3" },
+        { title: "Like A Virgin", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Madonna-Like%20a%20virg%C3%ADn.mp3" },
+        { title: "MaalaiSooda", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/MaalaiSooda%20.mp3" },
+        { title: "Maalaiyil Yaaro Manathodu Pesa", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Maalaiyil%20Yaaro%20Manathodu%20Pesa%20.MP3" },
+        { title: "Malai Kaatru", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Malai%20Kaatru%20.mp3" },
+        { title: "Malarea Mounama", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Malare%20Mounama.mp3" },
+        { title: "MalarnthumMalaradha", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/MalarnthumMalaradha.mp3" },
+        { title: "Mallipoo", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Mallipoo%20.mp3" },
+        { title: "Maonamana Neraam", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Maonamana%20neraam.mp3" },
+        { title: "Mun Paniya", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Mun%20Paniya.mp3" },
+        { title: "MuthukkuMuthaga", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/MuthukkuMuthaga.mp3" },
+        { title: "Muzhumathi", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Muzhumathi.mp3" },
+        { title: "My Heart Will Go On", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/My%20Heart%20Will%20Go%20On.mp3" },
+        { title: "Naam", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Naam%20.mp3" },
+        { title: "Naan Erikkarai", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Naan%20Erikkarai.mp3" },
+        { title: "Naan Malarodu", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Naan%20Malarodu.mp3" },
+        { title: "Nannaga Nanaeruthan", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Nannaga%20Nanaeruthan.mp3" },
+        { title: "NeeKattumSelai", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/NeeKattumSelai.mp3" },
+        { title: "Neethanae", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/%20Neethanae.mp3" },
+        { title: "Neeyam Naanum", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/%20Neeyum%20Naanum.mp3" },
+        { title: "Nejil Maamazhai", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Nejil%20Maamazhai%20.mp3" },
+        { title: "Nota Terakhir", lang: "malay", src: "https://raw.githack.com/chanbai955/mp3/main/Alleycats%20-%20Nota%20Terakhir%20.mp3" },
+        { title: "Odugira", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Odugira.mp3" },
+        { title: "Oru Sanam", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Oru%20Sanam.MP3" },
+        { title: "Paakatha", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Paakatha%20.mp3" },
+        { title: "Paattukku Patteduthu", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Paattukku%20Patteduthu%20.mp3" },
+        { title: "Pattu Vanna Rosava", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Pattu%20Vanna%20Rosava.mp3" },
+        { title: "Perfect Strangers", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Deep%20Purple%20%20-%20Perfect%20Strangers%20.mp3" },
+        { title: "PongatruThirumbuma", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/PongatruThirumbuma%20.mp3" },
+        { title: "Poongaathe Poongaathe", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Poongaathe%20Poongaathe.mp3" },
+        { title: "Poravale Ponnuthaiyee", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Poravale%20Ponnuthaiyee.mp3" },
+        { title: "PuthamPudhuKaalai", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/PuthamPudhuKaalai%20.mp3" },
+        { title: "Raasathi Unna", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Raasathi%20Unna.mp3" },
+        { title: "Raasave", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Raasave.mp3" },
+        { title: "Rhythm of the Rain", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/%20Rhythm%20Of%20The%20Rain!s.mp3" },
+        { title: "Right Here waiting for You", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Richard%20Marx%20-%20Right%20Here%20Waiting%20For%20You.mp3" },
+        { title: "Rojamalare", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/rojamalare.mp3" },
+        { title: "SaamiKittaSolli", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/SaamiKittaSolli.mp3" },
+        { title: "Sampaikan Salam Cintaku", lang: "malay", src: "https://raw.githack.com/chanbai955/mp3/main/Sampaikan%20Salam%20Cintaku.mp3" },
+        { title: "Sekuntum Mawar Merah", lang: "malay", src: "https://raw.githack.com/chanbai955/mp3/main/Sekuntum%20Mawar%20Merah%20Sebuah%20Puisi.mp3" },
+        { title: "Send me An Angel", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Scorpions%20-%20Send%20me%20an%20angel%20.mp3" },
+        { title: "SenthazhamPoovil", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/SenthazhamPoovil%20.mp3" },
+        { title: "Setahun Sudah Berlalu", lang: "malay", src: "https://raw.githack.com/chanbai955/mp3/main/Setahun%20Sudah%20Berlalu.mp3" },
+        { title: "Short Clips-002", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/shortclips-002.mp3" },
+        { title: "Smoke Is Going Down", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Scorpions%20-%20When%20The%20Smoke%20Is%20Going%20Down%20.mp3" },
+        { title: "Smoke On The Water", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Deep%20Purple%20-%20Smoke%20On%20the%20Water%20.mp3" },
+        { title: "Smooth Operator", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Smooth%20Operator%20-sade.mp3" },
+        { title: "Solai Pushpangale", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Solai%20Pushpangale.mp3" },
+        { title: "Soldier of Fortune", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Soldier%20of%20Fortune.mp3" },
+        { title: "Sollitaley ava", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/%20Sollitaley%20Ava%20Kaadhala%20.mp3" },
+        { title: "Still Loving You", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Scorpions%20-%20Still%20Loving%20You.mp3" },
+        { title: "Suara Kekasih", lang: "malay", src: "https://raw.githack.com/chanbai955/mp3/main/Suara%20Kekasih.mp3" },
+        { title: "SuciDalamDebu", lang: "malay", src: "https://raw.githack.com/chanbai955/mp3/main/SuciDalamDebu.mp3" },
+        { title: "Suratan", lang: "malay", src: "https://raw.githack.com/chanbai955/mp3/main/Suratan.mp3" },
+        { title: "ThalattumPoongatru", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/ThalattumPoongatru%20.mp3" },
+        { title: "To Love Somebody", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Bee%20Gees%20-%20To%20Love%20Somebody.mp3" },
+        { title: "Unnai Thaane", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/%E0%AE%89%E0%AE%A9%E0%AF%8D%E0%AE%A9%E0%AF%88%20%E0%AE%A4%E0%AE%BE%E0%AE%A9%E0%AF%87%20.MP3" },
+        { title: "UrugutheyMaruguthey", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/UrugutheyMaruguthey%20.mp3" },
+        { title: "ValarnthaKalai", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/ValarnthaKalai%20.mp3" },
+        { title: "Vella Manam", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Vella%20Marnam%20Ulla%20Macha.MP3" },
+        { title: "Vennilave", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Vennilave%20Vennilave%20.mp3" },
+        { title: "Wind Of Change", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/51.Scorpions%20-%20Wind%20Of%20Change.mp3" },
+        { title: "Wonderful World", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Sam%20Cooke%20-%20Wonderful%20World.mp3" },
+        { title: "Wonderful World tonight", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Eric%20Clapton_Wonderful%20Tonight.mp3" },
+        { title: "Yenna Marenthe Poluthe", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Yenna%20Marenthe%20Poluthe.MP3" },
+        { title: "You Send Me", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Kenny%20G%20&%20Micheal%20Bolton%20-%20You%20Send%20Me.mp3" },
+        { title: "Your Man", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Josh%20Turner%20-%20Your%20Man.mp3" }
     ];
 
     playlist.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
@@ -2548,6 +2585,7 @@
     var STORAGE_KEY_STATE = 'chanthiran_tape_state';
     var STORAGE_KEY_COUNTER_MODE = 'chanthiran_counter_mode';
     var STORAGE_KEY_LAST_FM_FREQ = 'chanthiran_last_fm_freq';
+    var STORAGE_KEY_LANG_FILTER = 'chanthiran_lang_filter';
 
     var needleL = { pos: -42, vel: 0 };
     var needleR = { pos: -42, vel: 0 };
@@ -2574,6 +2612,7 @@
     var MAX_OFFLINE_VIDEO_BYTES = 150 * 1024 * 1024;
     var dbInstance = null;
     var currentPlaylistTab = 'all';
+    var currentLangFilter = 'all';
     var searchFilterText = '';
     var isBulkDownloading = false;
     var cancelBulkDownload = false;
@@ -2680,6 +2719,45 @@
         updateFormatNoiseState();
         syncDeckVisuals();
         updateRadioLedState();
+    }
+
+    /* --- LANGUAGE FILTERING (TAMIL / MALAY / ENGLISH / ALL) --- */
+    function setLanguageFilter(lang, event) {
+        if (event) event.stopPropagation();
+        currentLangFilter = lang;
+        try { localStorage.setItem(STORAGE_KEY_LANG_FILTER, lang); } catch (e) {}
+        playMechanicalSwitchClick();
+
+        ['langAll', 'langTamil', 'langMalay', 'langEnglish'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.classList.remove('active-tab');
+        });
+        var activeId = lang === 'all' ? 'langAll' : 'lang' + lang.charAt(0).toUpperCase() + lang.slice(1);
+        var activeBtn = document.getElementById(activeId);
+        if (activeBtn) activeBtn.classList.add('active-tab');
+
+        nextUpcomingIndex = -1;
+        populatePlaylistDropdown();
+
+        if (!activeFmKey && !shouldRestrictToVideos()) {
+            var pool = getFilteredLanguageIndices();
+            if (pool.length > 0 && !pool.includes(currentTrackIndex)) {
+                var targetIdx = isShuffle ? pool[Math.floor(Math.random() * pool.length)] : pool[0];
+                loadTrack(targetIdx, !hifiAudio.paused);
+            } else {
+                syncTrackUI();
+            }
+        }
+    }
+
+    function getFilteredLanguageIndices() {
+        var indices = [];
+        for (var i = 0; i < playlist.length; i++) {
+            if (currentLangFilter === 'all' || playlist[i].lang === currentLangFilter) {
+                indices.push(i);
+            }
+        }
+        return indices.length > 0 ? indices : playlist.map(function(_, idx) { return idx; });
     }
 
     /* --- VIDEO TAB, PiP, VERTICAL/HORIZONTAL FULLSCREEN & SWIPE/SCROLL CONTROLS --- */
@@ -3145,7 +3223,6 @@
             var deltaX = e.changedTouches[0].clientX - touchStartX;
             var deltaY = e.changedTouches[0].clientY - touchStartY;
 
-            // Horizontal swipe works in BOTH small screen and fullscreen
             if (Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
                 if (deltaX < 0) {
                     showVideoSwipeToast("NEXT ⏭");
@@ -3157,7 +3234,6 @@
             }
         }, { passive: true });
 
-        // Wheel scroll on small/fullscreen video screen switches Next/Prev video (or zooms when paused in fullscreen)
         frame.addEventListener('wheel', function(e) {
             if (canZoomVideoNow()) {
                 e.preventDefault();
@@ -3287,6 +3363,7 @@
                     var objectUrl = URL.createObjectURL(file);
                     playlist.push({
                         title: cleanTitle,
+                        lang: currentLangFilter !== 'all' ? currentLangFilter : 'local',
                         src: objectUrl,
                         isVideo: true,
                         isLocalImported: true
@@ -4121,11 +4198,12 @@
         var savedSet = new Set(savedTitles);
 
         var queue = playlist.filter(function(track) {
-            return !savedSet.has(track.title) && !track.isVideo;
+            var matchesLang = currentLangFilter === 'all' || track.lang === currentLangFilter;
+            return matchesLang && !savedSet.has(track.title) && !track.isVideo;
         });
 
         if (queue.length === 0) {
-            nowPlayingSubtitle.textContent = "ALL AUDIO TRACKS ARE ALREADY SAVED!";
+            nowPlayingSubtitle.textContent = "ALL TRACKS IN THIS SET ARE ALREADY SAVED!";
             bulkBtn.classList.remove('downloading');
             isBulkDownloading = false;
             setTimeout(syncTrackUI, 2500);
@@ -4477,7 +4555,7 @@
 
         var scratchBuffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * 0.15), audioCtx.sampleRate);
         var scratchData = scratchBuffer.getChannelData(0);
-        for (var i = 0; i < scratchData.length; i++) {
+       for (var i = 0; i < scratchData.length; i++) {
             scratchData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (scratchBuffer.length * 0.4));
         }
 
@@ -5320,6 +5398,7 @@
                     var objectUrl = URL.createObjectURL(file);
                     playlist.push({
                         title: cleanTitle,
+                        lang: currentLangFilter !== 'all' ? currentLangFilter : 'local',
                         src: objectUrl,
                         isVideo: isVideo,
                         isLocalImported: true
@@ -5372,6 +5451,7 @@
 
                                 playlist.push({
                                     title: record.title,
+                                    lang: 'local',
                                     src: URL.createObjectURL(record.blob),
                                     isVideo: isVid,
                                     isLocalImported: true
@@ -5512,6 +5592,12 @@
                 tracksToDisplay = tracksToDisplay.filter(function(item) { return isPlaylistItemVideo(item.track); });
             }
 
+            if (currentLangFilter !== 'all') {
+                tracksToDisplay = tracksToDisplay.filter(function(item) {
+                    return item.track.lang === currentLangFilter;
+                });
+            }
+
             if (searchFilterText) {
                 tracksToDisplay = tracksToDisplay.filter(function(item) {
                     return item.track.title.toLowerCase().includes(searchFilterText);
@@ -5527,6 +5613,8 @@
                     emptyMsg.innerHTML = "NO VIDEOS LOADED YET.<br>TAP '+ LOAD VIDEO' TO IMPORT MP4, WMV, MPEG, OR AVI FILES.";
                 } else if (currentPlaylistTab === 'offline') {
                     emptyMsg.innerHTML = "NO SAVED TRACKS YET.<br>PICK LOCAL FILES OR SAVE SONGS FOR OFFLINE PLAYBACK.";
+                } else {
+                    emptyMsg.innerHTML = `NO ${currentLangFilter.toUpperCase()} TRACKS FOUND.`;
                 }
                 dropdownTrackList.appendChild(emptyMsg);
                 return;
@@ -5547,7 +5635,11 @@
                 titleSpan.style.overflow = 'hidden';
                 titleSpan.style.textOverflow = 'ellipsis';
                 titleSpan.style.whiteSpace = 'nowrap';
-                titleSpan.innerHTML = displayTitle;
+
+                var langTag = (currentLangFilter === 'all' && item.track.lang)
+                    ? `<span class="lang-pill-tag">${item.track.lang}</span>`
+                    : '';
+                titleSpan.innerHTML = langTag + displayTitle;
                 a.appendChild(titleSpan);
 
                 if (item.isSaved) {
@@ -5609,12 +5701,10 @@
     }
 
     function getRandomIndex() {
-        if (playlist.length <= 1) return 0;
-        var randomIndex;
-        do {
-            randomIndex = Math.floor(Math.random() * playlist.length);
-        } while (randomIndex === currentTrackIndex);
-        return randomIndex;
+        var pool = getFilteredLanguageIndices();
+        if (pool.length <= 1) return pool[0] || 0;
+        var candidates = pool.filter(function(idx) { return idx !== currentTrackIndex; });
+        return candidates[Math.floor(Math.random() * candidates.length)];
     }
 
     function restartTrack() {
@@ -5635,7 +5725,8 @@
             if (nextTrackTitle) nextTrackTitle.textContent = "FM LIVE BROADCAST (NO QUEUE)";
         } else {
             var title = playlist[currentTrackIndex] ? playlist[currentTrackIndex].title : "Track";
-            nowPlayingSubtitle.textContent = "NOW PLAYING";
+            var langBadge = currentLangFilter !== 'all' ? " [" + currentLangFilter.toUpperCase() + "]" : "";
+            nowPlayingSubtitle.textContent = "NOW PLAYING" + langBadge;
             currentTrackTitle.textContent = title;
             updateUpcomingTrackUI();
         }
@@ -5650,7 +5741,11 @@
             var nextVid = getNextVideoIndex();
             if (nextVid !== -1) return nextVid;
         }
-        return isShuffle ? getRandomIndex() : (currentTrackIndex + 1) % playlist.length;
+        if (isShuffle) return getRandomIndex();
+
+        var pool = getFilteredLanguageIndices();
+        var pos = pool.indexOf(currentTrackIndex);
+        return pos === -1 ? pool[0] : pool[(pos + 1) % pool.length];
     }
 
     function updateUpcomingTrackUI() {
@@ -5801,7 +5896,9 @@
 
         if (!document.hidden) triggerFastWind('reverse', 600);
 
-        var prevIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+        var pool = getFilteredLanguageIndices();
+        var pos = pool.indexOf(currentTrackIndex);
+        var prevIndex = pos === -1 ? pool[pool.length - 1] : pool[(pos - 1 + pool.length) % pool.length];
         loadTrack(prevIndex, true);
     }
 
@@ -6004,6 +6101,21 @@
 
     async function initPlayer() {
         await restoreSavedTracksIntoPlaylist();
+
+        try {
+            var savedLang = localStorage.getItem(STORAGE_KEY_LANG_FILTER);
+            if (savedLang && ['all', 'tamil', 'malay', 'english'].includes(savedLang)) {
+                currentLangFilter = savedLang;
+                ['langAll', 'langTamil', 'langMalay', 'langEnglish'].forEach(function(id) {
+                    var el = document.getElementById(id);
+                    if (el) el.classList.remove('active-tab');
+                });
+                var activeId = savedLang === 'all' ? 'langAll' : 'lang' + savedLang.charAt(0).toUpperCase() + savedLang.slice(1);
+                var activeBtn = document.getElementById(activeId);
+                if (activeBtn) activeBtn.classList.add('active-tab');
+            }
+        } catch (e) {}
+
         populatePlaylistDropdown();
         loadSavedPresetSlots();
         loadPersistedCounterMode();
