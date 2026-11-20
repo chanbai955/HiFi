@@ -115,7 +115,7 @@
 
         .hifi-horizontal-grid {
             display: grid;
-           grid-template-columns: 1fr 1.05fr;
+            grid-template-columns: 1fr 1.05fr;
             gap: 16px;
             align-items: stretch;
         }
@@ -336,6 +336,7 @@
         transform: rotate(-42deg);
         box-shadow: 0 0 4px #ff3300;
         z-index: 2;
+        will-change: transform;
     }
 
     .vu-scale {
@@ -362,13 +363,12 @@
         box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
         z-index: 3;
         pointer-events: none;
-        transition: background 0.04s ease, box-shadow 0.04s ease;
     }
 
     .vu-peak-led.lit {
         background: #ff1a1a;
         border-color: #ff8080;
-        box-shadow: 0 0 8px #ff2200, 0 0 14px rgba(255, 34, 0, 0.8), inset 0 0 2px #ffffff;
+        box-shadow: 0 0 8px #ff2200, inset 0 0 2px #ffffff;
     }
 
     .visualizer-container {
@@ -504,11 +504,9 @@
     @keyframes radioLedBlink {
         0%, 100% {
             fill: #ffaa00;
-            filter: drop-shadow(0 0 6px #ffaa00) drop-shadow(0 0 12px #ff5500);
         }
         50% {
             fill: #331a00;
-            filter: none;
         }
     }
 
@@ -580,8 +578,8 @@
     }
 
     @keyframes counterWarningPulse {
-        0% { opacity: 1; filter: brightness(1.3); }
-        100% { opacity: 0.25; filter: brightness(0.7); }
+        0% { opacity: 1; }
+        100% { opacity: 0.25; }
     }
 
     .counter-reset-btn {
@@ -612,7 +610,6 @@
         box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 3px rgba(0, 0, 0, 0.7);
         border: 1px solid rgba(255, 255, 255, 0.12);
         background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 40%, rgba(0, 0, 0, 0.25) 100%);
-        backdrop-filter: blur(0.2px);
     }
 
     .acrylic-micro-scratches {
@@ -625,12 +622,9 @@
             radial-gradient(ellipse at 35% 20%, rgba(255,255,255,0.18) 0.5px, transparent 1.2px),
             radial-gradient(ellipse at 75% 70%, rgba(255,255,255,0.15) 0.5px, transparent 1.5px),
             linear-gradient(22deg, transparent 48%, rgba(255,255,255,0.12) 49%, rgba(255,255,255,0.02) 50%, transparent 52%),
-            linear-gradient(26deg, transparent 65%, rgba(255,255,255,0.08) 66%, transparent 67%),
-            linear-gradient(-35deg, transparent 20%, rgba(255,255,255,0.09) 21%, transparent 22%),
-            linear-gradient(85deg, transparent 80%, rgba(255,255,255,0.07) 80.5%, transparent 81.5%);
-        background-size: 100% 100%, 100% 100%, 180px 180px, 240px 240px, 160px 160px, 210px 210px;
-        opacity: 0.85;
-        mix-blend-mode: screen;
+            linear-gradient(-35deg, transparent 20%, rgba(255,255,255,0.09) 21%, transparent 22%);
+        background-size: 100% 100%, 100% 100%, 180px 180px, 160px 160px;
+        opacity: 0.75;
         pointer-events: none;
     }
 
@@ -642,15 +636,14 @@
         height: 100%;
         background: linear-gradient(
             115deg,
-            rgba(255, 255, 255, 0.25) 0%,
-            rgba(255, 255, 255, 0.08) 18%,
+            rgba(255, 255, 255, 0.22) 0%,
+            rgba(255, 255, 255, 0.06) 18%,
             rgba(255, 255, 255, 0.0) 24%,
             rgba(255, 255, 255, 0.0) 65%,
-            rgba(255, 255, 255, 0.1) 75%,
+            rgba(255, 255, 255, 0.08) 75%,
             rgba(255, 255, 255, 0.0) 80%
         );
         pointer-events: none;
-        animation: glassSweep 7s ease-in-out infinite alternate;
     }
 
     .acrylic-interactive-sheen {
@@ -666,12 +659,6 @@
     }
 
     .cassette-deck-well:hover .acrylic-interactive-sheen { opacity: 1; }
-
-    @keyframes glassSweep {
-        0% { transform: translateX(-15%) skewX(-8deg); opacity: 0.65; }
-        50% { opacity: 0.95; }
-        100% { transform: translateX(18%) skewX(-8deg); opacity: 0.75; }
-    }
 
     .next-track-banner {
         width: 100%;
@@ -860,6 +847,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        touch-action: pan-y;
     }
 
     #hifiAudio {
@@ -868,16 +856,14 @@
         object-fit: contain;
         background: #000;
         display: block;
+        transform-origin: center center;
+        transition: transform 0.12s ease-out;
+        will-change: transform;
     }
 
     /* APPLY FILL / CROP ON BOTH SMALL DISPLAY AND FULLSCREEN */
     .video-screen-frame.fs-fill-crop #hifiAudio {
         object-fit: cover !important;
-    }
-#hifiAudio {
-        transform-origin: center center;
-        transition: transform 0.12s ease-out;
-        will-change: transform;
     }
 
     #hifiAudio.is-dragging-zoom {
@@ -889,6 +875,7 @@
         border-color: #ffaa00;
         color: #ffaa00;
     }
+
     /* TRUE EDGE-TO-EDGE MOBILE & DESKTOP FULLSCREEN (VERTICAL & HORIZONTAL) */
     .video-screen-frame:fullscreen,
     .video-screen-frame:-webkit-full-screen,
@@ -964,7 +951,7 @@
         color: #05070a;
     }
 
-/* FULLSCREEN BOTTOM TRANSPORT & SLIDER OSD */
+    /* FULLSCREEN BOTTOM TRANSPORT & SLIDER OSD */
     .video-fs-bottom-hud {
         position: absolute;
         left: 0;
@@ -1062,6 +1049,7 @@
         background: #00e5ff;
         color: #05070a;
     }
+
     /* SWIPE FEEDBACK TOAST */
     .video-swipe-toast {
         position: absolute;
@@ -1089,14 +1077,12 @@
     }
 
     .neon-badge-group {
-        filter: drop-shadow(0 0 2px rgba(0, 229, 255, 0.3));
-        transition: filter 0.05s ease-out, opacity 0.05s ease-out;
-        will-change: filter, opacity;
+        opacity: 0.78;
+        will-change: opacity;
     }
 
     .neon-note, .neon-note-bottom {
         transition: fill 0.1s ease-out;
-        will-change: fill;
     }
 
     .spool-overlay-container {
@@ -1156,7 +1142,6 @@
         transform-origin: 240px 58px;
         transform: rotate(-25deg);
         transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.3, 1.2);
-        filter: drop-shadow(0 6px 5px rgba(0,0,0,0.95));
     }
 
     /* FM TUNER PANEL */
@@ -1912,32 +1897,20 @@
                                 <stop offset="70%" stop-color="#1a202c"/>
                                 <stop offset="100%" stop-color="#0b0e14"/>
                             </radialGradient>
-
-                            <filter id="cassetteDropShadow" x="-5%" y="-5%" width="120%" height="125%">
-                                <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000000" flood-opacity="0.9"/>
-                            </filter>
-
-                            <filter id="tapePackShadow" x="-15%" y="-15%" width="130%" height="130%">
-                                <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000000" flood-opacity="0.8"/>
-                            </filter>
-
-                            <filter id="recessShadow" x="-5%" y="-5%" width="110%" height="115%">
-                                <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000000" flood-opacity="0.95"/>
-                            </filter>
                         </defs>
 
                         <rect width="400" height="120" fill="#181b22"/>
                         <rect x="5" y="5" width="390" height="110" rx="6" fill="url(#deckChamberGrad)" stroke="#3a4250" stroke-width="1.8"/>
                         <rect x="15" y="12" width="280" height="96" rx="5" fill="#08090d" stroke="#252b36" stroke-width="2"/>
                         
-                        <g filter="url(#recessShadow)">
+                        <g>
                             <rect x="305" y="12" width="80" height="96" rx="4" fill="#14171f" stroke="#373f4e" stroke-width="1.5"/>
                             <rect x="309" y="16" width="72" height="88" rx="3" fill="#080a0e" stroke="#1b2029" stroke-width="1"/>
                             <line x1="310" y1="16" x2="380" y2="16" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
                         </g>
                         
                         <!-- 3D CASSETTE GRAPHICS GROUP -->
-                        <g id="svgCassetteGroup" filter="url(#cassetteDropShadow)">
+                        <g id="svgCassetteGroup">
                             <path d="M 23 18 L 287 18 L 281 100 L 29 100 Z" fill="url(#tapeBody3D)" stroke="#454f60" stroke-width="1.5"/>
                             <path d="M 24 19 L 286 19" stroke="rgba(255,255,255,0.3)" stroke-width="1.2"/>
                             
@@ -1945,7 +1918,7 @@
                             <rect x="54" y="33" width="202" height="36" rx="3" fill="#120c08" stroke="#1f1813" stroke-width="1"/>
                             <rect x="68" y="37" width="174" height="28" rx="2" fill="#2d1c13" opacity="0.95"/>
                             
-                            <g id="magneticTapeLayer" filter="url(#tapePackShadow)">
+                            <g id="magneticTapeLayer">
                                 <circle id="tapePackLeft" cx="94" cy="52" r="26" fill="url(#ferricTapeGrad)" stroke="#1a0b05" stroke-width="0.8"/>
                                 <circle id="tapePackLinesL" cx="94" cy="52" r="23" fill="none" stroke="rgba(255, 170, 0, 0.08)" stroke-width="0.6" stroke-dasharray="2,2"/>
                                 <circle id="tapePackRight" cx="206" cy="52" r="14" fill="url(#ferricTapeGrad)" stroke="#1a0b05" stroke-width="0.8"/>
@@ -1965,7 +1938,7 @@
                         <!-- 3D VINYL TURNTABLE VECTOR GROUP -->
                         <g id="svgVinylGroup" style="display: none;">
                             <rect x="18" y="15" width="274" height="90" rx="4" fill="#07080b" stroke="#1b2029" stroke-width="1.5"/>
-                            <circle cx="155" cy="60" r="41" fill="url(#platterRimGrad)" stroke="#556275" stroke-width="1.4" filter="url(#recessShadow)"/>
+                            <circle cx="155" cy="60" r="41" fill="url(#platterRimGrad)" stroke="#556275" stroke-width="1.4"/>
 
                             <g id="svgVinylPlatter">
                                 <circle cx="155" cy="60" r="38" fill="url(#vinylShine3D)" stroke="#1a2029" stroke-width="1"/>
@@ -2087,7 +2060,7 @@
                 </div>
             </div>
 
-            <!-- COLLAPSIBLE VIDEO MONITOR BAY (CLEAN PICTURE + TOP-RIGHT ORIENTATION/FILL BAR) -->
+            <!-- COLLAPSIBLE VIDEO MONITOR BAY (SWIPE / SCROLL NEXT & PREV IN SMALL & FULLSCREEN) -->
             <div id="videoDeckBay" class="video-deck-bay">
                 <div class="video-screen-frame" id="videoScreenFrame">
                     <video id="hifiAudio" crossorigin="anonymous" preload="auto" playsinline></video>
@@ -2110,7 +2083,7 @@
                             <input type="range" id="fsProgressSlider" min="0" max="0" value="0" />
                             <span id="fsDuration" class="time-display">0:00</span>
                         </div>
-                       <div class="fs-hud-controls-row">
+                        <div class="fs-hud-controls-row">
                             <button class="fs-ctrl-btn" style="border-color:#ffaa00; color:#ffaa00;" onclick="toggleVideoFullscreen(event)" title="Back to Main Screen">
                                 <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
                                 BACK
@@ -2130,14 +2103,14 @@
                         </div>
                     </div>
                 </div>
-               <div class="video-deck-toolbar">
-    <button class="video-mini-btn" onclick="openVideoFilePicker(event)" title="Pick Video Files">📄 PICK</button>
-    <button class="video-mini-btn" onclick="openVideoFolderPicker(event)" title="Pick Video Folder">📂 FOLDER</button>
-    <button class="video-mini-btn" id="videoPipBtn" onclick="toggleVideoPip(event)" title="Picture-in-Picture">⧉ PiP</button>
-    <button class="video-mini-btn fill-active" id="miniCropBtn" onclick="toggleFsFillMode(event)" title="Toggle Fill vs Fit">⛶ FILL</button>
-    <button class="video-mini-btn" onclick="enterFullscreenWithMode('landscape', event)" title="Horizontal Fullscreen">⛶ HORIZ</button>
-    <button class="video-mini-btn" onclick="enterFullscreenWithMode('portrait', event)" title="Vertical Fullscreen">📱 VERT</button>
-</div>
+                <div class="video-deck-toolbar">
+                    <button class="video-mini-btn" onclick="openVideoFilePicker(event)" title="Pick Video Files">📄 PICK</button>
+                    <button class="video-mini-btn" onclick="openVideoFolderPicker(event)" title="Pick Video Folder">📂 FOLDER</button>
+                    <button class="video-mini-btn" id="videoPipBtn" onclick="toggleVideoPip(event)" title="Picture-in-Picture">⧉ PiP</button>
+                    <button class="video-mini-btn fill-active" id="miniCropBtn" onclick="toggleFsFillMode(event)" title="Toggle Fill vs Fit">⛶ FILL</button>
+                    <button class="video-mini-btn" onclick="enterFullscreenWithMode('landscape', event)" title="Horizontal Fullscreen">⛶ HORIZ</button>
+                    <button class="video-mini-btn" onclick="enterFullscreenWithMode('portrait', event)" title="Vertical Fullscreen">📱 VERT</button>
+                </div>
                 <input type="file" id="videoFileInput" multiple accept="video/*,.mp4,.wmv,.mpeg,.mpg,.avi,.mkv,.webm,.mov" style="display:none;" onchange="handleVideoFiles(event)" />
                 <input type="file" id="videoFolderInput" webkitdirectory directory style="display:none;" onchange="handleVideoFiles(event)" />
             </div>
@@ -2419,7 +2392,7 @@
 
     var fmStations = {
         minnal: { title: "Minnal FM (96.3)", freq: 96.3, query: "minnal", backup: "https://22283.live.streamtheworld.com/MINNAL_FMAAC.aac", useApi: true },
-       raaga: { title: "THR Raaga (99.3)", freq: 99.3, query: "raaga", backup: "https://astro3.astro.com.my/raaga/raaga.m3u8", useApi: true },
+        raaga: { title: "THR Raaga (99.3)", freq: 99.3, query: "raaga", backup: "https://astro3.astro.com.my/raaga/raaga.m3u8", useApi: true },
         suria: { title: "92.7 BIG FM India", freq: 92.7, query: "big fm", backup: "https://stream.zeno.fm/dbstwo3d0rhvv", useApi: true },
         indiabeat: { title: "SYOK India Beat (Astro 864)", freq: 94.5, query: "india beat", backup: "https://astro3.astro.com.my/indiabeat/indiabeat.m3u8", useApi: true },
         trichy: { title: "AIR Trichy FM Rainbow (102.1)", freq: 102.1, query: "trichy", backup: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio026/hlspbaudio02664kbps.m3u8", useApi: false },
@@ -2541,6 +2514,7 @@
     var compressor = null;
     var gainNode = null;
     var audioSourceConnected = false;
+    var audioSuspendTimer = null;
 
     var mediaFormat = 'tape';
     var tapeSaturationNode = null;
@@ -2584,7 +2558,15 @@
 
     var peakHoldL = 0;
     var peakHoldR = 0;
-    var PEAK_HOLD_FRAMES = 8;
+    var PEAK_HOLD_FRAMES = 5;
+
+    // Pre-allocated audio buffers & throttled animation state (~30 FPS, auto-pauses when idle)
+    var vuDataL = new Uint8Array(256);
+    var vuDataR = new Uint8Array(256);
+    var freqDataArray = new Uint8Array(32);
+    var meterAnimationId = null;
+    var lastMeterFrameTime = 0;
+    var TARGET_FRAME_MS = 33;
 
     var DB_NAME = 'ChanthiranHiFiDB';
     var DB_VERSION = 1;
@@ -2600,6 +2582,7 @@
     var isShuffle = true;
     var isRepeatOne = false;
     var hasUserStartedPlayback = false;
+    var lastPersistedSecond = -1;
 
     function clearLoadGuard() {
         if (loadTimeout) {
@@ -2641,10 +2624,8 @@
             if (idx < level) {
                 var color = idx < 3 ? '#00e5ff' : (idx === 3 ? '#ffaa00' : '#ff4b1f');
                 bar.setAttribute('fill', color);
-                bar.style.filter = 'drop-shadow(0 0 3px ' + color + ')';
             } else {
                 bar.setAttribute('fill', '#252c38');
-                bar.style.filter = 'none';
             }
         });
     }
@@ -2701,7 +2682,7 @@
         updateRadioLedState();
     }
 
-    /* --- VIDEO TAB, PiP, VERTICAL/HORIZONTAL FULLSCREEN & SWIPE CONTROLS --- */
+    /* --- VIDEO TAB, PiP, VERTICAL/HORIZONTAL FULLSCREEN & SWIPE/SCROLL CONTROLS --- */
     function isVideoFileName(nameOrUrl) {
         return /\.(mp4|wmv|mpeg|mpg|avi|mkv|webm|mov|m4v)(\?|#|$)/i.test(nameOrUrl || '');
     }
@@ -2732,7 +2713,7 @@
 
     function shouldRestrictToVideos() {
         var currentTrack = playlist[currentTrackIndex];
-        return isVideoFullscreenActive() && isPlaylistItemVideo(currentTrack);
+        return (isVideoFullscreenActive() || isVideoDeckOpen) && isPlaylistItemVideo(currentTrack);
     }
 
     function getNextVideoIndex() {
@@ -2801,7 +2782,7 @@
         }, 700);
     }
 
-    var fsOrientationMode = 'auto'; // 'auto' | 'landscape' | 'portrait'
+    var fsOrientationMode = 'auto';
     var isFsFillCrop = true;
 
     async function applyFsOrientationLock(mode) {
@@ -2852,7 +2833,7 @@
         );
     }
 
-  function syncFsFillModeUI() {
+    function syncFsFillModeUI() {
         var frame = document.getElementById('videoScreenFrame');
         var cropBtn = document.getElementById('fsCropBtn');
         var miniCropBtn = document.getElementById('miniCropBtn');
@@ -2873,7 +2854,7 @@
         showVideoSwipeToast(isFsFillCrop ? "⛶ FULL SCREEN FILL" : "⛶ ORIGINAL ASPECT FIT");
     }
 
-function enterFullscreenWithMode(mode, e) {
+    function enterFullscreenWithMode(mode, e) {
         if (e) e.stopPropagation();
         fsOrientationMode = mode || 'auto';
         updateFsOrientButtonLabel();
@@ -2945,6 +2926,7 @@ function enterFullscreenWithMode(mode, e) {
     hifiAudio.addEventListener('enterpictureinpicture', updatePipButtonState);
     hifiAudio.addEventListener('leavepictureinpicture', updatePipButtonState);
     hifiAudio.addEventListener('webkitpresentationmodechanged', updatePipButtonState);
+
     function toggleVideoFullscreen(e) {
         if (e) e.stopPropagation();
         playMechanicalSwitchClick();
@@ -2970,9 +2952,7 @@ function enterFullscreenWithMode(mode, e) {
             nextUpcomingIndex = -1;
             updateUpcomingTrackUI();
         } else {
-            // === ADD THIS LINE RIGHT HERE ===
             if (typeof resetVideoZoom === 'function') resetVideoZoom(true);
-            // ================================
 
             frame.classList.remove('mobile-fs-active');
             syncFsFillModeUI();
@@ -2989,6 +2969,7 @@ function enterFullscreenWithMode(mode, e) {
             updateUpcomingTrackUI();
         }
     }
+
     document.addEventListener('fullscreenchange', function() {
         var frame = document.getElementById('videoScreenFrame');
         if (!document.fullscreenElement) {
@@ -3003,7 +2984,8 @@ function enterFullscreenWithMode(mode, e) {
         nextUpcomingIndex = -1;
         updateUpcomingTrackUI();
     });
-   /* --- FULLSCREEN PAUSED PINCH-TO-ZOOM, WHEEL ZOOM, PAN & SWIPE --- */
+
+    /* --- SMALL & FULLSCREEN VIDEO SWIPE, SCROLL, ZOOM & PAN GESTURES --- */
     var videoZoomScale = 1;
     var videoPanX = 0;
     var videoPanY = 0;
@@ -3083,6 +3065,7 @@ function enterFullscreenWithMode(mode, e) {
         var isPanningZoom = false;
         var panStartX = 0;
         var panStartY = 0;
+        var lastWheelSwitchTime = 0;
 
         function getTouchDistance(t1, t2) {
             return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
@@ -3156,13 +3139,14 @@ function enterFullscreenWithMode(mode, e) {
             if (!isSwiping || !e.changedTouches || e.changedTouches.length === 0) return;
             isSwiping = false;
 
-            if (!isVideoFullscreenActive() || videoZoomScale > 1) return;
+            if (videoZoomScale > 1) return;
             if (e.target.closest('button') || e.target.closest('input')) return;
 
             var deltaX = e.changedTouches[0].clientX - touchStartX;
             var deltaY = e.changedTouches[0].clientY - touchStartY;
 
-            if (Math.abs(deltaX) > 55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3) {
+            // Horizontal swipe works in BOTH small screen and fullscreen
+            if (Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
                 if (deltaX < 0) {
                     showVideoSwipeToast("NEXT ⏭");
                     playNext();
@@ -3173,13 +3157,31 @@ function enterFullscreenWithMode(mode, e) {
             }
         }, { passive: true });
 
-        // Desktop Mouse Wheel Zoom & Drag-to-Pan when paused in fullscreen
+        // Wheel scroll on small/fullscreen video screen switches Next/Prev video (or zooms when paused in fullscreen)
         frame.addEventListener('wheel', function(e) {
-            if (!canZoomVideoNow()) return;
-            e.preventDefault();
-            var delta = e.deltaY < 0 ? 0.25 : -0.25;
-            videoZoomScale = Math.max(MIN_VIDEO_ZOOM, Math.min(MAX_VIDEO_ZOOM, videoZoomScale + delta));
-            applyVideoZoomTransform(true);
+            if (canZoomVideoNow()) {
+                e.preventDefault();
+                var delta = e.deltaY < 0 ? 0.25 : -0.25;
+                videoZoomScale = Math.max(MIN_VIDEO_ZOOM, Math.min(MAX_VIDEO_ZOOM, videoZoomScale + delta));
+                applyVideoZoomTransform(true);
+                return;
+            }
+
+            if (isPlaylistItemVideo(playlist[currentTrackIndex])) {
+                e.preventDefault();
+                var now = Date.now();
+                if (now - lastWheelSwitchTime < 350) return;
+                lastWheelSwitchTime = now;
+
+                var scrollDelta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+                if (scrollDelta > 0) {
+                    showVideoSwipeToast("NEXT ⏭");
+                    playNext();
+                } else if (scrollDelta < 0) {
+                    showVideoSwipeToast("⏮ PREV");
+                    playPrevious();
+                }
+            }
         }, { passive: false });
 
         frame.addEventListener('mousedown', function(e) {
@@ -3206,7 +3208,6 @@ function enterFullscreenWithMode(mode, e) {
             }
         });
 
-        // Automatically reset zoom when playback resumes or fullscreen closes
         hifiAudio.addEventListener('playing', function() {
             if (videoZoomScale > 1) resetVideoZoom(true);
             applyVideoZoomTransform(false);
@@ -3240,6 +3241,7 @@ function enterFullscreenWithMode(mode, e) {
             }
         });
     })();
+
     function updateVideoScreenState(isVideoTrack, titleText) {
         var statusEl = document.getElementById('videoTabStatus');
         if (isVideoTrack) {
@@ -3470,11 +3472,9 @@ function enterFullscreenWithMode(mode, e) {
                 var center = Math.floor(count / 2);
                 var isLit = (idx >= Math.min(center, litIndex) && idx <= Math.max(center, litIndex));
                 line.setAttribute('stroke', isLit ? colorLit : '#252c38');
-                line.style.filter = isLit ? 'drop-shadow(0 0 2px ' + colorLit + ')' : 'none';
             } else {
                 var isLitU = idx <= litIndex;
                 line.setAttribute('stroke', isLitU ? colorLit : '#252c38');
-                line.style.filter = isLitU ? 'drop-shadow(0 0 2px ' + colorLit + ')' : 'none';
             }
         });
     }
@@ -3890,6 +3890,14 @@ function enterFullscreenWithMode(mode, e) {
             requestWakeLock();
             syncDeckVisuals();
             syncTrackUI();
+            if (!hifiAudio.paused || !fmPlayer.paused || !fmFallbackPlayer.paused) {
+                startMeterAnimations();
+            }
+        } else {
+            if (meterAnimationId !== null) {
+                cancelAnimationFrame(meterAnimationId);
+                meterAnimationId = null;
+            }
         }
     });
 
@@ -3982,7 +3990,7 @@ function enterFullscreenWithMode(mode, e) {
                 var store = tx.objectStore(STORE_NAME);
                 var req = store.clear();
                 tx.oncomplete = function() { resolve(true); };
-                tx.onerror = function(e) { reject(e); };
+                tx.onerror = function() { reject(e); };
             });
         });
     }
@@ -4559,6 +4567,7 @@ function enterFullscreenWithMode(mode, e) {
     }
 
     function initRealAudioContext() {
+        clearTimeout(audioSuspendTimer);
         if (!audioCtx) {
             try {
                 var AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -4589,7 +4598,7 @@ function enterFullscreenWithMode(mode, e) {
 
                 tapeSaturationNode = audioCtx.createWaveShaper();
                 tapeSaturationNode.curve = makeTapeSaturationCurve(mediaFormat === 'tape' ? 18 : (mediaFormat === 'vinyl' ? 10 : 0));
-                tapeSaturationNode.oversample = '4x';
+                tapeSaturationNode.oversample = 'none';
 
                 setupWowFlutterNodes(audioCtx);
                 setupTapeHissNode(audioCtx);
@@ -4894,41 +4903,87 @@ function enterFullscreenWithMode(mode, e) {
         }, 320);
     }
 
-    function animateVUMeters() {
-        requestAnimationFrame(animateVUMeters);
-        if (document.hidden) return;
+    /* --- UNIFIED, ~30 FPS THROTTLED VU METERS & SPECTRUM VISUALIZER --- */
+    function startMeterAnimations() {
+        if (meterAnimationId !== null || document.hidden) return;
+        lastMeterFrameTime = performance.now();
+        meterAnimationId = requestAnimationFrame(updateMetersAndVisualizer);
+    }
 
+    function stopMeterAnimations() {
+        if (meterAnimationId !== null) {
+            cancelAnimationFrame(meterAnimationId);
+            meterAnimationId = null;
+        }
+        needleL.pos = REST_ANGLE;
+        needleL.vel = 0;
+        needleR.pos = REST_ANGLE;
+        needleR.vel = 0;
+        vuNeedleL.style.transform = 'rotate(' + REST_ANGLE + 'deg)';
+        vuNeedleR.style.transform = 'rotate(' + REST_ANGLE + 'deg)';
+        vuPeakL.classList.remove('lit');
+        vuPeakR.classList.remove('lit');
+
+        if (neonBadgeGroup) {
+            neonBadgeGroup.style.opacity = '0.75';
+            neonBadgeGroup.querySelectorAll('.neon-note, .neon-note-bottom').forEach(function(n) {
+                n.setAttribute('fill', '#ffaa00');
+            });
+        }
+
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        var numBars = 24, barWidth = 8, gap = 9;
+        var startX = (canvas.width - (numBars * (barWidth + gap))) / 2;
+        canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        for (var j = 0; j < numBars; j++) {
+            canvasCtx.fillRect(startX + j * (barWidth + gap), canvas.height - 6, barWidth, 3);
+        }
+    }
+
+    function updateMetersAndVisualizer(now) {
+        if (document.hidden) {
+            meterAnimationId = null;
+            return;
+        }
+
+        var isAnyAudioActive = !hifiAudio.paused || !fmPlayer.paused || !fmFallbackPlayer.paused;
+        if (!isAnyAudioActive) {
+            stopMeterAnimations();
+            return;
+        }
+
+        meterAnimationId = requestAnimationFrame(updateMetersAndVisualizer);
+
+        if (now - lastMeterFrameTime < TARGET_FRAME_MS) return;
+        lastMeterFrameTime = now;
+
+        // 1. VU Meters
         var targetAngleL = REST_ANGLE;
         var targetAngleR = REST_ANGLE;
         var isPeakL = false;
         var isPeakR = false;
 
-        var isAnyAudioActive = !hifiAudio.paused || !fmPlayer.paused;
-
-        if (isAnyAudioActive && analyserL && analyserR) {
-            var dataL = new Uint8Array(analyserL.fftSize);
-            var dataR = new Uint8Array(analyserR.fftSize);
-
-            analyserL.getByteTimeDomainData(dataL);
-            analyserR.getByteTimeDomainData(dataR);
+        if (analyserL && analyserR) {
+            analyserL.getByteTimeDomainData(vuDataL);
+            analyserR.getByteTimeDomainData(vuDataR);
 
             var sumL = 0, maxExcursionL = 0;
-            for (var i = 0; i < dataL.length; i++) {
-                var normL = (dataL[i] - 128) / 128;
+            for (var i = 0; i < vuDataL.length; i++) {
+                var normL = (vuDataL[i] - 128) * 0.0078125;
                 sumL += normL * normL;
                 var absL = Math.abs(normL);
                 if (absL > maxExcursionL) maxExcursionL = absL;
             }
-            var rmsL = Math.sqrt(sumL / dataL.length);
+            var rmsL = Math.sqrt(sumL / vuDataL.length);
 
             var sumR = 0, maxExcursionR = 0;
-            for (var j = 0; j < dataR.length; j++) {
-                var normR = (dataR[j] - 128) / 128;
+            for (var j = 0; j < vuDataR.length; j++) {
+                var normR = (vuDataR[j] - 128) * 0.0078125;
                 sumR += normR * normR;
                 var absR = Math.abs(normR);
                 if (absR > maxExcursionR) maxExcursionR = absR;
             }
-            var rmsR = Math.sqrt(sumR / dataR.length);
+            var rmsR = Math.sqrt(sumR / vuDataR.length);
 
             if (maxExcursionL >= 0.88) isPeakL = true;
             if (maxExcursionR >= 0.88) isPeakR = true;
@@ -4943,32 +4998,14 @@ function enterFullscreenWithMode(mode, e) {
             targetAngleR = REST_ANGLE + (normMeterR * (MAX_ANGLE - REST_ANGLE));
         }
 
-        var forceL = (targetAngleL - needleL.pos) * VU_SPRING;
-        needleL.vel = (needleL.vel + forceL) * VU_DAMPING;
-        needleL.pos += needleL.vel;
+        needleL.vel = (needleL.vel + (targetAngleL - needleL.pos) * VU_SPRING) * VU_DAMPING;
+        needleL.pos = Math.max(REST_ANGLE, Math.min(MAX_ANGLE + 3, needleL.pos + needleL.vel));
 
-        if (needleL.pos < REST_ANGLE) {
-            needleL.pos = REST_ANGLE;
-            needleL.vel = -needleL.vel * 0.2;
-        } else if (needleL.pos > MAX_ANGLE + 3) {
-            needleL.pos = MAX_ANGLE + 3;
-            needleL.vel = -needleL.vel * 0.1;
-        }
+        needleR.vel = (needleR.vel + (targetAngleR - needleR.pos) * VU_SPRING) * VU_DAMPING;
+        needleR.pos = Math.max(REST_ANGLE, Math.min(MAX_ANGLE + 3, needleR.pos + needleR.vel));
 
-        var forceR = (targetAngleR - needleR.pos) * VU_SPRING;
-        needleR.vel = (needleR.vel + forceR) * VU_DAMPING;
-        needleR.pos += needleR.vel;
-
-        if (needleR.pos < REST_ANGLE) {
-            needleR.pos = REST_ANGLE;
-            needleR.vel = -needleR.vel * 0.2;
-        } else if (needleR.pos > MAX_ANGLE + 3) {
-            needleR.pos = MAX_ANGLE + 3;
-            needleR.vel = -needleR.vel * 0.1;
-        }
-
-        vuNeedleL.style.transform = 'rotate(' + needleL.pos.toFixed(2) + 'deg)';
-        vuNeedleR.style.transform = 'rotate(' + needleR.pos.toFixed(2) + 'deg)';
+        vuNeedleL.style.transform = 'rotate(' + needleL.pos.toFixed(1) + 'deg)';
+        vuNeedleR.style.transform = 'rotate(' + needleR.pos.toFixed(1) + 'deg)';
 
         if (isPeakL) peakHoldL = PEAK_HOLD_FRAMES;
         else if (peakHoldL > 0) peakHoldL--;
@@ -4977,88 +5014,53 @@ function enterFullscreenWithMode(mode, e) {
         if (isPeakR) peakHoldR = PEAK_HOLD_FRAMES;
         else if (peakHoldR > 0) peakHoldR--;
         vuPeakR.classList.toggle('lit', peakHoldR > 0);
-    }
 
-    function renderVisualizer() {
-        requestAnimationFrame(renderVisualizer);
-        if (document.hidden) return;
-
+        // 2. Spectrum Visualizer & Lightweight Neon Badge Pulse
         canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
         var numBars = 24, barWidth = 8, gap = 9;
         var startX = (canvas.width - (numBars * (barWidth + gap))) / 2;
 
-        var isAnyAudioActive = !hifiAudio.paused || !fmPlayer.paused;
-        var isRadioPlaying = Boolean(activeFmKey && (!hifiAudio.paused || !fmPlayer.paused || !fmFallbackPlayer.paused));
+        if (analyser) {
+            analyser.getByteFrequencyData(freqDataArray);
 
-        if (isAnyAudioActive && analyser) {
-            var dataArray = new Uint8Array(analyser.frequencyBinCount);
-            analyser.getByteFrequencyData(dataArray);
-
-            if (isRadioPlaying && mediaFormat === 'radio') {
+            if (activeFmKey && mediaFormat === 'radio') {
                 var sumFreq = 0;
-                for (var b = 0; b < 12; b++) sumFreq += dataArray[b] || 0;
+                for (var b = 0; b < 12; b++) sumFreq += freqDataArray[b] || 0;
                 var avgLevel = sumFreq / (12 * 255);
                 var activeBars = avgLevel > 0.01 ? Math.min(5, Math.max(3, Math.round(2.5 + avgLevel * 4.5))) : 4;
                 updateRadioSignalBars(activeBars);
             }
 
             if (neonBadgeGroup) {
-                var rawBass = (dataArray[0] + dataArray[1] + dataArray[2] + dataArray[3]) / (4 * 255);
-                if (rawBass > badgeBassEnergy) badgeBassEnergy = rawBass;
-                else badgeBassEnergy *= 0.88;
+                var rawBass = (freqDataArray[0] + freqDataArray[1] + freqDataArray[2] + freqDataArray[3]) / (4 * 255);
+                badgeBassEnergy = rawBass > badgeBassEnergy ? rawBass : badgeBassEnergy * 0.85;
+                neonBadgeGroup.style.opacity = (0.72 + badgeBassEnergy * 0.28).toFixed(2);
 
-                var cyanRadius = (2 + badgeBassEnergy * 10).toFixed(1);
-                var amberRadius = (4 + badgeBassEnergy * 18).toFixed(1);
-                var opacityVal = (0.7 + badgeBassEnergy * 0.3).toFixed(2);
-
-                neonBadgeGroup.style.filter = 
-                    'drop-shadow(0 0 ' + cyanRadius + 'px rgba(0, 229, 255, ' + (0.3 + badgeBassEnergy * 0.7).toFixed(2) + ')) ' +
-                    'drop-shadow(0 0 ' + amberRadius + 'px rgba(255, 170, 0, ' + (0.2 + badgeBassEnergy * 0.8).toFixed(2) + '))';
-                neonBadgeGroup.style.opacity = opacityVal;
-
-                var notes = neonBadgeGroup.querySelectorAll('.neon-note, .neon-note-bottom');
                 var noteColor = badgeBassEnergy > 0.65 ? '#ffffff' : (badgeBassEnergy > 0.4 ? '#00e5ff' : '#ffaa00');
-                notes.forEach(function(note) { note.setAttribute('fill', noteColor); });
+                var notes = neonBadgeGroup.querySelectorAll('.neon-note, .neon-note-bottom');
+                for (var n = 0; n < notes.length; n++) {
+                    notes[n].setAttribute('fill', noteColor);
+                }
             }
 
-            for (var i = 0; i < numBars; i++) {
-                var val = dataArray[i] || 0;
+            var gradient = canvasCtx.createLinearGradient(0, canvas.height, 0, 0);
+            gradient.addColorStop(0, '#ff4b1f');
+            gradient.addColorStop(0.6, '#ffaa00');
+            gradient.addColorStop(1, '#00e5ff');
+
+            for (var k = 0; k < numBars; k++) {
+                var val = freqDataArray[k] || 0;
                 var targetHeight = Math.max(4, (val / 255) * (canvas.height - 10));
 
-                if (!capHeights[i] || targetHeight > capHeights[i]) capHeights[i] = targetHeight;
-                else capHeights[i] -= 0.8;
+                if (!capHeights[k] || targetHeight > capHeights[k]) capHeights[k] = targetHeight;
+                else capHeights[k] -= 1.2;
 
-                var x = startX + i * (barWidth + gap);
-                var gradient = canvasCtx.createLinearGradient(0, canvas.height, 0, 0);
-                gradient.addColorStop(0, '#ff4b1f');
-                gradient.addColorStop(0.6, '#ffaa00');
-                gradient.addColorStop(1, '#00e5ff');
-
+                var x = startX + k * (barWidth + gap);
                 canvasCtx.fillStyle = gradient;
                 canvasCtx.fillRect(x, canvas.height - targetHeight - 2, barWidth, targetHeight);
 
                 canvasCtx.fillStyle = '#ffffff';
-                canvasCtx.beginPath();
-                canvasCtx.arc(x + barWidth / 2, canvas.height - capHeights[i] - 5, 2, 0, Math.PI * 2);
-                canvasCtx.fill();
-            }
-        } else {
-            if (isRadioPlaying && mediaFormat === 'radio') {
-                var pulseBar = 4 + (Math.floor(Date.now() / 350) % 2);
-                updateRadioSignalBars(pulseBar);
-            }
-
-            if (neonBadgeGroup) {
-                neonBadgeGroup.style.filter = 'drop-shadow(0 0 2px rgba(0, 229, 255, 0.3))';
-                neonBadgeGroup.style.opacity = '0.7';
-                var idleNotes = neonBadgeGroup.querySelectorAll('.neon-note, .neon-note-bottom');
-                idleNotes.forEach(function(note) { note.setAttribute('fill', '#ffaa00'); });
-            }
-
-            for (var j = 0; j < numBars; j++) {
-                var idleX = startX + j * (barWidth + gap);
-                canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-                canvasCtx.fillRect(idleX, canvas.height - 6, barWidth, 3);
+                canvasCtx.fillRect(x + 2, canvas.height - capHeights[k] - 6, 4, 3);
             }
         }
     }
@@ -5242,6 +5244,7 @@ function enterFullscreenWithMode(mode, e) {
                 playButton.style.display = 'none';
                 pauseButton.style.display = 'inline-flex';
                 updateRadioLedState();
+                startMeterAnimations();
             }).catch(function() {
                 fmPlayer.src = "";
                 var currentVol = parseFloat(volumeSlider.value);
@@ -5253,6 +5256,7 @@ function enterFullscreenWithMode(mode, e) {
                     playButton.style.display = 'none';
                     pauseButton.style.display = 'inline-flex';
                     updateRadioLedState();
+                    startMeterAnimations();
                 }).catch(function() {
                     if (activeFmKey) {
                         clearLoadGuard();
@@ -5269,6 +5273,7 @@ function enterFullscreenWithMode(mode, e) {
         destroyHls();
         if (hifiAudio) hifiAudio.pause();
         stopAllFmPlayers();
+        stopMeterAnimations();
         if (wakeLock) wakeLock.release().catch(()=>{});
         try { window.close(); } catch(e) {}
         setTimeout(() => { window.location.href = "about:blank"; }, 300);
@@ -5680,6 +5685,7 @@ function enterFullscreenWithMode(mode, e) {
         currentTrackIndex = index;
         isTransitioning = true;
         nextUpcomingIndex = -1;
+        lastPersistedSecond = -1;
 
         var targetTrack = playlist[currentTrackIndex];
         var isVideo = isPlaylistItemVideo(targetTrack);
@@ -5734,10 +5740,12 @@ function enterFullscreenWithMode(mode, e) {
                 activePlayer.play().catch(()=>{});
                 playButton.style.display = 'none';
                 pauseButton.style.display = 'inline-flex';
+                startMeterAnimations();
             } else {
                 activePlayer.pause();
                 playButton.style.display = 'inline-flex';
                 pauseButton.style.display = 'none';
+                stopMeterAnimations();
             }
             updateRadioLedState();
             updateMediaSession();
@@ -5851,6 +5859,7 @@ function enterFullscreenWithMode(mode, e) {
         if (consecutiveErrorCount > 4) {
             nowPlayingSubtitle.textContent = "PLAYBACK PAUSED: NETWORK UNSTABLE";
             isTransitioning = false;
+            stopMeterAnimations();
             return;
         }
 
@@ -5868,8 +5877,16 @@ function enterFullscreenWithMode(mode, e) {
     });
 
     ['playing', 'pause', 'ended'].forEach(function(evtName) {
-        fmPlayer.addEventListener(evtName, updateRadioLedState);
-        fmFallbackPlayer.addEventListener(evtName, updateRadioLedState);
+        fmPlayer.addEventListener(evtName, function() {
+            updateRadioLedState();
+            if (evtName === 'playing') startMeterAnimations();
+            else stopMeterAnimations();
+        });
+        fmFallbackPlayer.addEventListener(evtName, function() {
+            updateRadioLedState();
+            if (evtName === 'playing') startMeterAnimations();
+            else stopMeterAnimations();
+        });
     });
 
     hifiAudio.addEventListener('waiting', function() {
@@ -5884,6 +5901,7 @@ function enterFullscreenWithMode(mode, e) {
 
     hifiAudio.addEventListener('playing', () => {
         clearLoadGuard();
+        clearTimeout(audioSuspendTimer);
         isTransitioning = false;
         consecutiveErrorCount = 0;
         syncTrackUI();
@@ -5893,6 +5911,7 @@ function enterFullscreenWithMode(mode, e) {
         pauseButton.style.display = 'inline-flex'; 
         syncDeckVisuals();
         updateRadioLedState();
+        startMeterAnimations();
     });
 
     hifiAudio.addEventListener('pause', () => { 
@@ -5903,11 +5922,20 @@ function enterFullscreenWithMode(mode, e) {
             syncDeckVisuals();
             updateRadioLedState();
             updateMediaSession();
+            stopMeterAnimations();
+
+            clearTimeout(audioSuspendTimer);
+            audioSuspendTimer = setTimeout(function() {
+                if (hifiAudio.paused && fmPlayer.paused && fmFallbackPlayer.paused && audioCtx && audioCtx.state === 'running') {
+                    audioCtx.suspend().catch(function() {});
+                }
+            }, 3000);
         }
     });
 
     hifiAudio.addEventListener('timeupdate', () => {
         if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
+            var curSecInt = Math.floor(hifiAudio.currentTime);
             if (!document.hidden) {
                 progressSlider.value = hifiAudio.currentTime;
                 currentTimeSpan.textContent = formatTime(hifiAudio.currentTime);
@@ -5915,7 +5943,8 @@ function enterFullscreenWithMode(mode, e) {
                 syncDeckVisuals();
             }
 
-            if (Math.floor(hifiAudio.currentTime) % 4 === 0) {
+            if (curSecInt % 5 === 0 && curSecInt !== lastPersistedSecond) {
+                lastPersistedSecond = curSecInt;
                 persistTapeState(currentTrackIndex, hifiAudio.currentTime, !hifiAudio.paused);
             }
         }
@@ -5980,8 +6009,7 @@ function enterFullscreenWithMode(mode, e) {
         loadPersistedCounterMode();
         currentFmFrequency = loadLastFmFrequency();
         if (typeof setFmKnobAngleFromFreq === 'function') setFmKnobAngleFromFreq(currentFmFrequency);
-        animateVUMeters();
-        renderVisualizer();
+        stopMeterAnimations();
 
         var savedSession = getPersistedTapeState();
         var bootIndex = (savedSession && playlist[savedSession.index]) ? savedSession.index : Math.floor(Math.random() * playlist.length);
@@ -6013,7 +6041,8 @@ function enterFullscreenWithMode(mode, e) {
 
         turnOffRadio();
     }
-/* --- FULLSCREEN HUD SYNC (SLIDER, PLAY/PAUSE, TITLE & TAP TOGGLE) --- */
+
+    /* --- FULLSCREEN HUD SYNC (SLIDER, PLAY/PAUSE, TITLE & TAP TOGGLE) --- */
     var fsHudHideTimer = null;
 
     function resetFsHudTimer() {
