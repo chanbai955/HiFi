@@ -2537,6 +2537,7 @@
 
     var fastWindTimer = null;
     var isTransitioning = false;
+    var earlyHandoffTriggered = false;
     var consecutiveErrorCount = 0;
     var nextUpcomingIndex = -1;
 
@@ -4509,7 +4510,7 @@
         flutterOsc.type = 'triangle';
         flutterOsc.frequency.setValueAtTime(6.5, ctx.currentTime);
 
-       flutterGain = ctx.createGain();
+        flutterGain = ctx.createGain();
         flutterGain.gain.setValueAtTime(0.00015, ctx.currentTime);
 
         wowFlutterMasterGain = ctx.createGain();
@@ -4571,7 +4572,7 @@
             tapeHissGain.gain.setTargetAtTime(targetTapeGain, audioCtx.currentTime, 0.15);
         }
 
-        if (vinylCrackleGain) {
+      if (vinylCrackleGain) {
             var targetVinylGain = (isPlaying && mediaFormat === 'vinyl') ? 0.022 : 0.0;
             vinylCrackleGain.gain.setTargetAtTime(targetVinylGain, audioCtx.currentTime, 0.15);
         }
@@ -4771,6 +4772,17 @@
         else if (mediaFormat === 'tape') playTapeTransportEngage();
     }
 
+    function attachAudioContextKeepAlive() {
+        if (!audioCtx || audioCtx._keepAliveAttached) return;
+        audioCtx._keepAliveAttached = true;
+        audioCtx.addEventListener('statechange', function() {
+            if ((audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') &&
+                (!hifiAudio.paused || !fmPlayer.paused || !fmFallbackPlayer.paused || isTransitioning)) {
+                audioCtx.resume().catch(function() {});
+            }
+        });
+    }
+
     function initRealAudioContext() {
         clearTimeout(audioSuspendTimer);
         if (!audioCtx) {
@@ -4858,9 +4870,11 @@
                     fmSource.connect(analyser);
                     fmSourceConnected = true;
                 }
+
+                attachAudioContextKeepAlive();
             } catch(e) {}
         }
-        if (audioCtx && audioCtx.state === 'suspended') {
+        if (audioCtx && (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted')) {
             audioCtx.resume().catch(()=>{});
         }
         updateFormatNoiseState();
@@ -5314,7 +5328,7 @@
 
         if (!isTunerPowerOn) turnOnRadio();
 
-       document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
+        document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
         if (evt && evt.currentTarget) {
             evt.currentTarget.classList.add('active-fm');
         } else {
@@ -5634,7 +5648,7 @@
 
         var isAnyPaused = (activeFmKey && currentStreamUrl && !currentStreamUrl.includes('.m3u8'))
             ? (fmPlayer.paused && fmFallbackPlayer.paused)
-            : (hifiAudio.paused && !hifiAudio.ended && !isTransitioning);
+            : (hifiAudio.paused && !hifiAudio.ended && !isTransitioning && !earlyHandoffTriggered);
 
         navigator.mediaSession.playbackState = isAnyPaused ? "paused" : "playing";
 
@@ -5791,6 +5805,7 @@
             return;
         }
         playMechanicalSwitchClick();
+        earlyHandoffTriggered = false;
         hifiAudio.currentTime = 0;
         hifiAudio.play().catch(()=>{});
     }
@@ -5858,6 +5873,7 @@
 
         currentTrackIndex = index;
         isTransitioning = true;
+        earlyHandoffTriggered = false;
         nextUpcomingIndex = -1;
         lastPersistedSecond = -1;
 
@@ -5884,7 +5900,7 @@
         syncTrackUI();
 
         if (autoPlay) {
-            if (audioCtx && audioCtx.state === 'suspended') {
+            if (audioCtx && (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted')) {
                 audioCtx.resume().catch(() => {});
             }
 
@@ -5896,7 +5912,7 @@
                     requestWakeLock();
                     updateMediaSession();
                 }).catch(function() {
-                    if (audioCtx && audioCtx.state === 'suspended') {
+                    if (audioCtx && (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted')) {
                         audioCtx.resume().catch(() => {});
                     }
                     hifiAudio.play().then(() => {
@@ -5998,6 +6014,28 @@
         playMechanicalSwitchClick();
     }
 
+    function advanceToNextTrackInBackground() {
+        if (playlist.length === 0 || activeFmKey) return;
+        isTransitioning = true;
+        earlyHandoffTriggered = true;
+
+        if (shouldRestrictToVideos()) {
+            var nextVidIdx = getNextVideoIndex();
+            if (nextVidIdx !== -1) {
+                nextUpcomingIndex = -1;
+                loadTrack(nextVidIdx, true);
+                return;
+            }
+        }
+
+        var targetIndex = (nextUpcomingIndex >= 0 && nextUpcomingIndex < playlist.length)
+            ? nextUpcomingIndex
+            : determineNextIndex();
+
+        nextUpcomingIndex = -1;
+        loadTrack(targetIndex, true);
+    }
+
     hifiAudio.addEventListener('ended', function() {
         updateRadioLedState();
         if (isRepeatOne && !activeFmKey) {
@@ -6005,24 +6043,8 @@
             hifiAudio.play().catch(function(){});
             return;
         }
-        if (playlist.length > 0 && !activeFmKey) {
-            isTransitioning = true;
-
-            if (shouldRestrictToVideos()) {
-                var nextVidIdx = getNextVideoIndex();
-                if (nextVidIdx !== -1) {
-                    nextUpcomingIndex = -1;
-                    loadTrack(nextVidIdx, true);
-                    return;
-                }
-            }
-            
-            var targetIndex = (nextUpcomingIndex >= 0 && nextUpcomingIndex < playlist.length) 
-                ? nextUpcomingIndex 
-                : determineNextIndex();
-
-            nextUpcomingIndex = -1;
-            loadTrack(targetIndex, true);
+        if (!earlyHandoffTriggered && !isTransitioning) {
+            advanceToNextTrackInBackground();
         }
     });
 
@@ -6049,6 +6071,7 @@
         if (consecutiveErrorCount > 4) {
             nowPlayingSubtitle.textContent = "PLAYBACK PAUSED: NETWORK UNSTABLE";
             isTransitioning = false;
+            earlyHandoffTriggered = false;
             stopMeterAnimations();
             return;
         }
@@ -6093,6 +6116,7 @@
         clearLoadGuard();
         clearTimeout(audioSuspendTimer);
         isTransitioning = false;
+        earlyHandoffTriggered = false;
         consecutiveErrorCount = 0;
         syncTrackUI();
         initRealAudioContext();
@@ -6111,14 +6135,14 @@
             pauseButton.style.display = 'none'; 
             syncDeckVisuals();
             updateRadioLedState();
-            if (!hifiAudio.ended && !isTransitioning) {
+            if (!hifiAudio.ended && !isTransitioning && !earlyHandoffTriggered) {
                 updateMediaSession();
             }
             stopMeterAnimations();
 
             clearTimeout(audioSuspendTimer);
             audioSuspendTimer = setTimeout(function() {
-                if (!isTransitioning && !hifiAudio.ended && hifiAudio.paused && fmPlayer.paused && fmFallbackPlayer.paused && audioCtx && audioCtx.state === 'running') {
+                if (!isTransitioning && !earlyHandoffTriggered && !hifiAudio.ended && hifiAudio.paused && fmPlayer.paused && fmFallbackPlayer.paused && audioCtx && audioCtx.state === 'running') {
                     audioCtx.suspend().catch(function() {});
                 }
             }, 5000);
@@ -6127,17 +6151,25 @@
 
     hifiAudio.addEventListener('timeupdate', () => {
         if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
-            var curSecInt = Math.floor(hifiAudio.currentTime);
+            var cur = hifiAudio.currentTime;
+            var dur = hifiAudio.duration;
+            var curSecInt = Math.floor(cur);
+
             if (!document.hidden) {
-                progressSlider.value = hifiAudio.currentTime;
-                currentTimeSpan.textContent = formatTime(hifiAudio.currentTime);
-                updateTapeCounter(hifiAudio.currentTime);
+                progressSlider.value = cur;
+                currentTimeSpan.textContent = formatTime(cur);
+                updateTapeCounter(cur);
                 syncDeckVisuals();
             }
 
             if (curSecInt % 5 === 0 && curSecInt !== lastPersistedSecond) {
                 lastPersistedSecond = curSecInt;
-                persistTapeState(currentTrackIndex, hifiAudio.currentTime, !hifiAudio.paused);
+                persistTapeState(currentTrackIndex, cur, !hifiAudio.paused);
+            }
+
+            // Pre-emptive gapless handoff 0.35s before end so Android/Brave keeps audio focus on screen lock
+            if (!isRepeatOne && !isTransitioning && !earlyHandoffTriggered && dur > 3 && (dur - cur) <= 0.35) {
+                advanceToNextTrackInBackground();
             }
         }
     });
@@ -6170,6 +6202,7 @@
             triggerFastWind(dir, 450);
             lastSeekPosition = currentSeekVal;
 
+            earlyHandoffTriggered = false;
             hifiAudio.currentTime = currentSeekVal;
             updateTapeCounter(currentSeekVal);
             syncDeckVisuals();
@@ -6294,6 +6327,7 @@
             fsSlider.addEventListener('input', function() {
                 if (!activeFmKey) {
                     var seekVal = parseFloat(fsSlider.value);
+                    earlyHandoffTriggered = false;
                     hifiAudio.currentTime = seekVal;
                     progressSlider.value = seekVal;
                     currentTimeSpan.textContent = formatTime(seekVal);
