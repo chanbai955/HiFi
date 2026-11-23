@@ -5314,12 +5314,17 @@
 
         if (!isTunerPowerOn) turnOnRadio();
 
-        document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
+       document.querySelectorAll('.fm-preset-btn').forEach(btn => btn.classList.remove('active-fm'));
         if (evt && evt.currentTarget) {
             evt.currentTarget.classList.add('active-fm');
         } else {
-            var matchedBtn = Array.from(document.querySelectorAll('.fm-preset-btn')).find(b => b.textContent.includes(key.toUpperCase()));
-            if (matchedBtn) matchedBtn.classList.add('active-fm');
+            for (var slot = 1; slot <= 9; slot++) {
+                if (userPresetSlots[slot] && userPresetSlots[slot].key === key) {
+                    var slotBtn = document.querySelector(`.fm-preset-btn[data-preset="${slot}"]`);
+                    if (slotBtn) slotBtn.classList.add('active-fm');
+                    break;
+                }
+            }
         }
 
         var stationInfo = fmStations[key];
