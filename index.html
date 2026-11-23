@@ -3713,7 +3713,7 @@
             for (var k in fmStations) {
                 if (Math.abs(fmStations[k].freq - currentFmFrequency) <= 0.25) {
                     matchedKey = k;
-                    assignedName = fmStations[k].query.toUpperCase();
+                    assignedName = fmStations[k].title.split('(')[0].trim().toUpperCase();
                     break;
                 }
             }
@@ -4115,6 +4115,13 @@
         return mb.toFixed(1) + " MB";
     }
 
+    function formatTime(seconds) {
+        if (isNaN(seconds) || seconds < 0) return "0:00";
+        var min = Math.floor(seconds / 60);
+        var sec = Math.floor(seconds % 60);
+        return min + ':' + (sec < 10 ? '0' + sec : sec);
+    }
+
     function updateSavedCountDisplay() {
         var savedLabel = document.getElementById('savedCountLabel');
         var totalLabel = document.getElementById('totalCountLabel');
@@ -4178,6 +4185,118 @@
                     nowPlayingSubtitle.textContent = "DOWNLOAD FAILED - CHECK NETWORK";
                     setTimeout(syncTrackUI, 2500);
                 });
+        }
+    }
+
+    async function deleteSingleSavedTrack(originalIdx, event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        playMechanicalSwitchClick();
+
+        var track = playlist[originalIdx];
+        if (!track) return;
+
+        try {
+            var oldBlobUrl = cachedBlobUrls[track.title];
+            await removeTrackFromDB(track.title);
+
+            var wasCurrentTrack = (!activeFmKey && originalIdx === currentTrackIndex);
+
+            if (track.isLocalImported) {
+                if (track.src && track.src.startsWith('blob:') && track.src !== oldBlobUrl) {
+                    try { URL.revokeObjectURL(track.src); } catch (e) {}
+                }
+                playlist.splice(originalIdx, 1);
+
+                if (wasCurrentTrack) {
+                    if (playlist.length > 0) {
+                        var nextIdx = Math.min(originalIdx, playlist.length - 1);
+                        loadTrack(nextIdx, !hifiAudio.paused);
+                    } else {
+                        hifiAudio.pause();
+                        hifiAudio.src = "";
+                    }
+                } else if (originalIdx < currentTrackIndex) {
+                    currentTrackIndex--;
+                }
+            } else if (wasCurrentTrack) {
+                updateCacheButtonState(false);
+                var pos = hifiAudio.currentTime;
+                var wasPaused = hifiAudio.paused;
+                hifiAudio.src = track.src;
+                hifiAudio.currentTime = pos;
+                if (!wasPaused) hifiAudio.play().catch(function(){});
+            }
+
+            nextUpcomingIndex = -1;
+            updateUpcomingTrackUI();
+            updateSavedCountDisplay();
+            populatePlaylistDropdown();
+
+            nowPlayingSubtitle.textContent = "REMOVED: " + track.title;
+            setTimeout(syncTrackUI, 2000);
+        } catch (err) {
+            nowPlayingSubtitle.textContent = "FAILED TO REMOVE ITEM";
+            setTimeout(syncTrackUI, 2000);
+        }
+    }
+
+    async function deleteCurrentFullscreenVideo(event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        playMechanicalSwitchClick();
+        resetFsHudTimer();
+
+        if (activeFmKey || !playlist[currentTrackIndex]) return;
+
+        var targetIdx = currentTrackIndex;
+        var track = playlist[targetIdx];
+
+        try {
+            var oldBlobUrl = cachedBlobUrls[track.title];
+            await removeTrackFromDB(track.title);
+
+            if (track.src && track.src.startsWith('blob:') && track.src !== oldBlobUrl) {
+                try { URL.revokeObjectURL(track.src); } catch (e) {}
+            }
+
+            playlist.splice(targetIdx, 1);
+            nextUpcomingIndex = -1;
+            updateSavedCountDisplay();
+            populatePlaylistDropdown();
+
+            var remainingVideos = getVideoOnlyIndices();
+
+            if (remainingVideos.length > 0) {
+                var nextVidIdx = remainingVideos.find(function(idx) { return idx >= targetIdx; });
+                if (nextVidIdx === undefined) nextVidIdx = remainingVideos[0];
+
+                showVideoSwipeToast("🗑 DELETED • NEXT");
+                loadTrack(nextVidIdx, true);
+                resetFsHudTimer();
+            } else {
+                if (isVideoFullscreenActive()) {
+                    toggleVideoFullscreen();
+                }
+                updateVideoScreenState(false, "");
+
+                if (playlist.length > 0) {
+                    var fallbackIdx = Math.min(targetIdx, playlist.length - 1);
+                    loadTrack(fallbackIdx, false);
+                } else {
+                    hifiAudio.pause();
+                    hifiAudio.src = "";
+                    currentTrackTitle.textContent = "Playlist Empty";
+                }
+                nowPlayingSubtitle.textContent = "DELETED: " + track.title;
+                setTimeout(syncTrackUI, 2200);
+            }
+        } catch (err) {
+            showVideoSwipeToast("⚠ DELETE FAILED");
         }
     }
 
@@ -4390,7 +4509,7 @@
         flutterOsc.type = 'triangle';
         flutterOsc.frequency.setValueAtTime(6.5, ctx.currentTime);
 
-        flutterGain = ctx.createGain();
+       flutterGain = ctx.createGain();
         flutterGain.gain.setValueAtTime(0.00015, ctx.currentTime);
 
         wowFlutterMasterGain = ctx.createGain();
@@ -5481,160 +5600,47 @@
         });
     }
 
+    function initMediaSessionHandlers() {
+        if (!('mediaSession' in navigator)) return;
+        navigator.mediaSession.setActionHandler('play', () => togglePlayPause());
+        navigator.mediaSession.setActionHandler('pause', () => togglePlayPause());
+        navigator.mediaSession.setActionHandler('previoustrack', () => playPrevious());
+        navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
+        navigator.mediaSession.setActionHandler('seekto', function(details) {
+            if (details.seekTime !== undefined && !activeFmKey) {
+                hifiAudio.currentTime = details.seekTime;
+                updateTapeCounter(details.seekTime);
+                updateMediaSession();
+            }
+        });
+    }
+
     function updateMediaSession() {
-        if ('mediaSession' in navigator) {
-            var activeTitle = activeFmKey 
-                ? fmStations[activeFmKey].title 
-                : (playlist[currentTrackIndex] ? playlist[currentTrackIndex].title : "Track");
+        if (!('mediaSession' in navigator)) return;
+        var activeTitle = activeFmKey 
+            ? fmStations[activeFmKey].title 
+            : (playlist[currentTrackIndex] ? playlist[currentTrackIndex].title : "Track");
 
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: activeTitle,
-                artist: "Chanthiran Mini HiFi",
-                album: activeFmKey ? "FM Tuner" : (mediaFormat === 'vinyl' ? "Vinyl LP" : "Cassette BGM")
-            });
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: activeTitle,
+            artist: "Chanthiran Mini HiFi",
+            album: activeFmKey ? "FM Tuner" : (mediaFormat === 'vinyl' ? "Vinyl LP" : "Cassette BGM")
+        });
 
-            var isAnyPaused = (activeFmKey && currentStreamUrl && !currentStreamUrl.includes('.m3u8'))
-                ? (fmPlayer.paused && fmFallbackPlayer.paused)
-                : hifiAudio.paused;
-            navigator.mediaSession.playbackState = isAnyPaused ? "paused" : "playing";
+        var isAnyPaused = (activeFmKey && currentStreamUrl && !currentStreamUrl.includes('.m3u8'))
+            ? (fmPlayer.paused && fmFallbackPlayer.paused)
+            : (hifiAudio.paused && !hifiAudio.ended && !isTransitioning);
 
-            if (!isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
-                try {
-                    navigator.mediaSession.setPositionState({
-                        duration: hifiAudio.duration,
-                        playbackRate: hifiAudio.playbackRate || 1.0,
-                        position: Math.min(hifiAudio.currentTime, hifiAudio.duration)
-                    });
-                } catch (e) {}
-            }
+        navigator.mediaSession.playbackState = isAnyPaused ? "paused" : "playing";
 
-            navigator.mediaSession.setActionHandler('play', () => togglePlayPause());
-            navigator.mediaSession.setActionHandler('pause', () => togglePlayPause());
-            navigator.mediaSession.setActionHandler('previoustrack', () => playPrevious());
-            navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
-            navigator.mediaSession.setActionHandler('seekto', function(details) {
-                if (details.seekTime !== undefined && !activeFmKey) {
-                    hifiAudio.currentTime = details.seekTime;
-                    updateTapeCounter(details.seekTime);
-                    updateMediaSession();
-                }
-            });
-        }
-    }
-
-    function formatTime(seconds) {
-        var min = Math.floor(seconds / 60);
-        var sec = Math.floor(seconds % 60);
-        return min + ':' + (sec < 10 ? '0' + sec : sec);
-    }
-
-    async function deleteSingleSavedTrack(originalIdx, event) {
-        if (event) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-        playMechanicalSwitchClick();
-
-        var track = playlist[originalIdx];
-        if (!track) return;
-
-        try {
-            await removeTrackFromDB(track.title);
-
-            var wasCurrentTrack = (!activeFmKey && originalIdx === currentTrackIndex);
-
-            if (track.isLocalImported) {
-                if (track.src && track.src.startsWith('blob:')) {
-                    try { URL.revokeObjectURL(track.src); } catch (e) {}
-                }
-                playlist.splice(originalIdx, 1);
-
-                if (wasCurrentTrack) {
-                    if (playlist.length > 0) {
-                        var nextIdx = Math.min(originalIdx, playlist.length - 1);
-                        loadTrack(nextIdx, !hifiAudio.paused);
-                    } else {
-                        hifiAudio.pause();
-                        hifiAudio.src = "";
-                    }
-                } else if (originalIdx < currentTrackIndex) {
-                    currentTrackIndex--;
-                }
-            } else if (wasCurrentTrack) {
-                updateCacheButtonState(false);
-                var pos = hifiAudio.currentTime;
-                var wasPaused = hifiAudio.paused;
-                hifiAudio.src = track.src;
-                hifiAudio.currentTime = pos;
-                if (!wasPaused) hifiAudio.play().catch(function(){});
-            }
-
-            nextUpcomingIndex = -1;
-            updateUpcomingTrackUI();
-            updateSavedCountDisplay();
-            populatePlaylistDropdown();
-
-            nowPlayingSubtitle.textContent = "REMOVED: " + track.title;
-            setTimeout(syncTrackUI, 2000);
-        } catch (err) {
-            nowPlayingSubtitle.textContent = "FAILED TO REMOVE ITEM";
-            setTimeout(syncTrackUI, 2000);
-        }
-    }
-
-    async function deleteCurrentFullscreenVideo(event) {
-        if (event) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-        playMechanicalSwitchClick();
-        resetFsHudTimer();
-
-        if (activeFmKey || !playlist[currentTrackIndex]) return;
-
-        var targetIdx = currentTrackIndex;
-        var track = playlist[targetIdx];
-
-        try {
-            await removeTrackFromDB(track.title);
-
-            if (track.src && track.src.startsWith('blob:')) {
-                try { URL.revokeObjectURL(track.src); } catch (e) {}
-            }
-
-            playlist.splice(targetIdx, 1);
-            nextUpcomingIndex = -1;
-            updateSavedCountDisplay();
-            populatePlaylistDropdown();
-
-            var remainingVideos = getVideoOnlyIndices();
-
-            if (remainingVideos.length > 0) {
-                var nextVidIdx = remainingVideos.find(function(idx) { return idx >= targetIdx; });
-                if (nextVidIdx === undefined) nextVidIdx = remainingVideos[0];
-
-                showVideoSwipeToast("🗑 DELETED • NEXT");
-                loadTrack(nextVidIdx, true);
-                resetFsHudTimer();
-            } else {
-                if (isVideoFullscreenActive()) {
-                    toggleVideoFullscreen();
-                }
-                updateVideoScreenState(false, "");
-
-                if (playlist.length > 0) {
-                    var fallbackIdx = Math.min(targetIdx, playlist.length - 1);
-                    loadTrack(fallbackIdx, false);
-                } else {
-                    hifiAudio.pause();
-                    hifiAudio.src = "";
-                    currentTrackTitle.textContent = "Playlist Empty";
-                }
-                nowPlayingSubtitle.textContent = "DELETED: " + track.title;
-                setTimeout(syncTrackUI, 2200);
-            }
-        } catch (err) {
-            showVideoSwipeToast("⚠ DELETE FAILED");
+        if (!isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
+            try {
+                navigator.mediaSession.setPositionState({
+                    duration: hifiAudio.duration,
+                    playbackRate: hifiAudio.playbackRate || 1.0,
+                    position: Math.min(hifiAudio.currentTime, hifiAudio.duration)
+                });
+            } catch (e) {}
         }
     }
 
@@ -6026,6 +6032,14 @@
             return;
         }
 
+        // Retry without CORS restriction if a server blocks crossorigin="anonymous"
+        if (hifiAudio.hasAttribute('crossorigin') && playlist[currentTrackIndex]) {
+            hifiAudio.removeAttribute('crossorigin');
+            hifiAudio.src = cachedBlobUrls[playlist[currentTrackIndex].title] || playlist[currentTrackIndex].src;
+            hifiAudio.play().catch(function() {});
+            return;
+        }
+
         consecutiveErrorCount++;
         if (consecutiveErrorCount > 4) {
             nowPlayingSubtitle.textContent = "PLAYBACK PAUSED: NETWORK UNSTABLE";
@@ -6092,7 +6106,9 @@
             pauseButton.style.display = 'none'; 
             syncDeckVisuals();
             updateRadioLedState();
-            updateMediaSession();
+            if (!hifiAudio.ended && !isTransitioning) {
+                updateMediaSession();
+            }
             stopMeterAnimations();
 
             clearTimeout(audioSuspendTimer);
@@ -6175,6 +6191,7 @@
 
     async function initPlayer() {
         await prewarmCachedBlobUrls();
+        initMediaSessionHandlers();
 
         try {
             var savedLang = localStorage.getItem(STORAGE_KEY_LANG_FILTER);

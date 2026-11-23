@@ -1,22 +1,25 @@
 {
   "name": "Chanthiran Mini HiFi System",
-  "short_name": "Mini HiFi",
-  "description": "Retro Web Music Player & FM Tuner",
+  "short_name": "Chanthiran HiFi",
+  "description": "Retro Cassette, Vinyl & FM Stereo HiFi Player with Offline Cache",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#0a0a0c",
   "theme_color": "#ffaa00",
-  "orientation": "portrait",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3083/3083411.png",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%23111215'/%3E%3Crect x='24' y='52' width='144' height='88' rx='12' fill='%23282d37' stroke='%23ffaa00' stroke-width='6'/%3E%3Ccircle cx='66' cy='96' r='18' fill='%230a0a0c' stroke='%2300e5ff' stroke-width='5'/%3E%3Ccircle cx='126' cy='96' r='18' fill='%230a0a0c' stroke='%2300e5ff' stroke-width='5'/%3E%3C/svg%3E",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3083/3083411.png",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23111215'/%3E%3Crect x='64' y='138' width='384' height='236' rx='32' fill='%23282d37' stroke='%23ffaa00' stroke-width='16'/%3E%3Ccircle cx='176' cy='256' r='48' fill='%230a0a0c' stroke='%2300e5ff' stroke-width='14'/%3E%3Ccircle cx='336' cy='256' r='48' fill='%230a0c0c' stroke='%2300e5ff' stroke-width='14'/%3E%3C/svg%3E",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }
