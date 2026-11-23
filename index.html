@@ -11,7 +11,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
-
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Orbitron:wght@600;800;900&display=swap');
 
@@ -2096,16 +2095,15 @@
                     <video id="hifiAudio" crossorigin="anonymous" preload="auto" playsinline></video>
                     <div class="video-swipe-toast" id="videoSwipeToast">NEXT ⏭</div>
                     
-                    <!-- TOP-RIGHT FULLSCREEN CONTROLS (PiP, ORIENTATION, FILL/FIT, EXIT) -->
                     <!-- TOP-RIGHT FULLSCREEN CONTROLS (ZOOM, PiP, ORIENTATION, FILL/FIT, DELETE, EXIT) -->
-<div class="video-fs-orient-bar" id="videoFsOrientBar">
-    <button class="video-orient-btn" id="fsZoomBtn" onclick="cyclePausedZoom(event)" title="Zoom (Available when paused)">🔍 1.0x</button>
-    <button class="video-orient-btn" id="fsPipBtn" onclick="toggleVideoPip(event)" title="Picture-in-Picture">⧉ PiP</button>
-    <button class="video-orient-btn" id="fsOrientBtn" onclick="cycleFsOrientation(event)" title="Switch Horizontal / Vertical Fullscreen">🔄 AUTO</button>
-    <button class="video-orient-btn" id="fsCropBtn" onclick="toggleFsFillMode(event)" title="Toggle Fill vs Fit">⛶ FILL</button>
-    <button class="video-orient-btn" id="fsDeleteBtn" style="border-color:#ff4d4d; color:#ff6666;" onclick="deleteCurrentFullscreenVideo(event)" title="Delete Current Video">🗑</button>
-    <button class="video-orient-btn" style="border-color:#ff4d4d; color:#ff6666;" onclick="toggleVideoFullscreen(event)" title="Exit Fullscreen">✕</button>
-</div>
+                    <div class="video-fs-orient-bar" id="videoFsOrientBar">
+                        <button class="video-orient-btn" id="fsZoomBtn" onclick="cyclePausedZoom(event)" title="Zoom (Available when paused)">🔍 1.0x</button>
+                        <button class="video-orient-btn" id="fsPipBtn" onclick="toggleVideoPip(event)" title="Picture-in-Picture">⧉ PiP</button>
+                        <button class="video-orient-btn" id="fsOrientBtn" onclick="cycleFsOrientation(event)" title="Switch Horizontal / Vertical Fullscreen">🔄 AUTO</button>
+                        <button class="video-orient-btn" id="fsCropBtn" onclick="toggleFsFillMode(event)" title="Toggle Fill vs Fit">⛶ FILL</button>
+                        <button class="video-orient-btn" id="fsDeleteBtn" style="border-color:#ff4d4d; color:#ff6666;" onclick="deleteCurrentFullscreenVideo(event)" title="Delete Current Video">🗑</button>
+                        <button class="video-orient-btn" style="border-color:#ff4d4d; color:#ff6666;" onclick="toggleVideoFullscreen(event)" title="Exit Fullscreen">✕</button>
+                    </div>
 
                     <!-- BOTTOM FULLSCREEN SLIDER & TRANSPORT CONTROLS -->
                     <div class="video-fs-bottom-hud" id="videoFsBottomHud" onclick="event.stopPropagation()">
@@ -2600,7 +2598,6 @@
     var peakHoldR = 0;
     var PEAK_HOLD_FRAMES = 5;
 
-    // Pre-allocated audio buffers & throttled animation state (~30 FPS, auto-pauses when idle)
     var vuDataL = new Uint8Array(256);
     var vuDataR = new Uint8Array(256);
     var freqDataArray = new Uint8Array(32);
@@ -2613,6 +2610,7 @@
     var STORE_NAME = 'offline_audio_tracks';
     var MAX_OFFLINE_VIDEO_BYTES = 150 * 1024 * 1024;
     var dbInstance = null;
+    var cachedBlobUrls = {};
     var currentPlaylistTab = 'all';
     var currentLangFilter = 'all';
     var searchFilterText = '';
@@ -3050,21 +3048,6 @@
         }
     }
 
-    document.addEventListener('fullscreenchange', function() {
-        var frame = document.getElementById('videoScreenFrame');
-        if (!document.fullscreenElement) {
-            if (frame) frame.classList.remove('mobile-fs-active');
-            syncFsFillModeUI();
-            document.body.classList.remove('fs-video-lock');
-            unlockOrientation();
-        } else {
-            syncFsFillModeUI();
-            applyFsOrientationLock(fsOrientationMode);
-        }
-        nextUpcomingIndex = -1;
-        updateUpcomingTrackUI();
-    });
-
     /* --- SMALL & FULLSCREEN VIDEO SWIPE, SCROLL, ZOOM & PAN GESTURES --- */
     var videoZoomScale = 1;
     var videoPanX = 0;
@@ -3296,8 +3279,19 @@
         });
 
         document.addEventListener('fullscreenchange', function() {
-            if (!isVideoFullscreenActive()) resetVideoZoom(true);
-            else applyVideoZoomTransform(false);
+            if (!isVideoFullscreenActive()) {
+                resetVideoZoom(true);
+                if (frame) frame.classList.remove('mobile-fs-active');
+                syncFsFillModeUI();
+                document.body.classList.remove('fs-video-lock');
+                unlockOrientation();
+            } else {
+                applyVideoZoomTransform(false);
+                syncFsFillModeUI();
+                applyFsOrientationLock(fsOrientationMode);
+            }
+            nextUpcomingIndex = -1;
+            updateUpcomingTrackUI();
         });
 
         document.addEventListener('keydown', function(e) {
@@ -3362,7 +3356,7 @@
 
                 var existsIndex = playlist.findIndex(t => t.title.toLowerCase() === cleanTitle.toLowerCase());
                 if (existsIndex === -1) {
-                    var objectUrl = URL.createObjectURL(file);
+                    var objectUrl = cachedBlobUrls[cleanTitle] || URL.createObjectURL(file);
                     playlist.push({
                         title: cleanTitle,
                         lang: currentLangFilter !== 'all' ? currentLangFilter : 'local',
@@ -4015,6 +4009,11 @@
     }
 
     function saveTrackToDB(trackTitle, audioBlob) {
+        if (cachedBlobUrls[trackTitle]) {
+            try { URL.revokeObjectURL(cachedBlobUrls[trackTitle]); } catch (e) {}
+        }
+        cachedBlobUrls[trackTitle] = URL.createObjectURL(audioBlob);
+
         return openOfflineDB().then(function(db) {
             return new Promise(function(resolve, reject) {
                 var tx = db.transaction(STORE_NAME, 'readwrite');
@@ -4039,6 +4038,11 @@
     }
 
     function removeTrackFromDB(trackTitle) {
+        if (cachedBlobUrls[trackTitle]) {
+            try { URL.revokeObjectURL(cachedBlobUrls[trackTitle]); } catch (e) {}
+            delete cachedBlobUrls[trackTitle];
+        }
+
         return openOfflineDB().then(function(db) {
             return new Promise(function(resolve, reject) {
                 var tx = db.transaction(STORE_NAME, 'readwrite');
@@ -4063,13 +4067,18 @@
     }
 
     function clearAllStoredTracksFromDB() {
+        Object.keys(cachedBlobUrls).forEach(function(key) {
+            try { URL.revokeObjectURL(cachedBlobUrls[key]); } catch (e) {}
+        });
+        cachedBlobUrls = {};
+
         return openOfflineDB().then(function(db) {
-            return new Promise(function(resolve) {
+            return new Promise(function(resolve, reject) {
                 var tx = db.transaction(STORE_NAME, 'readwrite');
                 var store = tx.objectStore(STORE_NAME);
                 var req = store.clear();
                 tx.oncomplete = function() { resolve(true); };
-                tx.onerror = function() { reject(e); };
+                tx.onerror = function(e) { reject(e); };
             });
         });
     }
@@ -4142,36 +4151,34 @@
         var currentTrack = playlist[currentTrackIndex];
         playMechanicalSwitchClick();
 
-        getTrackFromDB(currentTrack.title).then(function(existingBlob) {
-            if (existingBlob) {
-                removeTrackFromDB(currentTrack.title).then(function() {
-                    updateCacheButtonState(false);
-                    nowPlayingSubtitle.textContent = "REMOVED FROM OFFLINE CACHE";
+        if (cachedBlobUrls[currentTrack.title]) {
+            removeTrackFromDB(currentTrack.title).then(function() {
+                updateCacheButtonState(false);
+                nowPlayingSubtitle.textContent = "REMOVED FROM OFFLINE CACHE";
+                updateSavedCountDisplay();
+                populatePlaylistDropdown();
+                setTimeout(syncTrackUI, 2000);
+            });
+        } else {
+            nowPlayingSubtitle.textContent = "DOWNLOADING TRACK FOR OFFLINE...";
+            fetch(currentTrack.src)
+                .then(function(res) {
+                    if (!res.ok) throw new Error("Download failed");
+                    return res.blob();
+                })
+                .then(function(blob) { return saveTrackToDB(currentTrack.title, blob); })
+                .then(function() {
+                    updateCacheButtonState(true);
+                    nowPlayingSubtitle.textContent = "SAVED TO OFFLINE CACHE (INDEXEDDB)";
                     updateSavedCountDisplay();
                     populatePlaylistDropdown();
-                    setTimeout(syncTrackUI, 2000);
+                    setTimeout(syncTrackUI, 2500);
+                })
+                .catch(function() {
+                    nowPlayingSubtitle.textContent = "DOWNLOAD FAILED - CHECK NETWORK";
+                    setTimeout(syncTrackUI, 2500);
                 });
-            } else {
-                nowPlayingSubtitle.textContent = "DOWNLOADING TRACK FOR OFFLINE...";
-                fetch(currentTrack.src)
-                    .then(function(res) {
-                        if (!res.ok) throw new Error("Download failed");
-                        return res.blob();
-                    })
-                    .then(function(blob) { return saveTrackToDB(currentTrack.title, blob); })
-                    .then(function() {
-                        updateCacheButtonState(true);
-                        nowPlayingSubtitle.textContent = "SAVED TO OFFLINE CACHE (INDEXEDDB)";
-                        updateSavedCountDisplay();
-                        populatePlaylistDropdown();
-                        setTimeout(syncTrackUI, 2500);
-                    })
-                    .catch(function() {
-                        nowPlayingSubtitle.textContent = "DOWNLOAD FAILED - CHECK NETWORK";
-                        setTimeout(syncTrackUI, 2500);
-                    });
-            }
-        });
+        }
     }
 
     async function toggleBulkDownload(event) {
@@ -4242,8 +4249,7 @@
         populatePlaylistDropdown();
 
         if (playlist[currentTrackIndex]) {
-            var isCurrentSaved = await getTrackFromDB(playlist[currentTrackIndex].title);
-            updateCacheButtonState(!!isCurrentSaved);
+            updateCacheButtonState(Boolean(cachedBlobUrls[playlist[currentTrackIndex].title]));
         }
 
         nowPlayingSubtitle.textContent = cancelBulkDownload ? "DOWNLOAD STOPPED" : `SAVED ${downloaded} NEW TRACKS OFFLINE!`;
@@ -4557,7 +4563,7 @@
 
         var scratchBuffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * 0.15), audioCtx.sampleRate);
         var scratchData = scratchBuffer.getChannelData(0);
-       for (var i = 0; i < scratchData.length; i++) {
+        for (var i = 0; i < scratchData.length; i++) {
             scratchData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (scratchBuffer.length * 0.4));
         }
 
@@ -5397,7 +5403,7 @@
 
                 var existsIndex = playlist.findIndex(t => t.title.toLowerCase() === cleanTitle.toLowerCase());
                 if (existsIndex === -1) {
-                    var objectUrl = URL.createObjectURL(file);
+                    var objectUrl = cachedBlobUrls[cleanTitle] || URL.createObjectURL(file);
                     playlist.push({
                         title: cleanTitle,
                         lang: currentLangFilter !== 'all' ? currentLangFilter : 'local',
@@ -5433,7 +5439,7 @@
         setTimeout(syncTrackUI, 2500);
     }
 
-    function restoreSavedTracksIntoPlaylist() {
+    function prewarmCachedBlobUrls() {
         return openOfflineDB().then(function(db) {
             return new Promise(function(resolve) {
                 var tx = db.transaction(STORE_NAME, 'readonly');
@@ -5445,6 +5451,9 @@
                     if (cursor) {
                         var record = cursor.value;
                         if (record && record.title && record.blob) {
+                            if (!cachedBlobUrls[record.title]) {
+                                cachedBlobUrls[record.title] = URL.createObjectURL(record.blob);
+                            }
                             var exists = playlist.some(t => t.title.toLowerCase() === record.title.toLowerCase());
                             if (!exists) {
                                 var isVid = record.title.startsWith('🎬') ||
@@ -5454,7 +5463,7 @@
                                 playlist.push({
                                     title: record.title,
                                     lang: 'local',
-                                    src: URL.createObjectURL(record.blob),
+                                    src: cachedBlobUrls[record.title],
                                     isVideo: isVid,
                                     isLocalImported: true
                                 });
@@ -5573,7 +5582,7 @@
         }
     }
 
-async function deleteCurrentFullscreenVideo(event) {
+    async function deleteCurrentFullscreenVideo(event) {
         if (event) {
             event.preventDefault();
             event.stopPropagation();
@@ -5628,6 +5637,7 @@ async function deleteCurrentFullscreenVideo(event) {
             showVideoSwipeToast("⚠ DELETE FAILED");
         }
     }
+
     function populatePlaylistDropdown() {
         dropdownTrackList.innerHTML = '';
         updateSavedCountDisplay();
@@ -5828,6 +5838,7 @@ async function deleteCurrentFullscreenVideo(event) {
         destroyHls();
         stopAllFmPlayers();
         clearLoadGuard();
+        clearTimeout(audioSuspendTimer);
 
         if (mediaFormat === 'radio') applyDeckFormatVisuals(previousNonRadioFormat || 'tape');
 
@@ -5841,47 +5852,53 @@ async function deleteCurrentFullscreenVideo(event) {
 
         var targetTrack = playlist[currentTrackIndex];
         var isVideo = isPlaylistItemVideo(targetTrack);
-        updateVideoScreenState(isVideo, targetTrack.title);
+        if (!document.hidden) {
+            updateVideoScreenState(isVideo, targetTrack.title);
+        }
 
         initRealAudioContext();
 
         if (autoPlay && !document.hidden) triggerFormatCueSound();
 
-        getTrackFromDB(targetTrack.title).then(function(cachedBlob) {
-            if (cachedBlob) {
-                hifiAudio.src = URL.createObjectURL(cachedBlob);
-                updateCacheButtonState(true);
-            } else {
-                hifiAudio.src = targetTrack.src;
-                updateCacheButtonState(false);
+        // Synchronous lookup from pre-warmed memory map (prevents background throttling delays in Brave)
+        var cachedUrl = cachedBlobUrls[targetTrack.title];
+        if (cachedUrl) {
+            hifiAudio.src = cachedUrl;
+            updateCacheButtonState(true);
+        } else {
+            hifiAudio.src = targetTrack.src;
+            updateCacheButtonState(false);
+        }
+
+        syncTrackUI();
+
+        if (autoPlay) {
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(() => {});
             }
 
-            syncTrackUI();
-
-            if (autoPlay) {
-                if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
-
-                var playPromise = hifiAudio.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
+            var playPromise = hifiAudio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    isTransitioning = false;
+                    consecutiveErrorCount = 0;
+                    requestWakeLock();
+                    updateMediaSession();
+                }).catch(function() {
+                    if (audioCtx && audioCtx.state === 'suspended') {
+                        audioCtx.resume().catch(() => {});
+                    }
+                    hifiAudio.play().then(() => {
                         isTransitioning = false;
-                        consecutiveErrorCount = 0;
-                        requestWakeLock();
                         updateMediaSession();
-                    }).catch(function() {
-                        setTimeout(function() {
-                            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
-                            hifiAudio.play().then(() => {
-                                isTransitioning = false;
-                                updateMediaSession();
-                            }).catch(() => { isTransitioning = false; });
-                        }, 80);
+                    }).catch(() => {
+                        isTransitioning = false;
                     });
-                }
-            } else {
-                isTransitioning = false;
+                });
             }
-        });
+        } else {
+            isTransitioning = false;
+        }
     }
 
     function togglePlayPause() {
@@ -6080,10 +6097,10 @@ async function deleteCurrentFullscreenVideo(event) {
 
             clearTimeout(audioSuspendTimer);
             audioSuspendTimer = setTimeout(function() {
-                if (hifiAudio.paused && fmPlayer.paused && fmFallbackPlayer.paused && audioCtx && audioCtx.state === 'running') {
+                if (!isTransitioning && !hifiAudio.ended && hifiAudio.paused && fmPlayer.paused && fmFallbackPlayer.paused && audioCtx && audioCtx.state === 'running') {
                     audioCtx.suspend().catch(function() {});
                 }
-            }, 3000);
+            }, 5000);
         }
     });
 
@@ -6157,7 +6174,7 @@ async function deleteCurrentFullscreenVideo(event) {
     }
 
     async function initPlayer() {
-        await restoreSavedTracksIntoPlaylist();
+        await prewarmCachedBlobUrls();
 
         try {
             var savedLang = localStorage.getItem(STORAGE_KEY_LANG_FILTER);
