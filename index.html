@@ -2537,10 +2537,8 @@
 
     var fastWindTimer = null;
     var isTransitioning = false;
-    var earlyHandoffTriggered = false;
     var consecutiveErrorCount = 0;
     var nextUpcomingIndex = -1;
-    var prebufferedNextIndex = -1;
 
     var audioCtx = null;
     var analyser = null;
@@ -2554,8 +2552,6 @@
     var gainNode = null;
     var audioSourceConnected = false;
     var audioSuspendTimer = null;
-    var silentAnchorOsc = null;
-    var silentAnchorGain = null;
 
     var mediaFormat = 'tape';
     var tapeSaturationNode = null;
@@ -2741,7 +2737,6 @@
         if (activeBtn) activeBtn.classList.add('active-tab');
 
         nextUpcomingIndex = -1;
-        prebufferedNextIndex = -1;
         populatePlaylistDropdown();
 
         if (!activeFmKey && !shouldRestrictToVideos()) {
@@ -3033,7 +3028,6 @@
             }
 
             nextUpcomingIndex = -1;
-            prebufferedNextIndex = -1;
             updateUpcomingTrackUI();
         } else {
             if (typeof resetVideoZoom === 'function') resetVideoZoom(true);
@@ -3050,7 +3044,6 @@
             }
 
             nextUpcomingIndex = -1;
-            prebufferedNextIndex = -1;
             updateUpcomingTrackUI();
         }
     }
@@ -3298,7 +3291,6 @@
                 applyFsOrientationLock(fsOrientationMode);
             }
             nextUpcomingIndex = -1;
-            prebufferedNextIndex = -1;
             updateUpcomingTrackUI();
         });
 
@@ -3533,7 +3525,6 @@
 
         triggerFastWind('reverse', 450);
 
-        earlyHandoffTriggered = false;
         hifiAudio.currentTime = 0;
         progressSlider.value = 0;
         currentTimeSpan.textContent = "0:00";
@@ -4240,7 +4231,6 @@
             }
 
             nextUpcomingIndex = -1;
-            prebufferedNextIndex = -1;
             updateUpcomingTrackUI();
             updateSavedCountDisplay();
             populatePlaylistDropdown();
@@ -4276,7 +4266,6 @@
 
             playlist.splice(targetIdx, 1);
             nextUpcomingIndex = -1;
-            prebufferedNextIndex = -1;
             updateSavedCountDisplay();
             populatePlaylistDropdown();
 
@@ -4782,39 +4771,12 @@
         else if (mediaFormat === 'tape') playTapeTransportEngage();
     }
 
-    function startSilentAudioAnchor() {
-        if (!audioCtx || silentAnchorOsc) return;
-        try {
-            silentAnchorOsc = audioCtx.createOscillator();
-            silentAnchorOsc.type = 'sine';
-            silentAnchorOsc.frequency.setValueAtTime(20, audioCtx.currentTime);
-
-            silentAnchorGain = audioCtx.createGain();
-            silentAnchorGain.gain.setValueAtTime(0.00001, audioCtx.currentTime);
-
-            silentAnchorOsc.connect(silentAnchorGain);
-            silentAnchorGain.connect(audioCtx.destination);
-            silentAnchorOsc.start(0);
-        } catch (e) {}
-    }
-
-    function stopSilentAudioAnchor() {
-        if (silentAnchorOsc) {
-            try {
-                silentAnchorOsc.stop();
-                silentAnchorOsc.disconnect();
-            } catch (e) {}
-            silentAnchorOsc = null;
-            silentAnchorGain = null;
-        }
-    }
-
     function attachAudioContextKeepAlive() {
         if (!audioCtx || audioCtx._keepAliveAttached) return;
         audioCtx._keepAliveAttached = true;
         audioCtx.addEventListener('statechange', function() {
             if ((audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') &&
-                (!hifiAudio.paused || !fmPlayer.paused || !fmFallbackPlayer.paused || isTransitioning || earlyHandoffTriggered)) {
+                (!hifiAudio.paused || !fmPlayer.paused || !fmFallbackPlayer.paused || isTransitioning)) {
                 audioCtx.resume().catch(function() {});
             }
         });
@@ -4914,7 +4876,6 @@
         if (audioCtx && (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted')) {
             audioCtx.resume().catch(()=>{});
         }
-        startSilentAudioAnchor();
         updateFormatNoiseState();
     }
 
@@ -5535,7 +5496,6 @@
         destroyHls();
         if (hifiAudio) hifiAudio.pause();
         stopAllFmPlayers();
-        stopSilentAudioAnchor();
         stopMeterAnimations();
         if (wakeLock) wakeLock.release().catch(()=>{});
         try { window.close(); } catch(e) {}
@@ -5687,7 +5647,7 @@
 
         var isAnyPaused = (activeFmKey && currentStreamUrl && !currentStreamUrl.includes('.m3u8'))
             ? (fmPlayer.paused && fmFallbackPlayer.paused)
-            : (hifiAudio.paused && !hifiAudio.ended && !isTransitioning && !earlyHandoffTriggered);
+            : (hifiAudio.paused && !hifiAudio.ended && !isTransitioning);
 
         navigator.mediaSession.playbackState = isAnyPaused ? "paused" : "playing";
 
@@ -5828,7 +5788,6 @@
         shuffleButton.classList.toggle('active-mode', isShuffle);
         playMechanicalSwitchClick();
         nextUpcomingIndex = -1;
-        prebufferedNextIndex = -1;
         updateUpcomingTrackUI();
     }
 
@@ -5845,7 +5804,6 @@
             return;
         }
         playMechanicalSwitchClick();
-        earlyHandoffTriggered = false;
         hifiAudio.currentTime = 0;
         hifiAudio.play().catch(()=>{});
     }
@@ -5898,36 +5856,6 @@
         nextTrackTitle.textContent = nextSong ? nextSong.title : "None";
     }
 
-    function prebufferUpcomingTrack() {
-        if (activeFmKey || playlist.length <= 1) return;
-        if (nextUpcomingIndex < 0 || nextUpcomingIndex >= playlist.length) {
-            nextUpcomingIndex = determineNextIndex();
-        }
-        var idx = nextUpcomingIndex;
-        if (idx < 0 || idx === prebufferedNextIndex) return;
-
-        var nextTrack = playlist[idx];
-        if (!nextTrack || nextTrack.isVideo || cachedBlobUrls[nextTrack.title]) {
-            prebufferedNextIndex = idx;
-            return;
-        }
-
-        prebufferedNextIndex = idx;
-        fetch(nextTrack.src)
-            .then(function(res) {
-                if (!res.ok) throw new Error("Prefetch failed");
-                return res.blob();
-            })
-            .then(function(blob) {
-                if (!cachedBlobUrls[nextTrack.title]) {
-                    cachedBlobUrls[nextTrack.title] = URL.createObjectURL(blob);
-                }
-            })
-            .catch(function() {
-                prebufferedNextIndex = -1;
-            });
-    }
-
     function loadTrack(index, autoPlay = true) {
         if (playlist.length === 0) return;
         activeFmKey = null;
@@ -5943,9 +5871,7 @@
 
         currentTrackIndex = index;
         isTransitioning = true;
-        earlyHandoffTriggered = false;
         nextUpcomingIndex = -1;
-        prebufferedNextIndex = -1;
         lastPersistedSecond = -1;
 
         var targetTrack = playlist[currentTrackIndex];
@@ -5958,13 +5884,11 @@
 
         if (autoPlay && !document.hidden) triggerFormatCueSound();
 
-        // Synchronous lookup from pre-warmed / pre-buffered memory map (zero network delay on screen lock)
+        // Synchronous lookup from pre-warmed memory map (prevents background throttling delays in Brave)
         var cachedUrl = cachedBlobUrls[targetTrack.title];
         if (cachedUrl) {
             hifiAudio.src = cachedUrl;
-            getTrackFromDB(targetTrack.title).then(function(dbBlob) {
-                updateCacheButtonState(Boolean(dbBlob));
-            });
+            updateCacheButtonState(true);
         } else {
             hifiAudio.src = targetTrack.src;
             updateCacheButtonState(false);
@@ -6087,28 +6011,6 @@
         playMechanicalSwitchClick();
     }
 
-    function advanceToNextTrackInBackground() {
-        if (playlist.length === 0 || activeFmKey) return;
-        isTransitioning = true;
-        earlyHandoffTriggered = true;
-
-        if (shouldRestrictToVideos()) {
-            var nextVidIdx = getNextVideoIndex();
-            if (nextVidIdx !== -1) {
-                nextUpcomingIndex = -1;
-                loadTrack(nextVidIdx, true);
-                return;
-            }
-        }
-
-        var targetIndex = (nextUpcomingIndex >= 0 && nextUpcomingIndex < playlist.length)
-            ? nextUpcomingIndex
-            : determineNextIndex();
-
-        nextUpcomingIndex = -1;
-        loadTrack(targetIndex, true);
-    }
-
     hifiAudio.addEventListener('ended', function() {
         updateRadioLedState();
         if (isRepeatOne && !activeFmKey) {
@@ -6116,8 +6018,24 @@
             hifiAudio.play().catch(function(){});
             return;
         }
-        if (!earlyHandoffTriggered && !isTransitioning) {
-            advanceToNextTrackInBackground();
+        if (playlist.length > 0 && !activeFmKey) {
+            isTransitioning = true;
+
+            if (shouldRestrictToVideos()) {
+                var nextVidIdx = getNextVideoIndex();
+                if (nextVidIdx !== -1) {
+                    nextUpcomingIndex = -1;
+                    loadTrack(nextVidIdx, true);
+                    return;
+                }
+            }
+            
+            var targetIndex = (nextUpcomingIndex >= 0 && nextUpcomingIndex < playlist.length) 
+                ? nextUpcomingIndex 
+                : determineNextIndex();
+
+            nextUpcomingIndex = -1;
+            loadTrack(targetIndex, true);
         }
     });
 
@@ -6144,7 +6062,6 @@
         if (consecutiveErrorCount > 4) {
             nowPlayingSubtitle.textContent = "PLAYBACK PAUSED: NETWORK UNSTABLE";
             isTransitioning = false;
-            earlyHandoffTriggered = false;
             stopMeterAnimations();
             return;
         }
@@ -6189,7 +6106,6 @@
         clearLoadGuard();
         clearTimeout(audioSuspendTimer);
         isTransitioning = false;
-        earlyHandoffTriggered = false;
         consecutiveErrorCount = 0;
         syncTrackUI();
         initRealAudioContext();
@@ -6208,18 +6124,15 @@
             pauseButton.style.display = 'none'; 
             syncDeckVisuals();
             updateRadioLedState();
-            if (!hifiAudio.ended && !isTransitioning && !earlyHandoffTriggered) {
+            if (!hifiAudio.ended && !isTransitioning) {
                 updateMediaSession();
             }
             stopMeterAnimations();
 
             clearTimeout(audioSuspendTimer);
             audioSuspendTimer = setTimeout(function() {
-                if (!isTransitioning && !earlyHandoffTriggered && !hifiAudio.ended && hifiAudio.paused && fmPlayer.paused && fmFallbackPlayer.paused) {
-                    stopSilentAudioAnchor();
-                    if (audioCtx && audioCtx.state === 'running') {
-                        audioCtx.suspend().catch(function() {});
-                    }
+                if (!isTransitioning && !hifiAudio.ended && hifiAudio.paused && fmPlayer.paused && fmFallbackPlayer.paused && audioCtx && audioCtx.state === 'running') {
+                    audioCtx.suspend().catch(function() {});
                 }
             }, 5000);
         }
@@ -6228,9 +6141,7 @@
     hifiAudio.addEventListener('timeupdate', () => {
         if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
             var cur = hifiAudio.currentTime;
-            var dur = hifiAudio.duration;
             var curSecInt = Math.floor(cur);
-
             if (!document.hidden) {
                 progressSlider.value = cur;
                 currentTimeSpan.textContent = formatTime(cur);
@@ -6241,16 +6152,6 @@
             if (curSecInt % 5 === 0 && curSecInt !== lastPersistedSecond) {
                 lastPersistedSecond = curSecInt;
                 persistTapeState(currentTrackIndex, cur, !hifiAudio.paused);
-            }
-
-            // Pre-fetch next track into memory 15 seconds before current track finishes
-            if (!isRepeatOne && !isTransitioning && dur > 20 && (dur - cur) <= 15 && (dur - cur) > 1) {
-                prebufferUpcomingTrack();
-            }
-
-            // Pre-emptive gapless handoff 0.35s before end so Android/Brave keeps audio focus on screen lock
-            if (!isRepeatOne && !isTransitioning && !earlyHandoffTriggered && dur > 3 && (dur - cur) <= 0.35) {
-                advanceToNextTrackInBackground();
             }
         }
     });
@@ -6283,7 +6184,6 @@
             triggerFastWind(dir, 450);
             lastSeekPosition = currentSeekVal;
 
-            earlyHandoffTriggered = false;
             hifiAudio.currentTime = currentSeekVal;
             updateTapeCounter(currentSeekVal);
             syncDeckVisuals();
@@ -6408,7 +6308,6 @@
             fsSlider.addEventListener('input', function() {
                 if (!activeFmKey) {
                     var seekVal = parseFloat(fsSlider.value);
-                    earlyHandoffTriggered = false;
                     hifiAudio.currentTime = seekVal;
                     progressSlider.value = seekVal;
                     currentTimeSpan.textContent = formatTime(seekVal);
