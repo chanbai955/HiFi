@@ -849,7 +849,7 @@
         touch-action: pan-y;
     }
 
-    #hifiAudio {
+    #hifiVideo {
         width: 100%;
         height: 100%;
         object-fit: contain;
@@ -861,11 +861,11 @@
     }
 
     /* APPLY FILL / CROP ON BOTH SMALL DISPLAY AND FULLSCREEN */
-    .video-screen-frame.fs-fill-crop #hifiAudio {
+    .video-screen-frame.fs-fill-crop #hifiVideo {
         object-fit: cover !important;
     }
 
-    #hifiAudio.is-dragging-zoom {
+    #hifiVideo.is-dragging-zoom {
         transition: none !important;
         cursor: grabbing;
     }
@@ -899,9 +899,9 @@
         touch-action: none;
     }
 
-    .video-screen-frame:fullscreen #hifiAudio,
-    .video-screen-frame:-webkit-full-screen #hifiAudio,
-    .video-screen-frame.mobile-fs-active #hifiAudio {
+    .video-screen-frame:fullscreen #hifiVideo,
+    .video-screen-frame:-webkit-full-screen #hifiVideo,
+    .video-screen-frame.mobile-fs-active #hifiVideo {
         width: 100vw !important;
         height: 100dvh !important;
         max-width: 100vw !important;
@@ -909,9 +909,9 @@
         object-fit: contain !important;
     }
 
-    .video-screen-frame:fullscreen.fs-fill-crop #hifiAudio,
-    .video-screen-frame:-webkit-full-screen.fs-fill-crop #hifiAudio,
-    .video-screen-frame.mobile-fs-active.fs-fill-crop #hifiAudio {
+    .video-screen-frame:fullscreen.fs-fill-crop #hifiVideo,
+    .video-screen-frame:-webkit-full-screen.fs-fill-crop #hifiVideo,
+    .video-screen-frame.mobile-fs-active.fs-fill-crop #hifiVideo {
         object-fit: cover !important;
     }
 
@@ -2092,7 +2092,7 @@
             <!-- COLLAPSIBLE VIDEO MONITOR BAY (SWIPE / SCROLL NEXT & PREV IN SMALL & FULLSCREEN) -->
             <div id="videoDeckBay" class="video-deck-bay">
                 <div class="video-screen-frame" id="videoScreenFrame">
-                    <video id="hifiAudio" crossorigin="anonymous" preload="auto" playsinline></video>
+                    <video id="hifiVideo" crossorigin="anonymous" preload="auto" playsinline></video>
                     <div class="video-swipe-toast" id="videoSwipeToast">NEXT ⏭</div>
                     
                     <!-- TOP-RIGHT FULLSCREEN CONTROLS (ZOOM, PiP, ORIENTATION, FILL/FIT, DELETE, EXIT) -->
@@ -2327,7 +2327,6 @@
         { title: "DilLagaLiya", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/DilLagaLiya%20.mp3" },
         { title: "Dont forget to remember me", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/Don't%20Forget%20To%20Remember%20Me%20%E2%80%93%20Bee%20Gees%20.mp3" },
         { title: "Ellarum Cholanum", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Ellarum%20chollanu%20.mp3" },
-        { title: "Ellu Vaya Pookalaye", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/%20Ellu%20Vaya%20Pookalaye%20.mp3" },
         { title: "EnKanmani", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/EnKanmani.mp3" },
         { title: "Enge antha venila", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Enge%20Andha%20Vennila%20.mp3" },
         { title: "Eppadi Vandhaayo", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Eppadi%20Vandhaayo%20.mp3" },
@@ -2366,7 +2365,6 @@
         { title: "Mallipoo", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Mallipoo%20.mp3" },
         { title: "Maonamana Neraam", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Maonamana%20neraam.mp3" },
         { title: "Mun Paniya", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Mun%20Paniya.mp3" },
-        { title: "MuthukkuMuthaga", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/MuthukkuMuthaga.mp3" },
         { title: "Muzhumathi", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Muzhumathi.mp3" },
         { title: "My Heart Will Go On", lang: "english", src: "https://raw.githack.com/chanbai955/mp3/main/My%20Heart%20Will%20Go%20On.mp3" },
         { title: "Naam", lang: "tamil", src: "https://raw.githack.com/chanbai955/mp3/main/Naam%20.mp3" },
@@ -2466,7 +2464,18 @@
     var fmMirrorQueue = [];
     var fmMirrorIndex = 0;
 
-    var hifiAudio = document.getElementById('hifiAudio');
+    // DUAL-ENGINE ARCHITECTURE:
+    // 1. Dedicated <audio> element for MP3s & songs (exempt from Chromium's 10-min background video renderer freeze)
+    var audioEngine = new Audio();
+    audioEngine.crossOrigin = "anonymous";
+    audioEngine.preload = "auto";
+
+    // 2. Dedicated <video> element for video files & HLS streams
+    var videoEngine = document.getElementById('hifiVideo');
+
+    // Active media engine pointer (defaults to audioEngine)
+    var hifiAudio = audioEngine;
+
     var fmPlayer = new Audio();
     fmPlayer.crossOrigin = "anonymous";
     fmPlayer.preload = "none";
@@ -2551,6 +2560,7 @@
     var compressor = null;
     var gainNode = null;
     var audioSourceConnected = false;
+    var videoSourceConnected = false;
     var audioSuspendTimer = null;
 
     var mediaFormat = 'tape';
@@ -2623,6 +2633,24 @@
     var hasUserStartedPlayback = false;
     var lastPersistedSecond = -1;
 
+    function selectMediaEngine(useVideo) {
+        if (useVideo) {
+            if (hifiAudio !== videoEngine) {
+                audioEngine.pause();
+                audioEngine.removeAttribute('src');
+                audioEngine.load();
+                hifiAudio = videoEngine;
+            }
+        } else {
+            if (hifiAudio !== audioEngine) {
+                videoEngine.pause();
+                videoEngine.removeAttribute('src');
+                videoEngine.load();
+                hifiAudio = audioEngine;
+            }
+        }
+    }
+
     function clearLoadGuard() {
         if (loadTimeout) {
             clearTimeout(loadTimeout);
@@ -2672,7 +2700,7 @@
     function updateRadioLedState() {
         var isRadioPlaying = Boolean(
             activeFmKey &&
-            (!hifiAudio.paused || !fmPlayer.paused || !fmFallbackPlayer.paused)
+            (!audioEngine.paused || !videoEngine.paused || !fmPlayer.paused || !fmFallbackPlayer.paused)
         );
         if (radioLiveLed) {
             radioLiveLed.classList.toggle('radio-led-blinking', isRadioPlaying);
@@ -2866,7 +2894,7 @@
     async function applyFsOrientationLock(mode) {
         var targetMode = mode || fsOrientationMode;
         if (targetMode === 'auto') {
-            if (hifiAudio && hifiAudio.videoHeight > hifiAudio.videoWidth) {
+            if (videoEngine && videoEngine.videoHeight > videoEngine.videoWidth) {
                 targetMode = 'portrait';
             } else {
                 targetMode = 'landscape';
@@ -2947,7 +2975,8 @@
         if (e) e.stopPropagation();
         playMechanicalSwitchClick();
         isRepeatOne = !isRepeatOne;
-        hifiAudio.loop = isRepeatOne;
+        audioEngine.loop = isRepeatOne;
+        videoEngine.loop = isRepeatOne;
         showVideoSwipeToast(isRepeatOne ? "🔁 LOOP ONE: ON" : "🔁 LOOP ONE: OFF");
     }
 
@@ -2955,7 +2984,7 @@
         if (e) e.stopPropagation();
         playMechanicalSwitchClick();
 
-        if (!hifiAudio || hifiAudio.readyState === 0 || hifiAudio.videoWidth === 0) {
+        if (!videoEngine || videoEngine.readyState === 0 || videoEngine.videoWidth === 0) {
             nowPlayingSubtitle.textContent = "LOAD & PLAY A VIDEO FIRST FOR PiP";
             setTimeout(syncTrackUI, 2200);
             return;
@@ -2966,19 +2995,19 @@
                 await document.exitPictureInPicture();
                 return;
             }
-            if (document.pictureInPictureEnabled && !hifiAudio.disablePictureInPicture) {
+            if (document.pictureInPictureEnabled && !videoEngine.disablePictureInPicture) {
                 if (isVideoFullscreenActive()) {
                     toggleVideoFullscreen();
                 }
-                await hifiAudio.requestPictureInPicture();
+                await videoEngine.requestPictureInPicture();
                 return;
             }
 
-            if (typeof hifiAudio.webkitSetPresentationMode === 'function') {
-                var nextMode = hifiAudio.webkitPresentationMode === 'picture-in-picture'
+            if (typeof videoEngine.webkitSetPresentationMode === 'function') {
+                var nextMode = videoEngine.webkitPresentationMode === 'picture-in-picture'
                     ? 'inline'
                     : 'picture-in-picture';
-                hifiAudio.webkitSetPresentationMode(nextMode);
+                videoEngine.webkitSetPresentationMode(nextMode);
                 return;
             }
 
@@ -2994,16 +3023,16 @@
         var pipBtn = document.getElementById('videoPipBtn');
         if (!pipBtn) return;
         var isPip = Boolean(
-            document.pictureInPictureElement === hifiAudio ||
-            hifiAudio.webkitPresentationMode === 'picture-in-picture'
+            document.pictureInPictureElement === videoEngine ||
+            videoEngine.webkitPresentationMode === 'picture-in-picture'
         );
         pipBtn.classList.toggle('pip-active', isPip);
         pipBtn.textContent = isPip ? "⧉ EXIT PiP" : "⧉ PiP";
     }
 
-    hifiAudio.addEventListener('enterpictureinpicture', updatePipButtonState);
-    hifiAudio.addEventListener('leavepictureinpicture', updatePipButtonState);
-    hifiAudio.addEventListener('webkitpresentationmodechanged', updatePipButtonState);
+    videoEngine.addEventListener('enterpictureinpicture', updatePipButtonState);
+    videoEngine.addEventListener('leavepictureinpicture', updatePipButtonState);
+    videoEngine.addEventListener('webkitpresentationmodechanged', updatePipButtonState);
 
     function toggleVideoFullscreen(e) {
         if (e) e.stopPropagation();
@@ -3056,11 +3085,11 @@
     var MAX_VIDEO_ZOOM = 4;
 
     function canZoomVideoNow() {
-        return isVideoFullscreenActive() && hifiAudio && hifiAudio.paused;
+        return isVideoFullscreenActive() && videoEngine && videoEngine.paused;
     }
 
     function applyVideoZoomTransform(showToast) {
-        if (!hifiAudio) return;
+        if (!videoEngine) return;
 
         if (videoZoomScale <= 1.01) {
             videoZoomScale = 1;
@@ -3073,7 +3102,7 @@
             videoPanY = Math.max(-maxPanY, Math.min(maxPanY, videoPanY));
         }
 
-        hifiAudio.style.transform = `translate3d(${videoPanX.toFixed(1)}px, ${videoPanY.toFixed(1)}px, 0) scale(${videoZoomScale.toFixed(2)})`;
+        videoEngine.style.transform = `translate3d(${videoPanX.toFixed(1)}px, ${videoPanY.toFixed(1)}px, 0) scale(${videoZoomScale.toFixed(2)})`;
 
         var zoomBtn = document.getElementById('fsZoomBtn');
         if (zoomBtn) {
@@ -3146,7 +3175,7 @@
                 isPanningZoom = false;
                 initialPinchDist = getTouchDistance(e.touches[0], e.touches[1]);
                 initialPinchScale = videoZoomScale;
-                hifiAudio.classList.add('is-dragging-zoom');
+                videoEngine.classList.add('is-dragging-zoom');
                 return;
             }
 
@@ -3157,7 +3186,7 @@
                     isPanningZoom = true;
                     panStartX = e.touches[0].clientX - videoPanX;
                     panStartY = e.touches[0].clientY - videoPanY;
-                    hifiAudio.classList.add('is-dragging-zoom');
+                    videoEngine.classList.add('is-dragging-zoom');
                     return;
                 }
 
@@ -3191,7 +3220,7 @@
                 if (isPanningZoom || videoZoomScale > 1) {
                     isPanningZoom = false;
                     isSwiping = false;
-                    hifiAudio.classList.remove('is-dragging-zoom');
+                    videoEngine.classList.remove('is-dragging-zoom');
                     if (canZoomVideoNow() && videoZoomScale > 1) {
                         showVideoSwipeToast(`🔍 ${videoZoomScale.toFixed(1)}x`);
                     }
@@ -3251,7 +3280,7 @@
             isPanningZoom = true;
             panStartX = e.clientX - videoPanX;
             panStartY = e.clientY - videoPanY;
-            hifiAudio.classList.add('is-dragging-zoom');
+            videoEngine.classList.add('is-dragging-zoom');
             e.preventDefault();
         });
 
@@ -3265,16 +3294,16 @@
         window.addEventListener('mouseup', function() {
             if (isPanningZoom) {
                 isPanningZoom = false;
-                hifiAudio.classList.remove('is-dragging-zoom');
+                videoEngine.classList.remove('is-dragging-zoom');
             }
         });
 
-        hifiAudio.addEventListener('playing', function() {
+        videoEngine.addEventListener('playing', function() {
             if (videoZoomScale > 1) resetVideoZoom(true);
             applyVideoZoomTransform(false);
         });
 
-        hifiAudio.addEventListener('pause', function() {
+        videoEngine.addEventListener('pause', function() {
             applyVideoZoomTransform(false);
         });
 
@@ -4537,7 +4566,7 @@
             var sample = lastOut * 0.4;
 
             if (Math.random() < 0.00035) sample += (Math.random() * 2 - 1) * 0.75;
-            if (Math.random() < 0.00004) sample += (Math.random() > 0.5 ? 1 : -1) * 0.95;
+           if (Math.random() < 0.00004) sample += (Math.random() > 0.5 ? 1 : -1) * 0.95;
             data[i] = sample;
         }
         return buffer;
@@ -4776,10 +4805,32 @@
         audioCtx._keepAliveAttached = true;
         audioCtx.addEventListener('statechange', function() {
             if ((audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') &&
-                (!hifiAudio.paused || !fmPlayer.paused || !fmFallbackPlayer.paused || isTransitioning)) {
+                (!audioEngine.paused || !videoEngine.paused || !fmPlayer.paused || !fmFallbackPlayer.paused || isTransitioning)) {
                 audioCtx.resume().catch(function() {});
             }
         });
+    }
+
+    function connectMediaElementToAudioGraph(el) {
+        if (!audioCtx || !el) return;
+        var source = audioCtx.createMediaElementSource(el);
+        source.connect(analyser);
+        analyser.connect(bassFilter);
+        bassFilter.connect(trebleFilter);
+        trebleFilter.connect(tapeSaturationNode);
+        tapeSaturationNode.connect(tapeDelayNode);
+
+        var pannedOutput = tapeDelayNode;
+        if (stereoPanner) {
+            tapeDelayNode.connect(stereoPanner);
+            pannedOutput = stereoPanner;
+        }
+
+        pannedOutput.connect(channelSplitter);
+        channelSplitter.connect(analyserL, 0);
+        channelSplitter.connect(analyserR, 1);
+
+        pannedOutput.connect(compressor);
     }
 
     function initRealAudioContext() {
@@ -4835,33 +4886,19 @@
 
                 gainNode = audioCtx.createGain();
 
+                tapeHissGain.connect(compressor);
+                vinylCrackleGain.connect(compressor);
+                compressor.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
                 if (!audioSourceConnected) {
-                    var source = audioCtx.createMediaElementSource(hifiAudio);
-
-                    source.connect(analyser);
-                    analyser.connect(bassFilter);
-                    bassFilter.connect(trebleFilter);
-                    trebleFilter.connect(tapeSaturationNode);
-                    tapeSaturationNode.connect(tapeDelayNode);
-
-                    var pannedOutput = tapeDelayNode;
-                    if (stereoPanner) {
-                        tapeDelayNode.connect(stereoPanner);
-                        pannedOutput = stereoPanner;
-                    }
-
-                    pannedOutput.connect(channelSplitter);
-                    channelSplitter.connect(analyserL, 0);
-                    channelSplitter.connect(analyserR, 1);
-
-                    tapeHissGain.connect(compressor);
-                    vinylCrackleGain.connect(compressor);
-
-                    pannedOutput.connect(compressor);
-                    compressor.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-
+                    connectMediaElementToAudioGraph(audioEngine);
                     audioSourceConnected = true;
+                }
+
+                if (!videoSourceConnected) {
+                    connectMediaElementToAudioGraph(videoEngine);
+                    videoSourceConnected = true;
                 }
 
                 if (!fmSourceConnected) {
@@ -5025,7 +5062,9 @@
         var val = parseFloat(volumeSlider.value);
         if (isNaN(val)) val = 1.0;
 
-        hifiAudio.volume = Math.min(1.0, Math.max(0.0, val > 0 ? 1.0 : 0.0));
+        var baseVol = Math.min(1.0, Math.max(0.0, val > 0 ? 1.0 : 0.0));
+        audioEngine.volume = baseVol;
+        videoEngine.volume = baseVol;
         fmPlayer.volume = 1.0;
         fmFallbackPlayer.volume = Math.min(1.0, Math.max(0.0, val > 0 ? Math.min(1.0, val) : 0.0));
 
@@ -5164,7 +5203,7 @@
             return;
         }
 
-        var isAnyAudioActive = !hifiAudio.paused || !fmPlayer.paused || !fmFallbackPlayer.paused;
+        var isAnyAudioActive = !audioEngine.paused || !videoEngine.paused || !fmPlayer.paused || !fmFallbackPlayer.paused;
         if (!isAnyAudioActive) {
             stopMeterAnimations();
             return;
@@ -5314,7 +5353,8 @@
         activeFmKey = key;
         fmMirrorQueue = [];
         fmMirrorIndex = 0;
-        hifiAudio.pause();
+        audioEngine.pause();
+        videoEngine.pause();
         stopAllFmPlayers();
         destroyHls();
         clearLoadGuard();
@@ -5416,33 +5456,35 @@
     function startStreamUrl(title, url) {
         destroyHls();
         clearLoadGuard();
-        hifiAudio.pause();
+        audioEngine.pause();
+        videoEngine.pause();
         stopAllFmPlayers();
 
         currentStreamUrl = url;
         currentTrackTitle.textContent = title;
 
         loadTimeout = setTimeout(function() {
-            if (activeFmKey && hifiAudio.paused && fmPlayer.paused && fmFallbackPlayer.paused) {
+            if (activeFmKey && audioEngine.paused && videoEngine.paused && fmPlayer.paused && fmFallbackPlayer.paused) {
                 fmMirrorIndex++;
                 tryNextFmMirror(title);
             }
         }, 12000);
 
         if (url.includes('.m3u8')) {
+            selectMediaEngine(true);
             if (Hls.isSupported()) {
                 hls = new Hls({
                     manifestLoadingTimeOut: 10000,
                     levelLoadingTimeOut: 10000
                 });
                 hls.loadSource(url);
-                hls.attachMedia(hifiAudio);
+                hls.attachMedia(videoEngine);
 
                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
                     clearLoadGuard();
                     nowPlayingSubtitle.textContent = "LIVE FM RADIO (EQ ACTIVE)";
                     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(function() {});
-                    hifiAudio.play().then(function() { updateRadioLedState(); }).catch(function() {});
+                    videoEngine.play().then(function() { updateRadioLedState(); }).catch(function() {});
                 });
 
                 hls.on(Hls.Events.ERROR, function(event, data) {
@@ -5452,10 +5494,10 @@
                         tryNextFmMirror(title);
                     }
                 });
-            } else if (hifiAudio.canPlayType('application/vnd.apple.mpegurl')) {
-                hifiAudio.src = url;
-                hifiAudio.load();
-                hifiAudio.play().then(function() { updateRadioLedState(); }).catch(function() {});
+            } else if (videoEngine.canPlayType('application/vnd.apple.mpegurl')) {
+                videoEngine.src = url;
+                videoEngine.load();
+                videoEngine.play().then(function() { updateRadioLedState(); }).catch(function() {});
             }
         } else {
             initRealAudioContext();
@@ -5494,7 +5536,8 @@
 
     function exitApp() {
         destroyHls();
-        if (hifiAudio) hifiAudio.pause();
+        audioEngine.pause();
+        videoEngine.pause();
         stopAllFmPlayers();
         stopMeterAnimations();
         if (wakeLock) wakeLock.release().catch(()=>{});
@@ -5866,6 +5909,12 @@
 
         if (mediaFormat === 'radio') applyDeckFormatVisuals(previousNonRadioFormat || 'tape');
 
+        var targetTrack = playlist[index];
+        var isVideo = isPlaylistItemVideo(targetTrack);
+
+        // Route MP3s to dedicated <audio> element (audioEngine) and videos to <video> element (videoEngine)
+        selectMediaEngine(isVideo);
+
         hifiAudio.setAttribute('crossorigin', 'anonymous');
         hifiAudio.loop = isRepeatOne;
 
@@ -5874,8 +5923,6 @@
         nextUpcomingIndex = -1;
         lastPersistedSecond = -1;
 
-        var targetTrack = playlist[currentTrackIndex];
-        var isVideo = isPlaylistItemVideo(targetTrack);
         if (!document.hidden) {
             updateVideoScreenState(isVideo, targetTrack.title);
         }
@@ -6011,64 +6058,153 @@
         playMechanicalSwitchClick();
     }
 
-    hifiAudio.addEventListener('ended', function() {
-        updateRadioLedState();
-        if (isRepeatOne && !activeFmKey) {
-            hifiAudio.currentTime = 0;
-            hifiAudio.play().catch(function(){});
-            return;
-        }
-        if (playlist.length > 0 && !activeFmKey) {
-            isTransitioning = true;
+    // Bind unified playback lifecycle listeners to both audioEngine and videoEngine
+    function bindMediaEngineEvents(engineEl) {
+        engineEl.addEventListener('ended', function() {
+            if (engineEl !== hifiAudio) return;
+            updateRadioLedState();
+            if (isRepeatOne && !activeFmKey) {
+                engineEl.currentTime = 0;
+                engineEl.play().catch(function(){});
+                return;
+            }
+            if (playlist.length > 0 && !activeFmKey) {
+                isTransitioning = true;
 
-            if (shouldRestrictToVideos()) {
-                var nextVidIdx = getNextVideoIndex();
-                if (nextVidIdx !== -1) {
-                    nextUpcomingIndex = -1;
-                    loadTrack(nextVidIdx, true);
-                    return;
+                if (shouldRestrictToVideos()) {
+                    var nextVidIdx = getNextVideoIndex();
+                    if (nextVidIdx !== -1) {
+                        nextUpcomingIndex = -1;
+                        loadTrack(nextVidIdx, true);
+                        return;
+                    }
+                }
+                
+                var targetIndex = (nextUpcomingIndex >= 0 && nextUpcomingIndex < playlist.length) 
+                    ? nextUpcomingIndex 
+                    : determineNextIndex();
+
+                nextUpcomingIndex = -1;
+                loadTrack(targetIndex, true);
+            }
+        });
+
+        engineEl.addEventListener('error', function() {
+            if (engineEl !== hifiAudio) return;
+            clearLoadGuard();
+            updateRadioLedState();
+            if (engineEl.error && engineEl.error.code === 20) return;
+
+            if (activeFmKey && fmStations[activeFmKey]) {
+                fmMirrorIndex++;
+                tryNextFmMirror(fmStations[activeFmKey].title);
+                return;
+            }
+
+            // Retry without CORS restriction if a server blocks crossorigin="anonymous"
+            if (engineEl.hasAttribute('crossorigin') && playlist[currentTrackIndex]) {
+                engineEl.removeAttribute('crossorigin');
+                engineEl.src = cachedBlobUrls[playlist[currentTrackIndex].title] || playlist[currentTrackIndex].src;
+                engineEl.play().catch(function() {});
+                return;
+            }
+
+            consecutiveErrorCount++;
+            if (consecutiveErrorCount > 4) {
+                nowPlayingSubtitle.textContent = "PLAYBACK PAUSED: NETWORK UNSTABLE";
+                isTransitioning = false;
+                stopMeterAnimations();
+                return;
+            }
+
+            nowPlayingSubtitle.textContent = "RETRYING / ADVANCING TRACK...";
+            setTimeout(function() { playNext(); }, 600);
+        });
+
+        engineEl.addEventListener('waiting', function() {
+            if (engineEl !== hifiAudio) return;
+            clearLoadGuard();
+            loadTimeout = setTimeout(function() {
+                if (engineEl.readyState < 2 && !engineEl.paused && !isTransitioning && !activeFmKey) {
+                    isTransitioning = true;
+                    playNext();
+                }
+            }, 8000);
+        });
+
+        engineEl.addEventListener('playing', function() {
+            if (engineEl !== hifiAudio) return;
+            clearLoadGuard();
+            clearTimeout(audioSuspendTimer);
+            isTransitioning = false;
+            consecutiveErrorCount = 0;
+            syncTrackUI();
+            initRealAudioContext();
+            updateFormatNoiseState();
+            playButton.style.display = 'none'; 
+            pauseButton.style.display = 'inline-flex'; 
+            syncDeckVisuals();
+            updateRadioLedState();
+            startMeterAnimations();
+        });
+
+        engineEl.addEventListener('pause', function() { 
+            if (engineEl !== hifiAudio) return;
+            if (engineEl.paused) {
+                updateFormatNoiseState();
+                playButton.style.display = 'inline-flex'; 
+                pauseButton.style.display = 'none'; 
+                syncDeckVisuals();
+                updateRadioLedState();
+                if (!engineEl.ended && !isTransitioning) {
+                    updateMediaSession();
+                }
+                stopMeterAnimations();
+
+                clearTimeout(audioSuspendTimer);
+                audioSuspendTimer = setTimeout(function() {
+                    if (!isTransitioning && !engineEl.ended && engineEl.paused && fmPlayer.paused && fmFallbackPlayer.paused && audioCtx && audioCtx.state === 'running') {
+                        audioCtx.suspend().catch(function() {});
+                    }
+                }, 5000);
+            }
+        });
+
+        engineEl.addEventListener('timeupdate', function() {
+            if (engineEl !== hifiAudio) return;
+            if (!activeFmKey && !isNaN(engineEl.duration) && engineEl.duration > 0) {
+                var cur = engineEl.currentTime;
+                var curSecInt = Math.floor(cur);
+                if (!document.hidden) {
+                    progressSlider.value = cur;
+                    currentTimeSpan.textContent = formatTime(cur);
+                    updateTapeCounter(cur);
+                    syncDeckVisuals();
+                }
+
+                if (curSecInt % 5 === 0 && curSecInt !== lastPersistedSecond) {
+                    lastPersistedSecond = curSecInt;
+                    persistTapeState(currentTrackIndex, cur, !engineEl.paused);
                 }
             }
-            
-            var targetIndex = (nextUpcomingIndex >= 0 && nextUpcomingIndex < playlist.length) 
-                ? nextUpcomingIndex 
-                : determineNextIndex();
+        });
 
-            nextUpcomingIndex = -1;
-            loadTrack(targetIndex, true);
-        }
-    });
+        engineEl.addEventListener('loadedmetadata', function() {
+            if (engineEl !== hifiAudio) return;
+            if (!activeFmKey && !isNaN(engineEl.duration)) {
+                progressSlider.max = engineEl.duration;
+                durationSpan.textContent = formatTime(engineEl.duration);
+            }
+            if (engineEl === videoEngine && videoEngine.videoWidth > 0) {
+                var title = playlist[currentTrackIndex] ? playlist[currentTrackIndex].title : "Video";
+                updateVideoScreenState(true, title);
+            }
+            syncTrackUI();
+        });
+    }
 
-    hifiAudio.addEventListener('error', function() {
-        clearLoadGuard();
-        updateRadioLedState();
-        if (hifiAudio.error && hifiAudio.error.code === 20) return;
-
-        if (activeFmKey && fmStations[activeFmKey]) {
-            fmMirrorIndex++;
-            tryNextFmMirror(fmStations[activeFmKey].title);
-            return;
-        }
-
-        // Retry without CORS restriction if a server blocks crossorigin="anonymous"
-        if (hifiAudio.hasAttribute('crossorigin') && playlist[currentTrackIndex]) {
-            hifiAudio.removeAttribute('crossorigin');
-            hifiAudio.src = cachedBlobUrls[playlist[currentTrackIndex].title] || playlist[currentTrackIndex].src;
-            hifiAudio.play().catch(function() {});
-            return;
-        }
-
-        consecutiveErrorCount++;
-        if (consecutiveErrorCount > 4) {
-            nowPlayingSubtitle.textContent = "PLAYBACK PAUSED: NETWORK UNSTABLE";
-            isTransitioning = false;
-            stopMeterAnimations();
-            return;
-        }
-
-        nowPlayingSubtitle.textContent = "RETRYING / ADVANCING TRACK...";
-        setTimeout(function() { playNext(); }, 600);
-    });
+    bindMediaEngineEvents(audioEngine);
+    bindMediaEngineEvents(videoEngine);
 
     fmPlayer.addEventListener('error', function() {
         clearLoadGuard();
@@ -6092,86 +6228,10 @@
         });
     });
 
-    hifiAudio.addEventListener('waiting', function() {
-        clearLoadGuard();
-        loadTimeout = setTimeout(function() {
-            if (hifiAudio.readyState < 2 && !hifiAudio.paused && !isTransitioning && !activeFmKey) {
-                isTransitioning = true;
-                playNext();
-            }
-        }, 8000);
-    });
-
-    hifiAudio.addEventListener('playing', () => {
-        clearLoadGuard();
-        clearTimeout(audioSuspendTimer);
-        isTransitioning = false;
-        consecutiveErrorCount = 0;
-        syncTrackUI();
-        initRealAudioContext();
-        updateFormatNoiseState();
-        playButton.style.display = 'none'; 
-        pauseButton.style.display = 'inline-flex'; 
-        syncDeckVisuals();
-        updateRadioLedState();
-        startMeterAnimations();
-    });
-
-    hifiAudio.addEventListener('pause', () => { 
-        if (hifiAudio.paused) {
-            updateFormatNoiseState();
-            playButton.style.display = 'inline-flex'; 
-            pauseButton.style.display = 'none'; 
-            syncDeckVisuals();
-            updateRadioLedState();
-            if (!hifiAudio.ended && !isTransitioning) {
-                updateMediaSession();
-            }
-            stopMeterAnimations();
-
-            clearTimeout(audioSuspendTimer);
-            audioSuspendTimer = setTimeout(function() {
-                if (!isTransitioning && !hifiAudio.ended && hifiAudio.paused && fmPlayer.paused && fmFallbackPlayer.paused && audioCtx && audioCtx.state === 'running') {
-                    audioCtx.suspend().catch(function() {});
-                }
-            }, 5000);
-        }
-    });
-
-    hifiAudio.addEventListener('timeupdate', () => {
-        if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
-            var cur = hifiAudio.currentTime;
-            var curSecInt = Math.floor(cur);
-            if (!document.hidden) {
-                progressSlider.value = cur;
-                currentTimeSpan.textContent = formatTime(cur);
-                updateTapeCounter(cur);
-                syncDeckVisuals();
-            }
-
-            if (curSecInt % 5 === 0 && curSecInt !== lastPersistedSecond) {
-                lastPersistedSecond = curSecInt;
-                persistTapeState(currentTrackIndex, cur, !hifiAudio.paused);
-            }
-        }
-    });
-
     window.addEventListener('beforeunload', function() {
         if (!activeFmKey && !isNaN(hifiAudio.currentTime)) {
             persistTapeState(currentTrackIndex, hifiAudio.currentTime, !hifiAudio.paused);
         }
-    });
-
-    hifiAudio.addEventListener('loadedmetadata', () => {
-        if (!activeFmKey && !isNaN(hifiAudio.duration)) {
-            progressSlider.max = hifiAudio.duration;
-            durationSpan.textContent = formatTime(hifiAudio.duration);
-        }
-        if (hifiAudio.videoWidth > 0) {
-            var title = playlist[currentTrackIndex] ? playlist[currentTrackIndex].title : "Video";
-            updateVideoScreenState(true, title);
-        }
-        syncTrackUI();
     });
 
     volumeSlider.addEventListener('input', () => applyVolumeGain());
@@ -6272,7 +6332,7 @@
         if (!frame) return;
         frame.classList.remove('fs-hud-hidden');
         clearTimeout(fsHudHideTimer);
-        if (isVideoFullscreenActive() && !hifiAudio.paused) {
+        if (isVideoFullscreenActive() && !videoEngine.paused) {
             fsHudHideTimer = setTimeout(function() {
                 frame.classList.add('fs-hud-hidden');
             }, 3500);
@@ -6318,27 +6378,27 @@
             });
         }
 
-        hifiAudio.addEventListener('loadedmetadata', function() {
-            if (!activeFmKey && !isNaN(hifiAudio.duration)) {
-                if (fsSlider) fsSlider.max = hifiAudio.duration;
-                if (fsDurTime) fsDurTime.textContent = formatTime(hifiAudio.duration);
+        videoEngine.addEventListener('loadedmetadata', function() {
+            if (!activeFmKey && !isNaN(videoEngine.duration)) {
+                if (fsSlider) fsSlider.max = videoEngine.duration;
+                if (fsDurTime) fsDurTime.textContent = formatTime(videoEngine.duration);
             }
             if (fsTitle && playlist[currentTrackIndex]) {
                 fsTitle.textContent = playlist[currentTrackIndex].title;
             }
         });
 
-        hifiAudio.addEventListener('timeupdate', function() {
-            if (!activeFmKey && !isNaN(hifiAudio.duration) && hifiAudio.duration > 0) {
-                if (fsSlider) fsSlider.value = hifiAudio.currentTime;
-                if (fsCurTime) fsCurTime.textContent = formatTime(hifiAudio.currentTime);
+        videoEngine.addEventListener('timeupdate', function() {
+            if (!activeFmKey && !isNaN(videoEngine.duration) && videoEngine.duration > 0) {
+                if (fsSlider) fsSlider.value = videoEngine.currentTime;
+                if (fsCurTime) fsCurTime.textContent = formatTime(videoEngine.currentTime);
                 if (fsTitle && playlist[currentTrackIndex]) {
                     fsTitle.textContent = playlist[currentTrackIndex].title;
                 }
             }
         });
 
-        hifiAudio.addEventListener('playing', function() {
+        videoEngine.addEventListener('playing', function() {
             if (fsPlayBtn) fsPlayBtn.style.display = 'none';
             if (fsPauseBtn) fsPauseBtn.style.display = 'inline-flex';
             if (fsTitle && playlist[currentTrackIndex]) {
@@ -6347,7 +6407,7 @@
             resetFsHudTimer();
         });
 
-        hifiAudio.addEventListener('pause', function() {
+        videoEngine.addEventListener('pause', function() {
             if (fsPlayBtn) fsPlayBtn.style.display = 'inline-flex';
             if (fsPauseBtn) fsPauseBtn.style.display = 'none';
             if (frame) frame.classList.remove('fs-hud-hidden');
